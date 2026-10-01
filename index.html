@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>East Gate Real-Estate — Everything Housing. One Premium Destination.</title>
+<meta name="description" content="Discover properties, land, professionals, materials and services for every stage of your housing journey.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+
+<style>
+/* ============================================================
+   00 — TOKENS
+   ============================================================ */
+:root{
+  --obsidian:#111111;
+  --obsidian-deep:#0B0B0B;
+  --ivory:#F5F2EA;
+  --ivory-tint:#EDE9DE;
+  --gold:#C6A15B;
+  --gold-ink:#9A7634;
+  --gold-soft:#D8BC85;
+  --stone:#8A877F;
+
+  --line-dark:rgba(17,17,17,.13);
+  --line-dark-soft:rgba(17,17,17,.07);
+  --line-light:rgba(245,242,234,.14);
+  --line-light-soft:rgba(245,242,234,.07);
+
+  --ink-60:rgba(17,17,17,.60);
+  --ink-45:rgba(17,17,17,.45);
+  --ivory-62:rgba(245,242,234,.62);
+  --ivory-40:rgba(245,242,234,.40);
+
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+
+  --r-sm:4px;
+  --r-md:6px;
+  --r-lg:8px;
+
+  --shadow-panel:0 40px 80px -30px rgba(17,17,17,.35), 0 12px 30px -14px rgba(17,17,17,.22);
+  --shadow-card:0 26px 50px -28px rgba(17,17,17,.45);
+}
+
+/* ============================================================
+   01 — RESET / BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html{
+  scroll-behavior:smooth;
+  scroll-padding-top:96px;
+  -webkit-text-size-adjust:100%;
+}
+
+body{
+  background:var(--ivory);
+  color:var(--obsidian);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;
+  font-weight:400;
+  line-height:1.65;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit;background:none;border:none;outline:none}
+button{cursor:pointer}
+ul{list-style:none}
+
+h1,h2,h3,h4{
+  font-family:'Playfair Display',Georgia,'Times New Roman',serif;
+  font-weight:500;
+  line-height:1.08;
+  letter-spacing:-.02em;
+}
+
+::selection{background:var(--gold);color:var(--obsidian)}
+
+:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+  border-radius:2px;
+}
+
+/* ============================================================
+   02 — LAYOUT PRIMITIVES
+   ============================================================ */
+.container{
+  width:100%;
+  max-width:1340px;
+  margin:0 auto;
+  padding:0 48px;
+}
+
+.section{padding:clamp(88px,11vw,152px) 0;position:relative}
+
+.section--dark{background:var(--obsidian);color:var(--ivory)}
+.section--deep{background:var(--obsidian-deep);color:var(--ivory)}
+.section--tint{background:var(--ivory-tint)}
+
+.hairline{height:1px;background:var(--line-dark-soft);border:0}
+.section--dark .hairline,.section--deep .hairline{background:var(--line-light-soft)}
+
+/* ============================================================
+   03 — TYPOGRAPHY HELPERS
+   ============================================================ */
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:14px;
+  font-size:.68rem;
+  font-weight:500;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--gold-ink);
+  line-height:1;
+}
+.eyebrow::before{
+  content:'';
+  width:28px;
+  height:1px;
+  background:currentColor;
+  opacity:.55;
+  flex:none;
+}
+.section--dark .eyebrow,
+.section--deep .eyebrow,
+.hero .eyebrow{color:var(--gold)}
+
+.display{
+  font-size:clamp(2.15rem,4.6vw,3.7rem);
+  line-height:1.06;
+}
+
+.lede{
+  font-size:clamp(1rem,1.15vw,1.075rem);
+  color:var(--ink-60);
+  font-weight:300;
+  max-width:56ch;
+  line-height:1.75;
+}
+.section--dark .lede,
+.section--deep .lede{color:var(--ivory-62)}
+
+.sec-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:48px;
+  margin-bottom:clamp(48px,6vw,76px);
+}
+.sec-head__text{max-width:640px}
+.sec-head .eyebrow{margin-bottom:22px}
+.sec-head h2{margin-bottom:20px}
+
+.link-arrow{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-size:.78rem;
+  font-weight:500;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  padding-bottom:6px;
+  border-bottom:1px solid var(--line-dark);
+  transition:border-color .45s var(--ease), color .45s var(--ease);
+}
+.link-arrow svg{transition:transform .45s var(--ease)}
+.link-arrow:hover{border-color:var(--gold);color:var(--gold-ink)}
+.link-arrow:hover svg{transform:translateX(5px)}
+.section--dark .link-arrow,
+.section--deep .link-arrow{border-color:var(--line-light)}
+.section--dark .link-arrow:hover,
+.section--deep .link-arrow:hover{color:var(--gold);border-color:var(--gold)}
+
+/* ============================================================
+   04 — BUTTONS
+   ============================================================ */
+.btn{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:16px 32px;
+  font-size:.75rem;
+  font-weight:500;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  border-radius:var(--r-sm);
+  overflow:hidden;
+  isolation:isolate;
+  transition:color .5s var(--ease), border-color .5s var(--ease), transform .5s var(--ease);
+  white-space:nowrap;
+}
+.btn::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  transform:scaleY(0);
+  transform-origin:bottom;
+  transition:transform .55s var(--ease);
+}
+.btn:hover::after{transform:scaleY(1)}
+.btn:active{transform:translateY(1px)}
+
+.btn--gold{background:var(--gold);color:var(--obsidian)}
+.btn--gold::after{background:var(--ivory)}
+
+.btn--obsidian{background:var(--obsidian);color:var(--ivory)}
+.btn--obsidian::after{background:var(--gold)}
+.btn--obsidian:hover{color:var(--obsidian)}
+
+.btn--ghost{
+  border:1px solid var(--line-light);
+  color:var(--ivory);
+}
+.btn--ghost::after{background:var(--ivory)}
+.btn--ghost:hover{color:var(--obsidian);border-color:var(--ivory)}
+
+.btn--outline{
+  border:1px solid rgba(17,17,17,.22);
+  color:var(--obsidian);
+}
+.btn--outline::after{background:var(--obsidian)}
+.btn--outline:hover{color:var(--ivory);border-color:var(--obsidian)}
+
+.btn--sm{padding:12px 22px;font-size:.68rem;letter-spacing:.14em}
+
+.btn svg{transition:transform .5s var(--ease)}
+.btn:hover svg{transform:translateX(4px)}
+
+/* ============================================================
+   05 — REVEAL SYSTEM
+   ============================================================ */
+.js .reveal{
+  opacity:0;
+  transform:translateY(26px);
+  transition:opacity 1s var(--ease), transform 1.05s var(--ease);
+  transition-delay:var(--d,0s);
+  will-change:opacity,transform;
+}
+.js .reveal.is-visible{opacity:1;transform:none}
+
+.js .reveal-img{
+  clip-path:inset(0 0 100% 0);
+  transition:clip-path 1.3s var(--ease);
+  transition-delay:var(--d,0s);
+}
+.js .reveal-img.is-visible{clip-path:inset(0 0 0 0)}
+
+/* ============================================================
+   06 — SCROLL PROGRESS
+   ============================================================ */
+.progress{
+  position:fixed;
+  top:0;left:0;
+  height:2px;
+  width:100%;
+  background:var(--gold);
+  transform:scaleX(0);
+  transform-origin:left center;
+  z-index:300;
+  pointer-events:none;
+}
+
+/* ============================================================
+   07 — NAVBAR
+   ============================================================ */
+.nav{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:120;
+  transition:background-color .6s var(--ease), backdrop-filter .6s var(--ease), border-color .6s var(--ease), padding .5s var(--ease);
+  border-bottom:1px solid transparent;
+  padding:6px 0;
+}
+.nav.is-scrolled{
+  background:rgba(11,11,11,.82);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  border-bottom-color:var(--line-light-soft);
+}
+
+.nav__inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:40px;
+  height:76px;
+}
+
+/* Brand */
+.brand{display:inline-flex;align-items:center;gap:12px;flex:none}
+.brand__mark{
+  width:26px;height:26px;
+  color:var(--gold);
+  flex:none;
+  transition:transform .7s var(--ease);
+}
+.brand:hover .brand__mark{transform:translateY(-2px)}
+.brand__name{
+  font-family:'Playfair Display',serif;
+  font-size:1.02rem;
+  font-weight:500;
+  letter-spacing:.26em;
+  color:var(--ivory);
+  line-height:1;
+}
+.brand__name span{color:var(--gold)}
+
+/* Links */
+.nav__links{
+  display:flex;
+  align-items:center;
+  gap:40px;
+}
+.nav__links a{
+  position:relative;
+  font-size:.79rem;
+  font-weight:400;
+  letter-spacing:.05em;
+  color:rgba(245,242,234,.78);
+  padding:6px 0;
+  transition:color .45s var(--ease);
+}
+.nav__links a::after{
+  content:'';
+  position:absolute;
+  left:0;bottom:0;
+  width:100%;height:1px;
+  background:var(--gold);
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .55s var(--ease);
+}
+.nav__links a:hover{color:var(--ivory)}
+.nav__links a:hover::after,
+.nav__links a.is-active::after{transform:scaleX(1)}
+.nav__links a.is-active{color:var(--gold)}
+
+.nav__actions{display:flex;align-items:center;gap:26px;flex:none}
+.nav__signin{
+  font-size:.79rem;
+  color:rgba(245,242,234,.78);
+  letter-spacing:.05em;
+  transition:color .45s var(--ease);
+}
+.nav__signin:hover{color:var(--gold)}
+
+/* Burger */
+.nav__burger{
+  display:none;
+  width:44px;height:44px;
+  position:relative;
+  flex:none;
+  margin-right:-10px;
+}
+.nav__burger span{
+  position:absolute;
+  left:11px;
+  width:22px;height:1.4px;
+  background:var(--ivory);
+  border-radius:2px;
+  transition:transform .55s var(--ease), opacity .35s var(--ease);
+}
+.nav__burger span:nth-child(1){top:18px}
+.nav__burger span:nth-child(2){top:25px}
+.nav__burger.is-open span:nth-child(1){transform:translateY(3.5px) rotate(45deg)}
+.nav__burger.is-open span:nth-child(2){transform:translateY(-3.5px) rotate(-45deg)}
+
+/* Mobile menu */
+.menu{
+  position:fixed;
+  inset:0;
+  z-index:110;
+  background:var(--obsidian-deep);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:120px 32px 56px;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .55s var(--ease), visibility .55s;
+}
+.menu.is-open{opacity:1;visibility:visible}
+.menu__links{display:flex;flex-direction:column;gap:6px}
+.menu__links a{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.9rem,8vw,2.6rem);
+  color:var(--ivory);
+  padding:10px 0;
+  border-bottom:1px solid var(--line-light-soft);
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease), color .4s var(--ease);
+}
+.menu.is-open .menu__links a{opacity:1;transform:none}
+.menu__links a:hover{color:var(--gold)}
+.menu__foot{
+  margin-top:52px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .7s var(--ease) .32s, transform .7s var(--ease) .32s;
+}
+.menu.is-open .menu__foot{opacity:1;transform:none}
+
+/* ============================================================
+   08 — HERO
+   ============================================================ */
+.hero{
+  position:relative;
+  min-height:100vh;
+  min-height:100svh;
+  display:flex;
+  align-items:center;
+  background:var(--obsidian);
+  overflow:hidden;
+  padding:150px 0 210px;
+}
+
+.hero__media{
+  position:absolute;
+  inset:-8% 0 -8% 0;
+  will-change:transform;
+}
+.hero__media img{
+  width:100%;height:100%;
+  object-fit:cover;
+  object-position:center 55%;
+  transform:scale(1.14);
+  transition:transform 3s var(--ease);
+}
+body.is-loaded .hero__media img{transform:scale(1.01)}
+
+.hero__veil{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg,rgba(11,11,11,.86) 0%,rgba(11,11,11,.42) 32%,rgba(11,11,11,.50) 62%,rgba(11,11,11,.94) 100%),
+    linear-gradient(90deg,rgba(11,11,11,.55) 0%,rgba(11,11,11,.05) 60%);
+}
+.hero__grain{
+  position:absolute;
+  inset:0;
+  opacity:.045;
+  pointer-events:none;
+  background-image:radial-gradient(rgba(245,242,234,.9) .5px,transparent .5px);
+  background-size:3px 3px;
+}
+
+.hero__content{position:relative;z-index:3;max-width:1000px}
+
+.hero__eyebrow{margin-bottom:34px}
+
+.hero h1{
+  font-size:clamp(2.7rem,7.4vw,6.2rem);
+  line-height:1.02;
+  letter-spacing:-.035em;
+  color:var(--ivory);
+  margin-bottom:34px;
+}
+.hero h1 em{
+  display:block;
+  font-style:italic;
+  font-weight:400;
+  color:var(--gold);
+  letter-spacing:-.03em;
+}
+
+.hero__sub{
+  font-size:clamp(1rem,1.35vw,1.16rem);
+  font-weight:300;
+  line-height:1.75;
+  color:rgba(245,242,234,.72);
+  max-width:52ch;
+  margin-bottom:44px;
+}
+
+.hero__meta{
+  display:flex;
+  align-items:center;
+  gap:34px;
+  flex-wrap:wrap;
+}
+.hero__meta-item{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  font-size:.74rem;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:rgba(245,242,234,.55);
+}
+.hero__meta-item svg{color:var(--gold);flex:none}
+
+/* Hero entrance */
+.hero__eyebrow,.hero h1,.hero__sub,.hero__meta{
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity 1.1s var(--ease), transform 1.15s var(--ease);
+}
+body.is-loaded .hero__eyebrow{opacity:1;transform:none;transition-delay:.18s}
+body.is-loaded .hero h1{opacity:1;transform:none;transition-delay:.30s}
+body.is-loaded .hero__sub{opacity:1;transform:none;transition-delay:.46s}
+body.is-loaded .hero__meta{opacity:1;transform:none;transition-delay:.60s}
+
+/* Scroll cue */
+.hero__cue{
+  position:absolute;
+  bottom:34px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:4;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  opacity:0;
+  transition:opacity 1s var(--ease) 1.4s;
+}
+body.is-loaded .hero__cue{opacity:.55}
+.hero__cue span{
+  font-size:.6rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--ivory);
+}
+.hero__cue i{
+  display:block;
+  width:1px;height:44px;
+  background:linear-gradient(180deg,var(--gold),transparent);
+  animation:cue 2.6s var(--ease-soft) infinite;
+  transform-origin:top;
+}
+@keyframes cue{
+  0%{transform:scaleY(0);opacity:0}
+  35%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(1);opacity:0}
+}
+
+/* ============================================================
+   09 — SEARCH PANEL
+   ============================================================ */
+.search-wrap{
+  position:relative;
+  z-index:20;
+  margin-top:-118px;
+  padding-bottom:6px;
+}
+.search{
+  background:var(--ivory);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-panel);
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(34px);
+  transition:opacity 1.1s var(--ease) .75s, transform 1.15s var(--ease) .75s;
+}
+body.is-loaded .search{opacity:1;transform:none}
+
+.search__tabs{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:0 22px;
+  border-bottom:1px solid var(--line-dark-soft);
+}
+.tab{
+  position:relative;
+  padding:20px 20px 18px;
+  font-size:.76rem;
+  font-weight:500;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--stone);
+  transition:color .45s var(--ease);
+}
+.tab::after{
+  content:'';
+  position:absolute;
+  left:20px;right:20px;bottom:-1px;
+  height:1.5px;
+  background:var(--gold);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .55s var(--ease);
+}
+.tab:hover{color:var(--obsidian)}
+.tab.is-active{color:var(--obsidian)}
+.tab.is-active::after{transform:scaleX(1)}
+
+.search__fields{
+  display:grid;
+  grid-template-columns:1.15fr 1.15fr 1fr auto;
+  align-items:stretch;
+}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  padding:22px 26px 24px;
+  border-left:1px solid var(--line-dark-soft);
+  position:relative;
+  cursor:pointer;
+}
+.field:first-child{border-left:0}
+.field__label{
+  font-size:.61rem;
+  font-weight:500;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--stone);
+  pointer-events:none;
+}
+.field__control{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.field select{
+  appearance:none;
+  -webkit-appearance:none;
+  width:100%;
+  font-size:.94rem;
+  font-weight:400;
+  color:var(--obsidian);
+  cursor:pointer;
+  padding-right:22px;
+  background:transparent;
+}
+.field select option{color:var(--obsidian)}
+.field__chev{
+  position:absolute;
+  right:26px;
+  bottom:26px;
+  pointer-events:none;
+  color:var(--stone);
+  transition:transform .45s var(--ease), color .45s var(--ease);
+}
+.field:hover .field__chev{color:var(--gold-ink);transform:translateY(2px)}
+
+.search__btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:0 46px;
+  background:var(--obsidian);
+  color:var(--ivory);
+  font-size:.75rem;
+  font-weight:500;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  transition:color .5s var(--ease);
+}
+.search__btn::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:var(--gold);
+  z-index:-1;
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .6s var(--ease);
+}
+.search__btn:hover{color:var(--obsidian)}
+.search__btn:hover::after{transform:scaleX(1)}
+.search__btn svg{transition:transform .5s var(--ease)}
+.search__btn:hover svg{transform:translateX(5px)}
+
+/* ============================================================
+   10 — FEATURED PROPERTIES
+   ============================================================ */
+.prop-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:30px;
+}
+
+.prop-card{
+  background:var(--ivory);
+  border:1px solid var(--line-dark-soft);
+  border-radius:var(--r-md);
+  overflow:hidden;
+  transition:transform .7s var(--ease), box-shadow .7s var(--ease), border-color .7s var(--ease);
+  will-change:transform;
+}
+.prop-card:hover{
+  transform:translateY(-8px);
+  box-shadow:var(--shadow-card);
+  border-color:rgba(198,161,91,.4);
+}
+
+.prop-card__media{
+  position:relative;
+  aspect-ratio:4/3;
+  overflow:hidden;
+  background:linear-gradient(140deg,#1a1a1a,#2b2b2b);
+}
+.prop-card__media img{
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform 1.4s var(--ease), filter 1.4s var(--ease);
+}
+.prop-card:hover .prop-card__media img{transform:scale(1.06)}
+
+.prop-card__badge{
+  position:absolute;
+  top:16px;left:16px;
+  padding:7px 13px;
+  font-size:.6rem;
+  font-weight:500;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  background:rgba(245,242,234,.94);
+  color:var(--obsidian);
+  border-radius:var(--r-sm);
+  backdrop-filter:blur(6px);
+}
+.prop-card__save{
+  position:absolute;
+  top:14px;right:14px;
+  width:38px;height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(11,11,11,.42);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  color:var(--ivory);
+  transition:background-color .5s var(--ease), color .5s var(--ease), transform .5s var(--ease);
+}
+.prop-card__save:hover{background:var(--gold);color:var(--obsidian);transform:scale(1.06)}
+
+.prop-card__body{padding:26px 26px 28px}
+
+.prop-card__title{
+  font-size:1.24rem;
+  line-height:1.28;
+  margin-bottom:9px;
+  transition:color .5s var(--ease);
+}
+.prop-card:hover .prop-card__title{color:var(--gold-ink)}
+
+.prop-card__loc{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:.83rem;
+  color:var(--stone);
+  margin-bottom:22px;
+}
+.prop-card__loc svg{flex:none;color:var(--gold-ink);opacity:.85}
+
+.prop-card__price{
+  font-size:1.32rem;
+  font-weight:500;
+  letter-spacing:-.01em;
+  color:var(--obsidian);
+  padding-bottom:22px;
+  margin-bottom:20px;
+  border-bottom:1px solid var(--line-dark-soft);
+}
+
+.prop-card__specs{
+  display:flex;
+  align-items:center;
+  gap:0;
+}
+.prop-card__specs li{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:.78rem;
+  color:var(--ink-60);
+  padding-right:20px;
+  margin-right:20px;
+  border-right:1px solid var(--line-dark-soft);
+}
+.prop-card__specs li:last-child{border-right:0;padding-right:0;margin-right:0}
+.prop-card__specs svg{color:var(--stone);flex:none;transition:color .5s var(--ease)}
+.prop-card:hover .prop-card__specs svg{color:var(--gold-ink)}
+
+/* ============================================================
+   11 — PROPERTY TYPES
+   ============================================================ */
+.types-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  grid-auto-rows:216px;
+  gap:14px;
+}
+.type{
+  position:relative;
+  overflow:hidden;
+  border-radius:var(--r-md);
+  display:flex;
+  align-items:flex-end;
+  grid-column:span 2;
+  background:#1a1a1a;
+}
+.type:nth-child(1),
+.type:nth-child(2){grid-column:span 3;grid-row:span 2}
+
+.type img{
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform 1.6s var(--ease), filter 1.2s var(--ease);
+  filter:saturate(.9);
+}
+.type:hover img{transform:scale(1.07);filter:saturate(1.05)}
+
+.type__veil{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(11,11,11,.06) 0%,rgba(11,11,11,.34) 52%,rgba(11,11,11,.86) 100%);
+  transition:opacity .8s var(--ease);
+}
+.type:hover .type__veil{opacity:.92}
+
+.type__content{
+  position:relative;
+  z-index:2;
+  padding:30px 32px;
+  width:100%;
+}
+.type__index{
+  display:block;
+  font-size:.6rem;
+  letter-spacing:.26em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:12px;
+  opacity:.85;
+}
+.type h3{
+  font-size:clamp(1.25rem,1.9vw,1.75rem);
+  color:var(--ivory);
+  margin-bottom:0;
+  transition:transform .7s var(--ease);
+}
+.type__desc{
+  display:grid;
+  grid-template-rows:1fr;
+  opacity:1;
+  transition:grid-template-rows .6s var(--ease), opacity .5s var(--ease);
+}
+.type__desc > span{
+  overflow:hidden;
+}
+.type__desc p{
+  font-size:.85rem;
+  font-weight:300;
+  color:rgba(245,242,234,.7);
+  padding-top:10px;
+  max-width:34ch;
+}
+@media (hover:hover){
+  .type__desc{grid-template-rows:0fr;opacity:0}
+  .type:hover .type__desc{grid-template-rows:1fr;opacity:1}
+  .type:hover h3{transform:translateY(-2px)}
+}
+
+.type__arrow{
+  position:absolute;
+  top:26px;right:26px;
+  z-index:2;
+  width:38px;height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  border:1px solid rgba(245,242,234,.22);
+  color:var(--ivory);
+  opacity:0;
+  transform:translate(-6px,6px);
+  transition:opacity .6s var(--ease), transform .6s var(--ease), background-color .5s var(--ease), color .5s var(--ease), border-color .5s var(--ease);
+}
+.type:hover .type__arrow{
+  opacity:1;
+  transform:none;
+  background:var(--gold);
+  border-color:var(--gold);
+  color:var(--obsidian);
+}
+
+/* ============================================================
+   12 — ECOSYSTEM
+   ============================================================ */
+.eco-head{max-width:720px;margin-bottom:clamp(58px,7vw,88px)}
+.eco-head .eyebrow{margin-bottom:22px}
+.eco-head h2{margin-bottom:24px}
+
+.eco{position:relative}
+
+.eco__hub{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+}
+.eco__word{
+  font-family:'Playfair Display',serif;
+  font-size:1.02rem;
+  letter-spacing:.34em;
+  text-transform:uppercase;
+  color:var(--obsidian);
+  padding-left:.34em;
+}
+.eco__dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--gold);
+  margin-top:22px;
+  position:relative;
+}
+.eco__dot::after{
+  content:'';
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  border:1px solid rgba(198,161,91,.35);
+  animation:pulse 3.4s var(--ease-soft) infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(.7);opacity:.9}
+  70%{transform:scale(1.5);opacity:0}
+  100%{transform:scale(1.5);opacity:0}
+}
+
+.eco__stem{
+  width:1px;
+  height:64px;
+  background:var(--line-dark);
+  margin:0 auto;
+  transform:scaleY(0);
+  transform-origin:top center;
+  transition:transform .7s var(--ease) .15s;
+}
+.eco.is-visible .eco__stem{transform:scaleY(1)}
+
+.eco__grid{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding-top:56px;
+}
+.eco__branch{
+  position:absolute;
+  top:0;
+  left:12.5%;
+  right:12.5%;
+  height:1px;
+  background:var(--line-dark);
+  transform:scaleX(0);
+  transform-origin:center;
+  transition:transform .9s var(--ease) .6s;
+}
+.eco.is-visible .eco__branch{transform:scaleX(1)}
+
+.eco-card{
+  position:relative;
+  padding:0 34px;
+  border-left:1px solid var(--line-dark-soft);
+}
+.eco-card:first-child{border-left:0;padding-left:0}
+.eco-card:last-child{padding-right:0}
+
+.eco-card::before{
+  content:'';
+  position:absolute;
+  top:-56px;
+  left:50%;
+  width:1px;
+  height:56px;
+  background:var(--line-dark);
+  transform:scaleY(0);
+  transform-origin:top center;
+  transition:transform .5s var(--ease);
+}
+.eco.is-visible .eco-card::before{transform:scaleY(1)}
+.eco.is-visible .eco-card:nth-child(2)::before{transition-delay:.72s}
+.eco.is-visible .eco-card:nth-child(3)::before{transition-delay:.80s}
+.eco.is-visible .eco-card:nth-child(4)::before{transition-delay:.88s}
+.eco.is-visible .eco-card:nth-child(5)::before{transition-delay:.96s}
+
+.eco-card__icon{
+  width:44px;height:44px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--line-dark);
+  border-radius:var(--r-sm);
+  color:var(--gold-ink);
+  margin-bottom:26px;
+  transition:background-color .6s var(--ease), color .6s var(--ease), border-color .6s var(--ease), transform .6s var(--ease);
+}
+.eco-card:hover .eco-card__icon{
+  background:var(--obsidian);
+  border-color:var(--obsidian);
+  color:var(--gold);
+  transform:translateY(-3px);
+}
+.eco-card__tag{
+  display:block;
+  font-size:.6rem;
+  letter-spacing:.26em;
+  text-transform:uppercase;
+  color:var(--stone);
+  margin-bottom:12px;
+}
+.eco-card h3{
+  font-size:1.42rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-family:'Inter',sans-serif;
+  font-weight:500;
+  margin-bottom:14px;
+}
+.eco-card p{
+  font-size:.92rem;
+  font-weight:300;
+  line-height:1.7;
+  color:var(--ink-60);
+  max-width:26ch;
+}
+
+/* ============================================================
+   13 — PROFESSIONALS
+   ============================================================ */
+.pros-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--line-dark-soft);
+  border:1px solid var(--line-dark-soft);
+  border-radius:var(--r-md);
+  overflow:hidden;
+}
+.pro{
+  background:var(--ivory-tint);
+  padding:44px 38px 40px;
+  position:relative;
+  transition:background-color .6s var(--ease);
+  display:flex;
+  flex-direction:column;
+  min-height:250px;
+}
+.pro:hover{background:var(--ivory)}
+.pro__icon{
+  width:40px;height:40px;
+  color:var(--gold-ink);
+  margin-bottom:28px;
+  transition:transform .7s var(--ease);
+}
+.pro:hover .pro__icon{transform:translateY(-3px)}
+.pro h3{
+  font-size:1.22rem;
+  margin-bottom:12px;
+}
+.pro p{
+  font-size:.88rem;
+  font-weight:300;
+  line-height:1.7;
+  color:var(--ink-60);
+  margin-bottom:auto;
+  max-width:30ch;
+}
+.pro__link{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  margin-top:26px;
+  font-size:.68rem;
+  font-weight:500;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--stone);
+  transition:color .5s var(--ease), gap .5s var(--ease);
+}
+.pro:hover .pro__link{color:var(--gold-ink);gap:14px}
+
+.pro-flow{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:14px 20px;
+  margin-top:52px;
+  padding-top:38px;
+  border-top:1px solid var(--line-dark-soft);
+}
+.pro-flow__label{
+  font-size:.66rem;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--stone);
+  margin-right:8px;
+}
+.pro-flow__step{
+  font-size:.82rem;
+  color:var(--ink-60);
+  transition:color .5s var(--ease);
+}
+.pro-flow__step:hover{color:var(--gold-ink)}
+.pro-flow svg{color:var(--gold-ink);opacity:.55;flex:none}
+
+/* ============================================================
+   14 — BUILD & FURNISH
+   ============================================================ */
+.build{overflow:hidden}
+.build__grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+}
+.build__media{
+  position:relative;
+  min-height:min(76vh,700px);
+  overflow:hidden;
+  background:#1a1a1a;
+}
+.build__media img{
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  transform:scale(1.02);
+  transition:transform 2.4s var(--ease);
+}
+.build__media:hover img{transform:scale(1.06)}
+.build__media::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,rgba(11,11,11,0) 60%,rgba(11,11,11,.35) 100%);
+}
+
+.build__body{
+  padding:clamp(64px,7vw,110px) clamp(32px,6vw,96px) clamp(64px,7vw,110px) clamp(40px,6vw,110px);
+  max-width:760px;
+}
+.build__body .eyebrow{margin-bottom:24px}
+.build__body h2{margin-bottom:26px}
+.build__body > p{margin-bottom:44px}
+
+.build__list{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px 40px;
+  margin-bottom:48px;
+}
+.build__list li{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:15px 0;
+  font-size:.9rem;
+  font-weight:300;
+  color:rgba(245,242,234,.72);
+  border-bottom:1px solid var(--line-light-soft);
+  transition:color .5s var(--ease), border-color .5s var(--ease), padding-left .5s var(--ease);
+}
+.build__list li::before{
+  content:'';
+  width:5px;height:5px;
+  background:var(--gold);
+  flex:none;
+  transform:rotate(45deg);
+  transition:transform .6s var(--ease);
+}
+.build__list li:hover{
+  color:var(--ivory);
+  border-color:rgba(198,161,91,.4);
+  padding-left:6px;
+}
+.build__list li:hover::before{transform:rotate(45deg) scale(1.4)}
+
+/* ============================================================
+   15 — WHY EAST GATE
+   ============================================================ */
+.why-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  margin-top:clamp(48px,6vw,72px);
+}
+.why-item{
+  padding:0 40px;
+  border-left:1px solid var(--line-dark-soft);
+}
+.why-item:first-child{border-left:0;padding-left:0}
+.why-item:last-child{padding-right:0}
+.why-item__index{
+  display:block;
+  font-size:.62rem;
+  letter-spacing:.26em;
+  color:var(--gold-ink);
+  margin-bottom:22px;
+}
+.why-item h3{
+  font-size:1.32rem;
+  margin-bottom:14px;
+}
+.why-item p{
+  font-size:.9rem;
+  font-weight:300;
+  line-height:1.72;
+  color:var(--ink-60);
+  max-width:26ch;
+}
+
+/* ============================================================
+   16 — FINAL CTA
+   ============================================================ */
+.cta{
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+  padding:clamp(110px,14vw,180px) 0;
+}
+.cta::before{
+  content:'';
+  position:absolute;
+  top:-45%;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(1000px,120vw);
+  aspect-ratio:1;
+  background:radial-gradient(circle,rgba(198,161,91,.14) 0%,rgba(198,161,91,.05) 38%,transparent 66%);
+  pointer-events:none;
+}
+.cta__inner{position:relative;z-index:2;max-width:820px;margin:0 auto}
+.cta .eyebrow{margin-bottom:28px}
+.cta h2{
+  font-size:clamp(2.3rem,5.4vw,4.4rem);
+  line-height:1.05;
+  margin-bottom:26px;
+}
+.cta h2 em{font-style:italic;color:var(--gold);font-weight:400}
+.cta p{
+  font-size:clamp(1rem,1.25vw,1.1rem);
+  font-weight:300;
+  color:var(--ivory-62);
+  margin-bottom:48px;
+}
+.cta__actions{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+/* ============================================================
+   17 — FOOTER
+   ============================================================ */
+.footer{
+  background:var(--obsidian-deep);
+  color:var(--ivory);
+  padding:clamp(72px,9vw,110px) 0 0;
+  border-top:1px solid var(--line-light-soft);
+}
+.footer__grid{
+  display:grid;
+  grid-template-columns:1.6fr 1fr 1fr 1fr;
+  gap:56px;
+  padding-bottom:clamp(56px,7vw,84px);
+}
+.footer__brand .brand{margin-bottom:26px}
+.footer__brand p{
+  font-size:.92rem;
+  font-weight:300;
+  line-height:1.75;
+  color:var(--ivory-40);
+  max-width:30ch;
+}
+.footer__col h4{
+  font-family:'Inter',sans-serif;
+  font-size:.66rem;
+  font-weight:500;
+  letter-spacing:.26em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:26px;
+}
+.footer__col ul{display:flex;flex-direction:column;gap:14px}
+.footer__col a{
+  font-size:.9rem;
+  font-weight:300;
+  color:var(--ivory-62);
+  transition:color .45s var(--ease), padding-left .45s var(--ease);
+  display:inline-block;
+}
+.footer__col a:hover{color:var(--gold);padding-left:5px}
+
+.footer__bottom{
+  border-top:1px solid var(--line-light-soft);
+  padding:30px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  flex-wrap:wrap;
+}
+.footer__bottom p,
+.footer__legal a{
+  font-size:.78rem;
+  font-weight:300;
+  color:var(--ivory-40);
+}
+.footer__legal{display:flex;align-items:center;gap:26px}
+.footer__legal a{transition:color .45s var(--ease)}
+.footer__legal a:hover{color:var(--gold)}
+
+/* ============================================================
+   18 — RESPONSIVE
+   ============================================================ */
+@media (max-width:1180px){
+  .container{padding:0 36px}
+  .nav__links{gap:30px}
+  .eco-card{padding:0 24px}
+  .pro{padding:38px 30px 34px}
+  .why-item{padding:0 28px}
+}
+
+@media (max-width:1024px){
+  .nav__links{display:none}
+  .nav__actions .nav__signin{display:none}
+  .nav__burger{display:block}
+
+  .prop-grid{grid-template-columns:repeat(2,1fr);gap:24px}
+  .prop-grid .prop-card:nth-child(3){grid-column:span 2}
+  .prop-grid .prop-card:nth-child(3) .prop-card__media{aspect-ratio:16/8}
+
+  .eco__grid{grid-template-columns:repeat(2,1fr);gap:52px 0;padding-top:0}
+  .eco__branch,.eco-card::before{display:none}
+  .eco__stem{height:40px}
+  .eco-card{padding:0 32px}
+  .eco-card:nth-child(3){border-left:0;padding-left:0}
+
+  .build__grid{grid-template-columns:1fr}
+  .build__media{min-height:400px}
+  .build__body{max-width:none;padding:64px 36px}
+
+  .why-grid{grid-template-columns:repeat(2,1fr);gap:52px 0}
+  .why-item:nth-child(3){border-left:0;padding-left:0}
+
+  .footer__grid{grid-template-columns:1fr 1fr;gap:48px}
+}
+
+@media (max-width:820px){
+  .search-wrap{margin-top:-84px}
+  .search__fields{grid-template-columns:1fr 1fr}
+  .field:nth-child(odd){border-left:0}
+  .field:nth-child(-n+2){border-bottom:1px solid var(--line-dark-soft)}
+  .search__btn{grid-column:span 2;padding:22px}
+}
+
+@media (max-width:720px){
+  html{scroll-padding-top:80px}
+  .container{padding:0 22px}
+
+  .hero{padding:130px 0 150px;min-height:auto}
+  .hero__media{inset:-4% 0 -4% 0}
+  .hero__cue{display:none}
+
+  .sec-head{flex-direction:column;align-items:flex-start;gap:26px}
+
+  .types-grid{grid-template-columns:1fr;grid-auto-rows:auto}
+  .type,
+  .type:nth-child(1),
+  .type:nth-child(2){grid-column:span 1;grid-row:span 1;min-height:250px}
+
+  .prop-grid{grid-template-columns:1fr}
+  .prop-grid .prop-card:nth-child(3){grid-column:span 1}
+  .prop-grid .prop-card:nth-child(3) .prop-card__media{aspect-ratio:4/3}
+
+  .eco__grid{grid-template-columns:1fr;gap:0}
+  .eco-card{border-left:0;padding:0;margin-bottom:44px}
+  .eco-card:last-child{margin-bottom:0}
+
+  .pros-grid{grid-template-columns:1fr}
+  .pro{min-height:0}
+
+  .build__list{grid-template-columns:1fr}
+
+  .why-grid{grid-template-columns:1fr;gap:0}
+  .why-item{border-left:0;padding:32px 0;border-top:1px solid var(--line-dark-soft)}
+  .why-item:first-child{border-top:0;padding-top:0}
+  .why-item p{max-width:none}
+
+  .footer__grid{grid-template-columns:1fr;gap:44px}
+  .footer__bottom{flex-direction:column;align-items:flex-start;gap:16px}
+}
+
+@media (max-width:420px){
+  .search__fields{grid-template-columns:1fr}
+  .field{border-left:0;border-bottom:1px solid var(--line-dark-soft)}
+  .field:last-of-type{border-bottom:0}
+  .search__btn{grid-column:span 1}
+  .search__tabs{padding:0 8px;overflow-x:auto}
+  .tab{padding:18px 14px 16px;white-space:nowrap}
+}
+
+/* ============================================================
+   19 — REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    transition-delay:0s !important;
+  }
+  .js .reveal,.js .reveal-img{opacity:1 !important;transform:none !important;clip-path:none !important}
+  .hero__eyebrow,.hero h1,.hero__sub,.hero__meta,.search{opacity:1 !important;transform:none !important}
+  .hero__media img{transform:none !important}
+  .eco__stem,.eco__branch,.eco-card::before{transform:none !important}
+}
+</style>
+</head>
+
+<body>
+
+<!-- SCROLL PROGRESS -->
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<header class="nav" id="nav">
+  <div class="container nav__inner">
+
+    <a href="#top" class="brand" aria-label="East Gate Real-Estate — home">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#properties">Properties</a>
+      <a href="#types">Land</a>
+      <a href="#ecosystem">Services</a>
+      <a href="#marketplace">Marketplace</a>
+      <a href="#agents">Agents</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="#" class="nav__signin">Sign In</a>
+      <a href="#" class="btn btn--gold btn--sm">List Property</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="#properties">Properties</a>
+    <a href="#types">Land</a>
+    <a href="#ecosystem">Services</a>
+    <a href="#marketplace">Marketplace</a>
+    <a href="#agents">Agents</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="#" class="nav__signin">Sign In</a>
+    <a href="#" class="btn btn--gold">List Property</a>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="hero">
+    <div class="hero__media" id="heroMedia">
+      <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2400&q=80"
+           alt="Modern architectural residence at dusk with warm interior lighting" fetchpriority="high">
+    </div>
+    <div class="hero__veil"></div>
+    <div class="hero__grain"></div>
+
+    <div class="container hero__content">
+      <p class="eyebrow hero__eyebrow">East Gate Real-Estate</p>
+
+      <h1>
+        Everything Housing.
+        <em>One Premium Destination.</em>
+      </h1>
+
+      <p class="hero__sub">
+        Discover properties, land, professionals, materials and services for every stage of your housing journey.
+      </p>
+
+      <div class="hero__meta">
+        <span class="hero__meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          Verified Listings
+        </span>
+        <span class="hero__meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          Vetted Professionals
+        </span>
+        <span class="hero__meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          Nationwide Reach
+        </span>
+      </div>
+    </div>
+
+    <div class="hero__cue" aria-hidden="true">
+      <span>Scroll</span>
+      <i></i>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SEARCH PANEL
+       ============================================================ -->
+  <div class="search-wrap">
+    <div class="container">
+      <div class="search" role="search">
+
+        <div class="search__tabs" role="tablist" aria-label="Listing type">
+          <button class="tab is-active" role="tab" aria-selected="true">Buy</button>
+          <button class="tab" role="tab" aria-selected="false">Rent</button>
+          <button class="tab" role="tab" aria-selected="false">Land</button>
+        </div>
+
+        <form class="search__fields" onsubmit="return false;">
+
+          <label class="field">
+            <span class="field__label">Location</span>
+            <span class="field__control">
+              <select aria-label="Location">
+                <option>Aba, Abia State</option>
+                <option>Umuahia, Abia State</option>
+                <option>Owerri, Imo State</option>
+                <option>Port Harcourt, Rivers State</option>
+                <option>Lagos</option>
+                <option>Abuja (FCT)</option>
+              </select>
+            </span>
+            <svg class="field__chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Property Type</span>
+            <span class="field__control">
+              <select aria-label="Property type">
+                <option>House</option>
+                <option>Apartment</option>
+                <option>Duplex</option>
+                <option>Bungalow</option>
+                <option>Commercial</option>
+                <option>Land</option>
+              </select>
+            </span>
+            <svg class="field__chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Price Range</span>
+            <span class="field__control">
+              <select aria-label="Price range">
+                <option>Any Price</option>
+                <option>Under ₦20,000,000</option>
+                <option>₦20,000,000 – ₦50,000,000</option>
+                <option>₦50,000,000 – ₦120,000,000</option>
+                <option>₦120,000,000 +</option>
+              </select>
+            </span>
+            <svg class="field__chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </label>
+
+          <button type="submit" class="search__btn">
+            Search
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FEATURED PROPERTIES
+       ============================================================ -->
+  <section class="section" id="properties">
+    <div class="container">
+
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <p class="eyebrow">Featured</p>
+          <h2 class="display">Exceptional Properties</h2>
+          <p class="lede">Carefully selected spaces for living, investment and opportunity.</p>
+        </div>
+        <a href="#" class="link-arrow">
+          View all properties
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <div class="prop-grid">
+
+        <!-- Card 1 -->
+        <article class="prop-card reveal" style="--d:.05s">
+          <div class="prop-card__media">
+            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"
+                 alt="Modern four bedroom villa with landscaped surroundings" loading="lazy">
+            <span class="prop-card__badge">Featured</span>
+            <button class="prop-card__save" aria-label="Save property">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>
+            </button>
+          </div>
+          <div class="prop-card__body">
+            <h3 class="prop-card__title">Modern 4 Bedroom Villa</h3>
+            <p class="prop-card__loc">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
+              Aba, Abia State
+            </p>
+            <div class="prop-card__price">₦85,000,000</div>
+            <ul class="prop-card__specs">
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg>
+                4 Beds
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18v3.5a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 15.5z"/><path d="M6 12V6.5a2.5 2.5 0 0 1 5 0"/></svg>
+                5 Baths
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15.5 5.7 10h12.6L20 15.5"/><path d="M3 15.5h18V19H3z"/><circle cx="7" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg>
+                2 Cars
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="prop-card reveal" style="--d:.14s">
+          <div class="prop-card__media">
+            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80"
+                 alt="Contemporary apartment interior with open plan living area" loading="lazy">
+            <span class="prop-card__badge">Featured</span>
+            <button class="prop-card__save" aria-label="Save property">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>
+            </button>
+          </div>
+          <div class="prop-card__body">
+            <h3 class="prop-card__title">Contemporary 3 Bedroom Apartment</h3>
+            <p class="prop-card__loc">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
+              Owerri, Imo State
+            </p>
+            <div class="prop-card__price">₦42,500,000</div>
+            <ul class="prop-card__specs">
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg>
+                3 Beds
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18v3.5a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 15.5z"/><path d="M6 12V6.5a2.5 2.5 0 0 1 5 0"/></svg>
+                3 Baths
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15.5 5.7 10h12.6L20 15.5"/><path d="M3 15.5h18V19H3z"/><circle cx="7" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg>
+                1 Car
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="prop-card reveal" style="--d:.23s">
+          <div class="prop-card__media">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+                 alt="Executive detached duplex with large glass windows" loading="lazy">
+            <span class="prop-card__badge">Featured</span>
+            <button class="prop-card__save" aria-label="Save property">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>
+            </button>
+          </div>
+          <div class="prop-card__body">
+            <h3 class="prop-card__title">Executive 5 Bedroom Detached Duplex</h3>
+            <p class="prop-card__loc">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
+              Port Harcourt, Rivers State
+            </p>
+            <div class="prop-card__price">₦150,000,000</div>
+            <ul class="prop-card__specs">
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg>
+                5 Beds
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18v3.5a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 15.5z"/><path d="M6 12V6.5a2.5 2.5 0 0 1 5 0"/></svg>
+                6 Baths
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15.5 5.7 10h12.6L20 15.5"/><path d="M3 15.5h18V19H3z"/><circle cx="7" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg>
+                4 Cars
+              </li>
+            </ul>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       EXPLORE PROPERTY TYPES
+       ============================================================ -->
+  <section class="section section--dark" id="types">
+    <div class="container">
+
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <p class="eyebrow">Explore</p>
+          <h2 class="display">Find Your Next Space</h2>
+          <p class="lede">From a first apartment to a landmark development — every category, clearly defined.</p>
+        </div>
+        <a href="#" class="link-arrow">
+          Browse categories
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <div class="types-grid">
+
+        <a href="#" class="type reveal" style="--d:.04s">
+          <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1600&q=80"
+               alt="Residential home exterior" loading="lazy">
+          <span class="type__veil"></span>
+          <span class="type__arrow" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+          <span class="type__content">
+            <span class="type__index">01 — Category</span>
+            <h3>Residential</h3>
+            <span class="type__desc"><span><p>Homes and apartments.</p></span></span>
+          </span>
+        </a>
+
+        <a href="#" class="type reveal" style="--d:.10s">
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80"
+               alt="Open development land at golden hour" loading="lazy">
+          <span class="type__veil"></span>
+          <span class="type__arrow" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+          <span class="type__content">
+            <span class="type__index">02 — Category</span>
+            <h3>Land</h3>
+            <span class="type__desc"><span><p>Plots, estates and development land.</p></span></span>
+          </span>
+        </a>
+
+        <a href="#" class="type reveal" style="--d:.16s">
+          <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80"
+               alt="Modern commercial office space" loading="lazy">
+          <span class="type__veil"></span>
+          <span class="type__arrow" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+          <span class="type__content">
+            <span class="type__index">03 — Category</span>
+            <h3>Commercial</h3>
+            <span class="type__desc"><span><p>Offices, shops, warehouses and investment properties.</p></span></span>
+          </span>
+        </a>
+
+        <a href="#" class="type reveal" style="--d:.22s">
+          <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80"
+               alt="Luxury residence with pool at twilight" loading="lazy">
+          <span class="type__veil"></span>
+          <span class="type__arrow" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+          <span class="type__content">
+            <span class="type__index">04 — Category</span>
+            <h3>Luxury</h3>
+            <span class="type__desc"><span><p>Premium homes and high-end developments.</p></span></span>
+          </span>
+        </a>
+
+        <a href="#" class="type reveal" style="--d:.28s">
+          <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=80"
+               alt="Construction site of an off-plan development" loading="lazy">
+          <span class="type__veil"></span>
+          <span class="type__arrow" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+          </span>
+          <span class="type__content">
+            <span class="type__index">05 — Category</span>
+            <h3>Off-Plan</h3>
+            <span class="type__desc"><span><p>Discover developments before completion.</p></span></span>
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ECOSYSTEM
+       ============================================================ -->
+  <section class="section" id="ecosystem">
+    <div class="container">
+
+      <div class="eco-head reveal">
+        <p class="eyebrow">The East Gate Ecosystem</p>
+        <h2 class="display">More Than Real Estate.</h2>
+        <p class="lede">
+          Everything you need to acquire, build, furnish and manage property — connected in one ecosystem.
+        </p>
+      </div>
+
+      <div class="eco reveal">
+
+        <div class="eco__hub">
+          <span class="eco__word">East Gate</span>
+          <span class="eco__dot" aria-hidden="true"></span>
+        </div>
+
+        <div class="eco__stem" aria-hidden="true"></div>
+
+        <div class="eco__grid">
+          <span class="eco__branch" aria-hidden="true"></span>
+
+          <article class="eco-card">
+            <span class="eco-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+            </span>
+            <span class="eco-card__tag">01</span>
+            <h3>Find</h3>
+            <p>Properties and land, verified and clearly presented.</p>
+          </article>
+
+          <article class="eco-card">
+            <span class="eco-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 20.5h19"/><path d="M4.5 20.5V9.5L12 4l7.5 5.5v11"/><path d="M9.5 20.5v-6h5v6"/></svg>
+            </span>
+            <span class="eco-card__tag">02</span>
+            <h3>Build</h3>
+            <p>Construction materials, architects, engineers and contractors.</p>
+          </article>
+
+          <article class="eco-card">
+            <span class="eco-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7-3-3-7 7-1 4z"/><path d="M16 5.5l2.5 2.5"/><path d="M4 20h4"/></svg>
+            </span>
+            <span class="eco-card__tag">03</span>
+            <h3>Design</h3>
+            <p>Interior designers, furniture and décor.</p>
+          </article>
+
+          <article class="eco-card">
+            <span class="eco-card__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.2-2.9 7.4-7 9-4.1-1.6-7-4.8-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+            </span>
+            <span class="eco-card__tag">04</span>
+            <h3>Manage</h3>
+            <p>Maintenance, property management, security and other services.</p>
+          </article>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FIND PROFESSIONALS
+       ============================================================ -->
+  <section class="section section--tint" id="agents">
+    <div class="container">
+
+      <div class="sec-head reveal">
+        <div class="sec-head__text">
+          <p class="eyebrow">Professionals</p>
+          <h2 class="display">The Right People for the Job.</h2>
+          <p class="lede">Verified specialists across every stage of your project — from first survey to final finish.</p>
+        </div>
+        <a href="#" class="link-arrow">
+          Browse directory
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <div class="pros-grid">
+
+        <article class="pro reveal" style="--d:.04s">
+          <span class="pro__icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg>
+          </span>
+          <h3>Real Estate Agents</h3>
+          <p>Local market expertise, honest pricing and guided viewings.</p>
+          <span class="pro__link">View profiles
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </span>
+        </article>
+
+        <article class="pro reveal" style="--d:.10s">
+          <span class="pro__icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V8.5L14 4v17"/><path d="M18 21V12l-4-2"/><path d="M9 9.5h1.5M9 13h1.5M9 16.5h1.5"/></svg>
+          </span>
+          <h3>Architects</h3>
+          <p>Designs that respond to your land, your climate and your budget.</p>
+          <span class="pro__link">View profiles
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </span>
+        </article>
+
+        <article class="pro reveal" style="--d:.16s">
+          <span class="pro__icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-6l6-3 6 3v6"/><path d="M12 11V4"/><path d="M9 6l3-2 3 2"/></svg>
+          </span>
+          <h3>Contractors</h3>
+          <p>Reliable delivery, transparent timelines and accountable execution.</p>
+          <span class="pro__link">View profiles
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </span>
+        </article>
+
+        <article class="pro reveal" style="--d:.04s">
+          <span class="pro__icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+          </span>
+          <h3>Engineers</h3>
+          <p>Structural, civil and electrical expertise you can build on.</p>
+          <span class="pro__link">View profiles
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </span>
+        </article>
+
+        <article class="pro reveal" style="--d:.10s">
+          <span class="pro__icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M3 12h18v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M6 7V5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 18 5v2"/></svg>
+          </span>
+          <h3>Interior Designers</h3>
+          <p>Spaces that feel considered, comfortable and complete.</p>
+          <span class="pro__link">View profiles
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </span>
+        </article>
+
+        <article class="pro reveal" style="--d:.16s">
+          <span class="pro__icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.2-2.9 7.4-7 9-4.1-1.6-7-4.8-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          </span>
+          <h3>Property Managers</h3>
+          <p>Tenants, maintenance and value — handled with care.</p>
+          <span class="pro__link">View profiles
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </span>
+        </article>
+
+      </div>
+
+      <div class="pro-flow reveal">
+        <span class="pro-flow__label">Every profile includes</span>
+        <span class="pro-flow__step">Profile</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        <span class="pro-flow__step">Portfolio</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        <span class="pro-flow__step">Reviews</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        <span class="pro-flow__step">Verification</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        <span class="pro-flow__step">Contact</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       BUILD & FURNISH
+       ============================================================ -->
+  <section class="section section--dark build" id="marketplace" style="padding:0;">
+    <div class="build__grid">
+
+      <div class="build__media">
+        <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=80"
+             alt="Furnished contemporary living space with warm natural light" loading="lazy">
+      </div>
+
+      <div class="build__body">
+        <p class="eyebrow reveal">Marketplace</p>
+        <h2 class="display reveal" style="--d:.06s">From Empty Land to Complete Home.</h2>
+        <p class="lede reveal" style="--d:.12s">
+          Source everything a build requires — and everything a home deserves — from a single, trusted marketplace.
+        </p>
+
+        <ul class="build__list reveal" style="--d:.18s">
+          <li>Building materials</li>
+          <li>Construction equipment</li>
+          <li>Furniture</li>
+          <li>Lighting</li>
+          <li>Kitchen systems</li>
+          <li>Interior décor</li>
+          <li>Smart-home products</li>
+          <li>Finishing &amp; fittings</li>
+        </ul>
+
+        <a href="#" class="btn btn--gold reveal" style="--d:.24s">
+          Explore Marketplace
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       WHY EAST GATE
+       ============================================================ -->
+  <section class="section">
+    <div class="container">
+
+      <div class="sec-head reveal" style="margin-bottom:0;">
+        <div class="sec-head__text">
+          <p class="eyebrow">Why East Gate</p>
+          <h2 class="display">Built on Four Principles.</h2>
+        </div>
+      </div>
+
+      <div class="why-grid">
+
+        <article class="why-item reveal" style="--d:.04s">
+          <span class="why-item__index">01</span>
+          <h3>Verified</h3>
+          <p>Property and professional verification.</p>
+        </article>
+
+        <article class="why-item reveal" style="--d:.12s">
+          <span class="why-item__index">02</span>
+          <h3>Transparent</h3>
+          <p>Clear property information.</p>
+        </article>
+
+        <article class="why-item reveal" style="--d:.20s">
+          <span class="why-item__index">03</span>
+          <h3>Connected</h3>
+          <p>Everything housing in one ecosystem.</p>
+        </article>
+
+        <article class="why-item reveal" style="--d:.28s">
+          <span class="why-item__index">04</span>
+          <h3>Local</h3>
+          <p>Built around the realities of the Nigerian property market.</p>
+        </article>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FINAL CTA
+       ============================================================ -->
+  <section class="section--dark cta">
+    <div class="container">
+      <div class="cta__inner">
+        <p class="eyebrow reveal" style="justify-content:center;">East Gate Real-Estate</p>
+        <h2 class="reveal" style="--d:.06s">Your Next Chapter <em>Starts Here.</em></h2>
+        <p class="reveal" style="--d:.12s">Find the property. Build the vision. Create the home.</p>
+
+        <div class="cta__actions reveal" style="--d:.18s">
+          <a href="#properties" class="btn btn--gold">
+            Explore Properties
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#" class="btn btn--ghost">List a Property</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer">
+  <div class="container">
+
+    <div class="footer__grid">
+
+      <div class="footer__brand">
+        <a href="#top" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Everything Housing. One Premium Destination.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#properties">Properties</a></li>
+          <li><a href="#types">Land</a></li>
+          <li><a href="#agents">Agents</a></li>
+          <li><a href="#ecosystem">Services</a></li>
+          <li><a href="#marketplace">Marketplace</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Partners</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">X</a></li>
+          <li><a href="#">LinkedIn</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+      <div class="footer__legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- 1. Entrance ---------- */
+  window.addEventListener('load', function () {
+    requestAnimationFrame(function () {
+      document.body.classList.add('is-loaded');
+    });
+  });
+  // Fallback in case load fires slowly
+  setTimeout(function () { document.body.classList.add('is-loaded'); }, 900);
+
+  /* ---------- 2. Scroll reveal ---------- */
+  var revealEls = document.querySelectorAll('.reveal, .reveal-img, .eco');
+
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.12,
+      rootMargin: '0px 0px -8% 0px'
+    });
+
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+  }
+
+  /* ---------- 3. Navbar state ---------- */
+  var nav = document.getElementById('nav');
+  var progress = document.getElementById('progress');
+  var heroMedia = document.getElementById('heroMedia');
+  var ticking = false;
+
+  function onScroll() {
+    var y = window.pageYOffset || document.documentElement.scrollTop;
+
+    // navbar
+    if (y > 40) { nav.classList.add('is-scrolled'); }
+    else { nav.classList.remove('is-scrolled'); }
+
+    // progress
+    var docH = document.documentElement.scrollHeight - window.innerHeight;
+    var ratio = docH > 0 ? Math.min(y / docH, 1) : 0;
+    progress.style.transform = 'scaleX(' + ratio + ')';
+
+    // hero parallax
+    if (!reduceMotion && heroMedia && y < window.innerHeight * 1.4) {
+      heroMedia.style.transform = 'translate3d(0,' + (y * 0.16) + 'px,0)';
+    }
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      window.requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  onScroll();
+
+  /* ---------- 4. Mobile menu ---------- */
+  var burger = document.getElementById('burger');
+  var menu = document.getElementById('menu');
+  var menuLinks = menu.querySelectorAll('.menu__links a');
+
+  function setMenu(open) {
+    burger.classList.toggle('is-open', open);
+    menu.classList.toggle('is-open', open);
+    burger.setAttribute('aria-expanded', String(open));
+    burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    menu.setAttribute('aria-hidden', String(!open));
+    document.body.style.overflow = open ? 'hidden' : '';
+
+    menuLinks.forEach(function (link, i) {
+      link.style.transitionDelay = open ? (0.08 + i * 0.055) + 's' : '0s';
+    });
+  }
+
+  burger.addEventListener('click', function () {
+    setMenu(!menu.classList.contains('is-open'));
+  });
+
+  menuLinks.forEach(function (link) {
+    link.addEventListener('click', function () { setMenu(false); });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false);
+  });
+
+  /* ---------- 5. Search tabs ---------- */
+  var tabs = document.querySelectorAll('.search .tab');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) {
+        t.classList.remove('is-active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('is-active');
+      tab.setAttribute('aria-selected', 'true');
+    });
+  });
+
+  /* ---------- 6. Active nav link on scroll ---------- */
+  var sections = [
+    { id: 'properties', el: document.getElementById('properties') },
+    { id: 'types',      el: document.getElementById('types') },
+    { id: 'ecosystem',  el: document.getElementById('ecosystem') },
+    { id: 'agents',     el: document.getElementById('agents') },
+    { id: 'marketplace',el: document.getElementById('marketplace') }
+  ];
+  var navLinks = document.querySelectorAll('.nav__links a');
+
+  if ('IntersectionObserver' in window) {
+    var navIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var match = sections.filter(function (s) { return s.el === entry.target; })[0];
+        if (!match) return;
+        navLinks.forEach(function (a) {
+          a.classList.toggle('is-active', a.getAttribute('href') === '#' + match.id);
+        });
+      });
+    }, { threshold: 0.25, rootMargin: '-20% 0px -55% 0px' });
+
+    sections.forEach(function (s) { if (s.el) navIO.observe(s.el); });
+  }
+
+})();
+</script>
+
+</body>
+</html>
