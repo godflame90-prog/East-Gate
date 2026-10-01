@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dealers & Professionals Directory — East Gate Real-Estate</title>
+<meta name="description" content="Discover verified real estate agencies, property developers, and contractors with multi-tier credentials.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.dealers-head {
+  padding: 120px 0 40px;
+  background: var(--obsidian);
+  color: var(--ivory);
+  border-bottom: 1px solid var(--line-light-soft);
+}
+.dealers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+.dealer-card {
+  background: #141414;
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-md);
+  padding: 32px;
+  color: var(--ivory);
+  transition: transform 0.5s var(--ease), border-color 0.5s var(--ease);
+}
+.dealer-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(198,161,91,0.4);
+}
+.dealer-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.dealer-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--obsidian);
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+}
+.badges-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html">Properties</a>
+      <a href="land.html">Land</a>
+      <a href="services.html">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="dealers.html" class="is-active">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#register" class="btn btn--gold btn--sm">Register as Dealer</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="dealers-head">
+    <div class="container">
+      <p class="eyebrow">Verified Directory</p>
+      <h1 class="display" style="margin-top:10px;">Agents &amp; Professional Dealers</h1>
+      <p class="lede" style="margin-top:12px;">Discover real-estate brokers, developers, and contractors who have completed the East Gate multi-dimensional verification process.</p>
+    </div>
+  </section>
+
+  <section class="section" style="background:#0B0B0B;">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.85rem;color:var(--ivory-62);">Verified Dealer Network</span>
+        <span class="trust-badge trust-badge--official">✓ Corporate Affairs Commission (CAC) Audited</span>
+      </div>
+
+      <div class="dealers-grid" id="dealersGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Everything Housing. One Premium Destination.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Verification Desk</h4>
+        <ul>
+          <li><a href="https://wa.me/2348031234567" target="_blank">Compliance Hotline</a></li>
+          <li><a href="#">Report Suspicious Dealer</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var grid = document.getElementById('dealersGrid');
+  if (!grid || !window.EastGateDB) return;
+
+  var dealers = window.EastGateDB.get().users.filter(function (u) {
+    return u.role === 'DEALER';
+  });
+
+  grid.innerHTML = dealers.map(function (d) {
+    var isVerified = d.verificationStatus === 'VERIFIED';
+    return [
+      '<div class="dealer-card">',
+      '  <div class="dealer-header">',
+      '    <div class="dealer-avatar">' + d.name.substring(0, 2).toUpperCase() + '</div>',
+      '    <div>',
+      '      <h3 style="font-size:1.15rem;margin-bottom:4px;color:var(--ivory);">' + d.name + '</h3>',
+      '      <span style="font-size:0.72rem;color:var(--gold);font-weight:500;">' + (d.cac || 'CAC Registered') + ' • ' + d.category + '</span>',
+      '    </div>',
+      '  </div>',
+      '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">',
+      '    <span class="trust-badge ' + (isVerified ? 'trust-badge--verified' : 'trust-badge--under-review') + '">',
+      '      ' + (isVerified ? '✓ East Gate Verified' : '⏳ Verification In Progress'),
+      '    </span>',
+      '    <span style="font-size:0.78rem;color:var(--ivory-62);">★ ' + d.rating + ' (' + d.reviewsCount + ' reviews)</span>',
+      '  </div>',
+      '  <div class="badges-list">',
+      '    <span class="trust-badge ' + (d.badges.identity ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">Identity ' + (d.badges.identity ? '✓' : '⏳') + '</span>',
+      '    <span class="trust-badge ' + (d.badges.cac ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">CAC Certificate ' + (d.badges.cac ? '✓' : '⏳') + '</span>',
+      '    <span class="trust-badge ' + (d.badges.phone ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">Verified Tel ' + (d.badges.phone ? '✓' : '⏳') + '</span>',
+      '    <span class="trust-badge ' + (d.badges.titleDocs ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">Title Documents ' + (d.badges.titleDocs ? '✓' : '⏳') + '</span>',
+      '  </div>',
+      '  <p style="font-size:0.8rem;color:var(--ivory-62);margin:16px 0;line-height:1.6;">Licensed real estate and infrastructure development firm. Specializing in high-value verified residential and commercial assets.</p>',
+      '  <div style="display:flex;gap:8px;margin-top:20px;">',
+      '    <a href="properties.html" class="btn btn--gold btn--sm" style="flex:1;">View Listings</a>',
+      '    <a href="https://wa.me/2348031234567?text=Hello%20' + encodeURIComponent(d.name) + '%2C%20inquiry%20via%20East%20Gate" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 14px;border:1px solid rgba(255,255,255,0.15);">Contact</a>',
+      '  </div>',
+      '</div>'
+    ].join('');
+  }).join('');
+});
+</script>
+
+</body>
+</html>

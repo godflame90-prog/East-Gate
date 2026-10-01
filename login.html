@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unified Sign In — East Gate Real-Estate Platform</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.auth-page {
+  min-height: calc(100vh - 38px);
+  background: var(--obsidian-deep);
+  color: var(--ivory);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+  background: #141414;
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-md);
+  padding: 44px;
+  box-shadow: 0 40px 90px rgba(0,0,0,0.6);
+}
+.role-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+}
+.role-btn {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-sm);
+  padding: 16px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
+.role-btn:hover,
+.role-btn.is-active {
+  background: rgba(198,161,91,0.15);
+  border-color: var(--gold);
+}
+.role-btn__icon {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+  display: block;
+}
+.role-btn__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ivory);
+}
+</style>
+</head>
+
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:28px;">
+      <a href="index.html" class="brand" aria-label="East Gate Real-Estate" style="justify-content:center;margin-bottom:12px;">
+        <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+          <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+          <path d="M2.5 21h19"/>
+        </svg>
+        <span class="brand__name">EAST<span>·</span>GATE</span>
+      </a>
+      <h2 style="font-size:1.6rem;font-weight:500;">Unified Access Gateway</h2>
+      <p style="font-size:0.8rem;color:var(--ivory-62);margin-top:6px;">Select your access persona or enter your credentials</p>
+    </div>
+
+    <!-- Quick Persona Selector -->
+    <div class="role-cards" id="roleSelector">
+      <div class="role-btn is-active" data-role="CUSTOMER" data-url="dashboard.html">
+        <span class="role-btn__icon">👤</span>
+        <span class="role-btn__label">Customer</span>
+      </div>
+      <div class="role-btn" data-role="DEALER" data-url="dealer-dashboard.html">
+        <span class="role-btn__icon">🧑🏾‍💼</span>
+        <span class="role-btn__label">Dealer / Pro</span>
+      </div>
+      <div class="role-btn" data-role="ADMIN" data-url="admin.html">
+        <span class="role-btn__icon">🛡️</span>
+        <span class="role-btn__label">Admin Desk</span>
+      </div>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" id="loginEmail" value="jay@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" value="••••••••••••" required>
+      </div>
+
+      <button type="submit" class="btn btn--gold" style="width:100%;margin-top:10px;" id="loginSubmitBtn">
+        Enter as Customer (Jay)
+      </button>
+    </form>
+
+    <div style="margin-top:28px;text-align:center;border-top:1px solid var(--line-light-soft);padding-top:20px;font-size:0.78rem;color:var(--ivory-62);">
+      Are you a real estate agent or builder? <a href="dealer-dashboard.html#register" style="color:var(--gold);font-weight:500;">Register as an East Gate Dealer</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var roleBtns = document.querySelectorAll('.role-btn');
+  var emailInput = document.getElementById('loginEmail');
+  var submitBtn = document.getElementById('loginSubmitBtn');
+  var currentRole = 'CUSTOMER';
+  var targetUrl = 'dashboard.html';
+
+  var roleConfig = {
+    CUSTOMER: { email: 'jay@example.com', label: 'Enter as Customer (Jay)', url: 'dashboard.html' },
+    DEALER: { email: 'dealer@johnproperties.ng', label: 'Enter Dealer Command Center', url: 'dealer-dashboard.html' },
+    ADMIN: { email: 'admin@eastgate.ng', label: 'Enter Admin Control Center', url: 'admin.html' }
+  };
+
+  roleBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      roleBtns.forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      currentRole = btn.getAttribute('data-role');
+      var cfg = roleConfig[currentRole];
+      emailInput.value = cfg.email;
+      submitBtn.textContent = cfg.label;
+      targetUrl = cfg.url;
+    });
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (window.EastGateDB) {
+      window.EastGateDB.switchUser(currentRole);
+      window.showEastGateToast('Access granted as ' + currentRole);
+      setTimeout(function () {
+        window.location.href = targetUrl;
+      }, 400);
+    }
+  });
+});
+</script>
+
+</body>
+</html>

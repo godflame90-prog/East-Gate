@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Control Center — East Gate Real-Estate Fortress</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.admin-badge {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-create-box {
+  background: #141414;
+  border: 1px solid rgba(198,161,91,0.4);
+  border-radius: var(--r-md);
+  padding: 28px;
+  margin-bottom: 36px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="portal-wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="portal-sidebar" style="background:#0c0c0c;">
+    <div class="portal-brand">
+      <a href="index.html" class="brand">
+        <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+          <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+          <path d="M2.5 21h19"/>
+        </svg>
+        <span class="brand__name">EAST<span>·</span>GATE</span>
+      </a>
+    </div>
+
+    <div class="portal-user-badge" style="border-color:rgba(231,76,60,0.4);">
+      <div class="dealer-avatar" style="width:40px;height:40px;font-size:0.9rem;background:#e74c3c;color:#fff;">SA</div>
+      <div class="portal-user-info">
+        <h4>Sarah Alabi</h4>
+        <span class="admin-badge">Super Admin</span>
+      </div>
+    </div>
+
+    <nav class="portal-nav" id="adminTabs">
+      <button class="is-active" data-tab="overview">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Command Overview
+      </button>
+      <button data-tab="properties-queue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Property Approvals
+        <span class="portal-nav__count" id="countPendingProps" style="background:#e67e22;color:#fff;">1</span>
+      </button>
+      <button data-tab="marketplace-admin">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Marketplace &amp; Create
+        <span class="portal-nav__count" id="countPendingProds" style="background:#e67e22;color:#fff;">1</span>
+      </button>
+      <button data-tab="services-queue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Services Queue
+        <span class="portal-nav__count" id="countPendingSrvs" style="background:#e67e22;color:#fff;">1</span>
+      </button>
+      <button data-tab="verifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Dealer Verifications
+        <span class="portal-nav__count" id="countPendingVers">2</span>
+      </button>
+      <button data-tab="reports">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Dispute &amp; Reports
+        <span class="portal-nav__count" id="countReports">1</span>
+      </button>
+      <button data-tab="audit-logs">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Security Audit Logs
+      </button>
+    </nav>
+
+    <div style="border-top:1px solid var(--line-light-soft);padding-top:20px;margin-top:auto;">
+      <a href="properties.html" class="btn btn--gold" style="width:100%;font-size:0.7rem;padding:10px;">Visit Live Platform</a>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW -->
+  <main class="portal-main">
+
+    <!-- TAB 1: OVERVIEW -->
+    <div id="tab-overview" class="tab-pane">
+      <div class="portal-header">
+        <div>
+          <h1>East Gate Control Center</h1>
+          <p>Super Administrator Governance, Moderation Pipelines &amp; Audit Integrity.</p>
+        </div>
+        <span class="trust-badge trust-badge--official">RBAC Fortress: Active</span>
+      </div>
+
+      <!-- KPI METRICS -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__label">Pending Approval Queue</div>
+          <div class="metric-card__value" id="kpiTotalPending" style="color:#e67e22;">3</div>
+          <div class="metric-card__hint">Listings, Products &amp; Services</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Verified Dealers</div>
+          <div class="metric-card__value" id="kpiVerifiedDealers">1</div>
+          <div class="metric-card__hint">CAC verified credentials</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Pending Verifications</div>
+          <div class="metric-card__value" id="kpiPendingVerifications">2</div>
+          <div class="metric-card__hint">Corporate documents to review</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Audit Actions Logged</div>
+          <div class="metric-card__value" id="kpiAuditCount">3</div>
+          <div class="metric-card__hint">Immutable ledger entries</div>
+        </div>
+      </div>
+
+      <!-- RECENT MODERATION ACTIVITY -->
+      <div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-size:1.2rem;font-weight:500;">Items Awaiting Admin Approval</h3>
+        <span class="trust-badge trust-badge--under-review">Universal Approval Required</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Submission Name</th>
+              <th>Submitted By</th>
+              <th>Details / Title Doc</th>
+              <th>Status</th>
+              <th>Quick Action</th>
+            </tr>
+          </thead>
+          <tbody id="overviewQueueRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: PROPERTIES QUEUE -->
+    <div id="tab-properties-queue" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Property Listings Moderation Queue</h1>
+          <p>Every listing submitted by a dealer must be vetted for legal title and pricing honesty before live publication.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Property Title</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Price</th>
+              <th>Title Document</th>
+              <th>Submitting Dealer</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="propertiesQueueRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: MARKETPLACE & ADMIN CREATE PRODUCT -->
+    <div id="tab-marketplace-admin" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Marketplace Moderation &amp; Official Inventory</h1>
+          <p>Approve vendor products or directly create official East Gate direct materials.</p>
+        </div>
+      </div>
+
+      <!-- ADMIN DIRECT PRODUCT CREATION BOX -->
+      <div class="admin-create-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-size:1.2rem;font-weight:500;color:var(--gold);">+ Direct Admin Listing: Create Official Product</h3>
+          <span class="trust-badge trust-badge--official">Direct Publish (Auto-Approved)</span>
+        </div>
+        <p style="font-size:0.82rem;color:var(--ivory-62);margin-bottom:24px;">Admins can list platform-curated building supplies and construction materials that publish immediately to <code>marketplace.html</code> with the "East Gate Official Direct" badge.</p>
+
+        <form id="adminProductForm" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Product Name</label>
+            <input type="text" class="form-input" id="adminProdName" placeholder="e.g., Dangote 42.5R Portland Limestone Cement (50kg)" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Marketplace Category</label>
+            <select class="form-select" id="adminProdCat">
+              <option value="Building Materials">Building Materials</option>
+              <option value="Home &amp; Interior">Home &amp; Interior</option>
+              <option value="Equipment">Construction Equipment</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unit Price in Naira (₦)</label>
+            <input type="number" class="form-input" id="adminProdPrice" placeholder="e.g. 9500" required>
+          </div>
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Specifications &amp; Delivery Logistics</label>
+            <textarea class="form-textarea" id="adminProdSpecs" rows="2" placeholder="e.g., Direct factory allocation. 24-hour turnaround haulage across South-East and South-South."></textarea>
+          </div>
+          <div style="grid-column:span 2;text-align:right;">
+            <button type="submit" class="btn btn--gold">Publish Official Product to Marketplace</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- VENDOR PRODUCTS QUEUE -->
+      <h3 style="font-size:1.2rem;font-weight:500;margin-bottom:16px;">Vendor Submissions Awaiting Approval</h3>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Vendor</th>
+              <th>Specs</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="productsQueueRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: SERVICES QUEUE -->
+    <div id="tab-services-queue" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Services Moderation Queue</h1>
+          <p>Review professional credentials of engineers, architects, and surveyors before directory listing.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Service Title</th>
+              <th>Category</th>
+              <th>Provider</th>
+              <th>Operating Region</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="servicesQueueRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 5: DEALER VERIFICATIONS -->
+    <div id="tab-verifications" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Dealer Verification Workbench</h1>
+          <p>Inspect Corporate Affairs Commission certificates, Director NIN credentials, and cadastral surveys.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Dealer / Agency</th>
+              <th>Document Type</th>
+              <th>Document Name</th>
+              <th>Submission Date</th>
+              <th>Status</th>
+              <th>Audit Action</th>
+            </tr>
+          </thead>
+          <tbody id="verificationsRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 6: DISPUTES & REPORTS -->
+    <div id="tab-reports" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Dispute &amp; Flagged Report Center</h1>
+          <p>Community reports regarding pricing discrepancies, duplicated plots, or unverified claims.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Reporter</th>
+              <th>Flagged Item</th>
+              <th>Reason for Report</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="reportsRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 7: AUDIT LOGS -->
+    <div id="tab-audit-logs" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Immutable Security Audit Trail</h1>
+          <p>Chronological record of every administrative approval, rejection, verification, and product creation.</p>
+        </div>
+        <span class="trust-badge trust-badge--official">Append-Only Ledger</span>
+      </div>
+
+      <div class="audit-timeline" id="auditTimeline">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var tabs = document.querySelectorAll('#adminTabs button');
+  var panes = document.querySelectorAll('.tab-pane');
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('is-active'); });
+      tab.classList.add('is-active');
+      var targetId = 'tab-' + tab.getAttribute('data-tab');
+      panes.forEach(function (p) { p.style.display = p.id === targetId ? 'block' : 'none'; });
+    });
+  });
+
+  function renderAdminData() {
+    if (!window.EastGateDB) return;
+    var db = window.EastGateDB.get();
+
+    var pendingProps = db.properties.filter(function (p) { return p.status === 'PENDING_REVIEW'; });
+    var pendingProds = db.marketplaceProducts.filter(function (p) { return p.status === 'PENDING_REVIEW'; });
+    var pendingSrvs = db.services.filter(function (s) { return s.status === 'PENDING_REVIEW'; });
+    var pendingVers = db.verifications.filter(function (v) { return v.status === 'PENDING'; });
+
+    // KPI Counters
+    document.getElementById('countPendingProps').textContent = pendingProps.length;
+    document.getElementById('countPendingProds').textContent = pendingProds.length;
+    document.getElementById('countPendingSrvs').textContent = pendingSrvs.length;
+    document.getElementById('countPendingVers').textContent = pendingVers.length;
+    document.getElementById('kpiTotalPending').textContent = (pendingProps.length + pendingProds.length + pendingSrvs.length);
+    document.getElementById('kpiPendingVerifications').textContent = pendingVers.length;
+    document.getElementById('kpiAuditCount').textContent = db.auditLogs.length;
+
+    // Overview Table
+    var overviewTable = document.getElementById('overviewQueueRows');
+    var combined = [];
+    pendingProps.forEach(function (p) { combined.push({ type: 'PROPERTY', id: p.id, name: p.title, by: p.dealerName, detail: p.titleDoc }); });
+    pendingProds.forEach(function (p) { combined.push({ type: 'PRODUCT', id: p.id, name: p.name, by: p.vendor, detail: p.specs }); });
+    pendingSrvs.forEach(function (s) { combined.push({ type: 'SERVICE', id: s.id, name: s.title, by: s.providerName, detail: s.category }); });
+
+    if (combined.length === 0) {
+      overviewTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">All queues cleared! Zero pending approvals.</td></tr>';
+    } else {
+      overviewTable.innerHTML = combined.map(function (item) {
+        return [
+          '<tr>',
+          '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + item.type + '</span></td>',
+          '  <td><strong>' + item.name + '</strong></td>',
+          '  <td>' + item.by + '</td>',
+          '  <td>' + item.detail + '</td>',
+          '  <td><span class="status-pill status-pill--pending">PENDING REVIEW</span></td>',
+          '  <td>',
+          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'' + item.type.toLowerCase() + '\', \'' + item.id + '\')">Approve Live</button> ',
+          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'' + item.type.toLowerCase() + '\', \'' + item.id + '\')">Reject</button>',
+          '  </td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+    }
+
+    // Properties Queue Table
+    var propQueueTable = document.getElementById('propertiesQueueRows');
+    if (pendingProps.length === 0) {
+      propQueueTable.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ivory-62);padding:24px;">No property listings pending approval.</td></tr>';
+    } else {
+      propQueueTable.innerHTML = pendingProps.map(function (p) {
+        return [
+          '<tr>',
+          '  <td><strong>' + p.title + '</strong></td>',
+          '  <td>' + p.category + '</td>',
+          '  <td>' + p.location + '</td>',
+          '  <td>' + p.priceDisplay + '</td>',
+          '  <td><span class="trust-badge trust-badge--verified" style="font-size:0.62rem;">' + p.titleDoc + '</span></td>',
+          '  <td>' + p.dealerName + '</td>',
+          '  <td>',
+          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'property\', \'' + p.id + '\')">Approve &amp; Publish</button> ',
+          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'property\', \'' + p.id + '\')">Reject</button>',
+          '  </td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+    }
+
+    // Products Queue Table
+    var prodQueueTable = document.getElementById('productsQueueRows');
+    if (pendingProds.length === 0) {
+      prodQueueTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No vendor products pending approval.</td></tr>';
+    } else {
+      prodQueueTable.innerHTML = pendingProds.map(function (p) {
+        return [
+          '<tr>',
+          '  <td><strong>' + p.name + '</strong></td>',
+          '  <td>' + p.category + '</td>',
+          '  <td>' + p.priceDisplay + '</td>',
+          '  <td>' + p.vendor + '</td>',
+          '  <td style="font-size:0.75rem;color:var(--ivory-62);">' + p.specs + '</td>',
+          '  <td>',
+          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'product\', \'' + p.id + '\')">Approve</button> ',
+          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'product\', \'' + p.id + '\')">Reject</button>',
+          '  </td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+    }
+
+    // Services Queue Table
+    var srvQueueTable = document.getElementById('servicesQueueRows');
+    if (pendingSrvs.length === 0) {
+      srvQueueTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No service specialists pending approval.</td></tr>';
+    } else {
+      srvQueueTable.innerHTML = pendingSrvs.map(function (s) {
+        return [
+          '<tr>',
+          '  <td><strong>' + s.title + '</strong></td>',
+          '  <td>' + s.category + '</td>',
+          '  <td>' + s.providerName + '</td>',
+          '  <td>' + s.state + '</td>',
+          '  <td><span class="status-pill status-pill--pending">PENDING REVIEW</span></td>',
+          '  <td>',
+          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'service\', \'' + s.id + '\')">Approve Specialist</button> ',
+          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'service\', \'' + s.id + '\')">Reject</button>',
+          '  </td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+    }
+
+    // Verifications Table
+    var verTable = document.getElementById('verificationsRows');
+    verTable.innerHTML = db.verifications.map(function (v) {
+      var isApproved = v.status === 'APPROVED';
+      return [
+        '<tr>',
+        '  <td><strong>' + v.dealerName + '</strong></td>',
+        '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + v.dimension + '</span></td>',
+        '  <td><a href="' + v.documentUrl + '" target="_blank" style="color:var(--gold);text-decoration:underline;">' + v.documentName + '</a></td>',
+        '  <td>' + v.submittedAt + '</td>',
+        '  <td><span class="status-pill status-pill--' + (isApproved ? 'approved' : 'pending') + '">' + v.status + '</span></td>',
+        '  <td>',
+        isApproved
+          ? '<span style="color:#2ecc71;font-size:0.75rem;">Verified ✓</span>'
+          : '<button class="btn-action btn-action--approve" onclick="verifyDealerDoc(\'' + v.id + '\')">Verify &amp; Award Badge</button>',
+        '  </td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+
+    // Reports Table
+    var repTable = document.getElementById('reportsRows');
+    repTable.innerHTML = db.reports.map(function (r) {
+      return [
+        '<tr>',
+        '  <td><code>' + r.id + '</code></td>',
+        '  <td>' + r.reporter + '</td>',
+        '  <td><strong>' + r.targetTitle + '</strong></td>',
+        '  <td style="color:#e74c3c;">' + r.reason + '</td>',
+        '  <td><span class="status-pill status-pill--pending">' + r.status + '</span></td>',
+        '  <td><button class="btn-action btn-action--approve" onclick="window.showEastGateToast(\'Investigated report ' + r.id + '\')">Investigate</button></td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+
+    // Audit Timeline
+    var auditDiv = document.getElementById('auditTimeline');
+    auditDiv.innerHTML = db.auditLogs.map(function (a) {
+      return [
+        '<div class="audit-item">',
+        '  <div class="audit-item__icon">',
+        '    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        '  </div>',
+        '  <div class="audit-item__body">',
+        '    <div class="audit-item__title">[' + a.action + '] — ' + a.target + '</div>',
+        '    <div class="audit-item__desc">' + a.details + '</div>',
+        '    <div style="font-size:0.7rem;color:var(--gold);margin-top:4px;">Recorded by: ' + a.adminName + '</div>',
+        '  </div>',
+        '  <div class="audit-item__time">' + a.timestamp + '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
+  }
+
+  window.approveQueueItem = function (type, id) {
+    if (window.EastGateDB) {
+      window.EastGateDB.adminApproveItem(type, id);
+      window.showEastGateToast('Item approved and published live to public platform!');
+      renderAdminData();
+    }
+  };
+
+  window.rejectQueueItem = function (type, id) {
+    var reason = prompt('Reason for rejection:');
+    if (reason && window.EastGateDB) {
+      window.EastGateDB.adminRejectItem(type, id, reason);
+      window.showEastGateToast('Item rejected with compliance notes.');
+      renderAdminData();
+    }
+  };
+
+  window.verifyDealerDoc = function (verId) {
+    if (window.EastGateDB) {
+      window.EastGateDB.adminVerifyDealerDoc(verId);
+      window.showEastGateToast('Dealer credentials verified! Badge updated to East Gate Verified.');
+      renderAdminData();
+    }
+  };
+
+  // ADMIN DIRECT CREATE PRODUCT
+  var adminProdForm = document.getElementById('adminProductForm');
+  if (adminProdForm) {
+    adminProdForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = document.getElementById('adminProdName').value;
+      var category = document.getElementById('adminProdCat').value;
+      var price = document.getElementById('adminProdPrice').value;
+      var specs = document.getElementById('adminProdSpecs').value;
+
+      if (window.EastGateDB) {
+        window.EastGateDB.adminCreateProduct({
+          name: name,
+          category: category,
+          price: price,
+          specs: specs
+        });
+
+        adminProdForm.reset();
+        window.showEastGateToast('Official product published to Marketplace and recorded in Audit Log!');
+        renderAdminData();
+      }
+    });
+  }
+
+  renderAdminData();
+});
+</script>
+
+</body>
+</html>

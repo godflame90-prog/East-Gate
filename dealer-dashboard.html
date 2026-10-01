@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dealer Command Center — East Gate Real-Estate</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.trust-alert {
+  background: rgba(198,161,91,0.12);
+  border: 1px solid rgba(198,161,91,0.35);
+  border-radius: var(--r-md);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.trust-alert svg {
+  color: var(--gold);
+  flex: none;
+}
+.wizard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="portal-wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="portal-sidebar">
+    <div class="portal-brand">
+      <a href="index.html" class="brand">
+        <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+          <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+          <path d="M2.5 21h19"/>
+        </svg>
+        <span class="brand__name">EAST<span>·</span>GATE</span>
+      </a>
+    </div>
+
+    <div class="portal-user-badge">
+      <div class="dealer-avatar" style="width:40px;height:40px;font-size:0.9rem;">JP</div>
+      <div class="portal-user-info">
+        <h4 id="dealerSidebarName">John Properties Ltd</h4>
+        <span id="dealerSidebarStatus">✓ Verified Dealer</span>
+      </div>
+    </div>
+
+    <nav class="portal-nav" id="dealerTabs">
+      <button class="is-active" data-tab="overview">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview &amp; Desk
+      </button>
+      <button data-tab="listings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        My Properties
+        <span class="portal-nav__count" id="dealerListingCount">3</span>
+      </button>
+      <button data-tab="add-listing">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        + Add Listing
+      </button>
+      <button data-tab="products">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Marketplace Goods
+      </button>
+      <button data-tab="verification">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Verification Center
+      </button>
+    </nav>
+
+    <div style="border-top:1px solid var(--line-light-soft);padding-top:20px;margin-top:auto;">
+      <a href="properties.html" class="btn btn--gold" style="width:100%;font-size:0.7rem;padding:10px;">Live Platform View</a>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW -->
+  <main class="portal-main">
+
+    <!-- TAB 1: OVERVIEW -->
+    <div id="tab-overview" class="tab-pane">
+      <div class="portal-header">
+        <div>
+          <h1>Dealer Command Center</h1>
+          <p>Manage your verified real estate listings, client viewings, and procurement transactions.</p>
+        </div>
+        <button type="button" onclick="document.querySelector('#dealerTabs button[data-tab=\'add-listing\']').click()" class="btn btn--gold btn--sm">+ Submit New Property</button>
+      </div>
+
+      <!-- Trust Status Notification -->
+      <div class="trust-alert">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div>
+          <h4 style="font-size:0.92rem;color:var(--ivory);margin-bottom:2px;">East Gate Trust Status: Verified Partner</h4>
+          <p style="font-size:0.78rem;color:var(--ivory-62);">CAC Registration (RC-1849204) and certified survey credentials verified. Your listings receive the highest trust tier visibility.</p>
+        </div>
+      </div>
+
+      <!-- KPI METRICS -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__label">Active Published Listings</div>
+          <div class="metric-card__value">4</div>
+          <div class="metric-card__hint">Approved &amp; live on platform</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Total Buyer Views</div>
+          <div class="metric-card__value">8,421</div>
+          <div class="metric-card__hint">+18% this month</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Pending Inspections</div>
+          <div class="metric-card__value" id="kpiDealerInspections">2</div>
+          <div class="metric-card__hint">Clients awaiting walkthrough</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Client Satisfaction</div>
+          <div class="metric-card__value" style="color:var(--gold);">★ 4.9</div>
+          <div class="metric-card__hint">38 verified reviews</div>
+        </div>
+      </div>
+
+      <!-- INSPECTIONS TABLE -->
+      <div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-size:1.2rem;font-weight:500;">Client Inspection Requests Desk</h3>
+        <span class="trust-badge trust-badge--verified">Physical Walkthroughs</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Client Name</th>
+              <th>Property Inquired</th>
+              <th>Date &amp; Slot</th>
+              <th>Client Contact</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dealerInspectionsTable">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: MY LISTINGS -->
+    <div id="tab-listings" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>My Submitted Properties &amp; Land</h1>
+          <p>All items submitted by your agency. Note that items under review are hidden from public search until cleared by Admin.</p>
+        </div>
+        <button type="button" onclick="document.querySelector('#dealerTabs button[data-tab=\'add-listing\']').click()" class="btn btn--gold btn--sm">+ Submit Listing</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Listing Title</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Price</th>
+              <th>Title Document</th>
+              <th>Moderation Status</th>
+            </tr>
+          </thead>
+          <tbody id="dealerListingsTable">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: ADD LISTING WIZARD (WITH MANDATORY ADMIN APPROVAL RULE) -->
+    <div id="tab-add-listing" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Submit Property for Verification &amp; Publication</h1>
+          <p>Provide accurate structural and legal documentation for compliance review.</p>
+        </div>
+      </div>
+
+      <!-- MANDATORY ADMIN APPROVAL NOTICE -->
+      <div class="trust-alert" style="border-left:4px solid var(--gold);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <h4 style="font-size:0.95rem;color:var(--ivory);margin-bottom:4px;">Mandatory Admin Approval Pipeline</h4>
+          <p style="font-size:0.8rem;color:var(--ivory-62);line-height:1.6;">To protect buyers and preserve the integrity of East Gate, <strong>every submission must be reviewed and approved by an East Gate Administrator</strong> before appearing on the public website. Submissions default to <code>PENDING_REVIEW</code> and will undergo document and price audit.</p>
+        </div>
+      </div>
+
+      <form id="dealerListingForm" style="background:#141414;border:1px solid var(--line-light-soft);border-radius:var(--r-md);padding:36px;">
+        <div class="wizard-grid">
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Property Title</label>
+            <input type="text" class="form-input" id="propTitle" placeholder="e.g., Luxury 5 Bedroom Detached Duplex with Swimming Pool" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Listing Type</label>
+            <select class="form-select" id="propListingType">
+              <option value="Buy">For Sale (Outright Purchase)</option>
+              <option value="Rent">For Rent (Annual Lease)</option>
+              <option value="Land">Land / Plot Allocation</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" id="propCategory">
+              <option value="Residential">Residential</option>
+              <option value="Luxury">Luxury</option>
+              <option value="Off-Plan">Off-Plan Development</option>
+              <option value="Commercial">Commercial</option>
+              <option value="Land">Land</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Price in Naira (₦)</label>
+            <input type="number" class="form-input" id="propPrice" placeholder="e.g. 120000000" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location (City &amp; State)</label>
+            <input type="text" class="form-input" id="propLocation" placeholder="e.g., GRA Phase 1, Aba, Abia State" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">State</label>
+            <select class="form-select" id="propState">
+              <option value="Abia">Abia State</option>
+              <option value="Imo">Imo State</option>
+              <option value="Rivers">Rivers State</option>
+              <option value="Lagos">Lagos State</option>
+              <option value="Abuja">Abuja (FCT)</option>
+              <option value="Enugu">Enugu State</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Title Document Type</label>
+            <select class="form-select" id="propTitleDoc">
+              <option value="Certificate of Occupancy (C of O)">Certificate of Occupancy (C of O)</option>
+              <option value="Governor's Consent">Governor's Consent</option>
+              <option value="Federal C of O">Federal C of O</option>
+              <option value="Registered Survey &amp; Deed">Registered Survey &amp; Deed of Conveyance</option>
+              <option value="FCDA Allocation">FCDA Allocation</option>
+              <option value="Government Gazette">Government Gazette</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bedrooms / Baths</label>
+            <div style="display:flex;gap:10px;">
+              <input type="number" class="form-input" id="propBeds" placeholder="Beds (e.g. 4)">
+              <input type="number" class="form-input" id="propBaths" placeholder="Baths (e.g. 5)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Land Size</label>
+            <input type="text" class="form-input" id="propLandSize" placeholder="e.g. 800 sqm or 2 Plots">
+          </div>
+
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Architectural Description &amp; Features</label>
+            <textarea class="form-textarea" id="propDesc" rows="4" placeholder="Detail the structural highlights, finishing, power supply, security beacons, and legal title warranties..."></textarea>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;justify-content:flex-end;gap:12px;">
+          <button type="submit" class="btn btn--gold">Submit for Admin Review</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- TAB 4: PRODUCTS -->
+    <div id="tab-products" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Vendor Marketplace Inventory</h1>
+          <p>List building materials, furniture, or heavy plant equipment on the East Gate Marketplace.</p>
+        </div>
+      </div>
+
+      <div class="trust-alert">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="font-size:0.8rem;color:var(--ivory-62);">Every marketplace product submitted by a vendor must be quality-checked and approved by East Gate Procurement Admins before being shown on <code>marketplace.html</code>.</p>
+      </div>
+
+      <form id="dealerProductForm" style="background:#141414;border:1px solid var(--line-light-soft);border-radius:var(--r-md);padding:32px;max-width:680px;">
+        <div class="form-group">
+          <label class="form-label">Product Name</label>
+          <input type="text" class="form-input" id="prodName" placeholder="e.g., Heavy-Duty Reinforcement Steel Rods (16mm TMT)" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Marketplace Category</label>
+          <select class="form-select" id="prodCategory">
+            <option value="Building Materials">Building Materials</option>
+            <option value="Home &amp; Interior">Home &amp; Interior Décor</option>
+            <option value="Equipment">Construction Equipment &amp; Machinery</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit Price in Naira (₦)</label>
+          <input type="number" class="form-input" id="prodPrice" placeholder="e.g. 1450000" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Specifications &amp; Standards</label>
+          <textarea class="form-textarea" id="prodSpecs" rows="3" placeholder="State ISO certification, delivery haulage radius, and minimum bulk order tiers..."></textarea>
+        </div>
+        <button type="submit" class="btn btn--gold">Submit Product for Admin Review</button>
+      </form>
+    </div>
+
+    <!-- TAB 5: VERIFICATION -->
+    <div id="tab-verification" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Dealer Verification Center</h1>
+          <p>Multi-dimensional verification documentation and trust badges.</p>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__label">Identity Check</div>
+          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint">NIN &amp; Director ID verified</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">CAC Business Entity</div>
+          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint">RC-1849204 confirmed</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Physical Office Audit</div>
+          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint">On-site audit passed</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Title Documentation</div>
+          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint">Legal deed warranty on file</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var tabs = document.querySelectorAll('#dealerTabs button');
+  var panes = document.querySelectorAll('.tab-pane');
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('is-active'); });
+      tab.classList.add('is-active');
+      var targetId = 'tab-' + tab.getAttribute('data-tab');
+      panes.forEach(function (p) { p.style.display = p.id === targetId ? 'block' : 'none'; });
+    });
+  });
+
+  // Check URL hash (e.g. #add)
+  if (window.location.hash === '#add') {
+    var addBtn = document.querySelector('#dealerTabs button[data-tab="add-listing"]');
+    if (addBtn) addBtn.click();
+  }
+
+  function renderDealerData() {
+    if (!window.EastGateDB) return;
+    var db = window.EastGateDB.get();
+
+    // Inspections Desk
+    var inspectionsTable = document.getElementById('dealerInspectionsTable');
+    inspectionsTable.innerHTML = db.inspections.map(function (i) {
+      return [
+        '<tr>',
+        '  <td><strong>' + i.userName + '</strong></td>',
+        '  <td>' + i.propertyTitle + '</td>',
+        '  <td>' + i.date + ' at ' + i.time + '</td>',
+        '  <td>' + i.userPhone + '</td>',
+        '  <td><span class="status-pill status-pill--' + (i.status === 'CONFIRMED' ? 'approved' : 'pending') + '">' + i.status + '</span></td>',
+        '  <td><a href="https://wa.me/' + i.userPhone.replace(/[^0-9]/g, '') + '" target="_blank" class="btn-action btn-action--approve">Accept &amp; WhatsApp</a></td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+
+    // Dealer Listings
+    var listingsTable = document.getElementById('dealerListingsTable');
+    var myListings = db.properties; // shows all dealer items
+    document.getElementById('dealerListingCount').textContent = myListings.length;
+
+    listingsTable.innerHTML = myListings.map(function (p) {
+      var statusClass = p.status === 'APPROVED' ? 'approved' : (p.status === 'PENDING_REVIEW' ? 'pending' : 'rejected');
+      return [
+        '<tr>',
+        '  <td><strong>' + p.title + '</strong></td>',
+        '  <td>' + p.category + '</td>',
+        '  <td>' + p.location + '</td>',
+        '  <td>' + p.priceDisplay + '</td>',
+        '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + p.titleDoc + '</span></td>',
+        '  <td><span class="status-pill status-pill--' + statusClass + '">' + p.status + '</span></td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+  }
+
+  // Handle Add Listing Form Submission
+  var listingForm = document.getElementById('dealerListingForm');
+  if (listingForm) {
+    listingForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var title = document.getElementById('propTitle').value;
+      var listingType = document.getElementById('propListingType').value;
+      var category = document.getElementById('propCategory').value;
+      var price = document.getElementById('propPrice').value;
+      var location = document.getElementById('propLocation').value;
+      var state = document.getElementById('propState').value;
+      var titleDoc = document.getElementById('propTitleDoc').value;
+      var beds = document.getElementById('propBeds').value;
+      var baths = document.getElementById('propBaths').value;
+      var landSize = document.getElementById('propLandSize').value;
+      var desc = document.getElementById('propDesc').value;
+
+      if (window.EastGateDB) {
+        // MANDATORY ADMIN APPROVAL RULE: Status will be PENDING_REVIEW
+        var newProp = window.EastGateDB.dealerSubmitListing({
+          title: title,
+          listingType: listingType,
+          category: category,
+          price: price,
+          location: location,
+          state: state,
+          titleDoc: titleDoc,
+          beds: beds,
+          baths: baths,
+          landSize: landSize,
+          description: desc
+        });
+
+        listingForm.reset();
+        window.showEastGateToast('Listing submitted! Status: PENDING_REVIEW by East Gate Admin.');
+        // Switch to listings tab
+        document.querySelector('#dealerTabs button[data-tab="listings"]').click();
+        renderDealerData();
+      }
+    });
+  }
+
+  // Handle Add Product Form Submission
+  var productForm = document.getElementById('dealerProductForm');
+  if (productForm) {
+    productForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = document.getElementById('prodName').value;
+      var category = document.getElementById('prodCategory').value;
+      var price = document.getElementById('prodPrice').value;
+      var specs = document.getElementById('prodSpecs').value;
+
+      if (window.EastGateDB) {
+        window.EastGateDB.dealerSubmitProduct({
+          name: name,
+          category: category,
+          price: price,
+          specs: specs
+        });
+
+        productForm.reset();
+        window.showEastGateToast('Product submitted! Awaiting Admin compliance approval before appearing in Marketplace.');
+      }
+    });
+  }
+
+  renderDealerData();
+});
+</script>
+
+</body>
+</html>

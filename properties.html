@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Properties — East Gate Real-Estate | Verified Listings</title>
+<meta name="description" content="Browse verified houses, luxury apartments, and duplexes across Aba, Owerri, Port Harcourt, Lagos, and Abuja.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.catalog-head {
+  padding: 120px 0 40px;
+  background: var(--obsidian);
+  color: var(--ivory);
+  border-bottom: 1px solid var(--line-light-soft);
+}
+.filter-bar {
+  background: #141414;
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-md);
+  padding: 24px;
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.type-pill {
+  padding: 8px 18px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-light-soft);
+  border-radius: 30px;
+  color: var(--ivory-62);
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
+.type-pill:hover,
+.type-pill.is-active {
+  background: var(--gold);
+  color: var(--obsidian);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.catalog-results {
+  padding: 60px 0 120px;
+  background: var(--ivory);
+}
+.catalog-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+.catalog-count {
+  font-size: 0.85rem;
+  color: var(--ink-60);
+  font-weight: 500;
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html" class="is-active">Properties</a>
+      <a href="land.html">Land</a>
+      <a href="services.html">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="dealers.html">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="properties.html">Properties</a>
+    <a href="land.html">Land</a>
+    <a href="services.html">Services</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="dealers.html">Dealers & Pros</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="dealer-dashboard.html#add" class="btn btn--gold">List Property</a>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- HEADER -->
+  <section class="catalog-head">
+    <div class="container">
+      <p class="eyebrow">Public Property Catalog</p>
+      <h1 class="display" style="margin-top:10px;">Curated Verified Properties</h1>
+      <p class="lede" style="margin-top:12px;">Every listing has verified documentation, honest pricing, and guided inspection support.</p>
+
+      <!-- Category Filter Pills -->
+      <div class="type-pills" id="categoryPills">
+        <button class="type-pill is-active" data-cat="ALL">All Categories</button>
+        <button class="type-pill" data-cat="Residential">Residential</button>
+        <button class="type-pill" data-cat="Luxury">Luxury</button>
+        <button class="type-pill" data-cat="Off-Plan">Off-Plan</button>
+        <button class="type-pill" data-cat="Commercial">Commercial</button>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-bar">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Location / State</label>
+          <select class="form-select" id="filterLocation">
+            <option value="ALL">All Locations</option>
+            <option value="Abia">Aba & Umuahia, Abia</option>
+            <option value="Imo">Owerri, Imo</option>
+            <option value="Rivers">Port Harcourt, Rivers</option>
+            <option value="Lagos">Victoria Island & Lekki, Lagos</option>
+            <option value="Abuja">Guzape & Maitama, Abuja</option>
+            <option value="Enugu">Independence Layout, Enugu</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Price Bracket</label>
+          <select class="form-select" id="filterPrice">
+            <option value="ALL">Any Price</option>
+            <option value="under50">Under ₦50,000,000</option>
+            <option value="50to100">₦50,000,000 – ₦100,000,000</option>
+            <option value="100to200">₦100,000,000 – ₦200,000,000</option>
+            <option value="over200">₦200,000,000 +</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Bedrooms</label>
+          <select class="form-select" id="filterBeds">
+            <option value="ALL">Any Bedrooms</option>
+            <option value="3">3+ Bedrooms</option>
+            <option value="4">4+ Bedrooms</option>
+            <option value="5">5+ Bedrooms</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Title Document</label>
+          <select class="form-select" id="filterTitle">
+            <option value="ALL">Any Verified Document</option>
+            <option value="C of O">Certificate of Occupancy (C of O)</option>
+            <option value="Governor">Governor's Consent</option>
+            <option value="FCDA">FCDA Allocation</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS GRID -->
+  <section class="catalog-results">
+    <div class="container">
+      <div class="catalog-meta">
+        <span class="catalog-count" id="resultsCount">Showing 0 verified properties</span>
+        <span class="trust-badge trust-badge--verified">✓ 100% Admin Approved Listings</span>
+      </div>
+
+      <div class="prop-grid" id="propertiesContainer">
+        <!-- Rendered dynamically from EastGateDB -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Everything Housing. One Premium Destination.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="properties.html">Properties</a></li>
+          <li><a href="land.html">Land</a></li>
+          <li><a href="dealers.html">Agents & Dealers</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="marketplace.html">Marketplace</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="login.html">Sign In</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="https://wa.me/2348031234567" target="_blank">WhatsApp Hotline</a></li>
+          <li><a href="#">Verification Guide</a></li>
+          <li><a href="#">Report a Listing</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+      <div class="footer__legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var container = document.getElementById('propertiesContainer');
+  var countEl = document.getElementById('resultsCount');
+  var activeCat = 'ALL';
+
+  // Check URL params for category
+  var urlParams = new URLSearchParams(window.location.search);
+  var paramCat = urlParams.get('cat') || urlParams.get('type');
+  if (paramCat) activeCat = paramCat;
+
+  var categoryPills = document.querySelectorAll('#categoryPills .type-pill');
+  categoryPills.forEach(function (pill) {
+    if (pill.getAttribute('data-cat') === activeCat) {
+      categoryPills.forEach(function (p) { p.classList.remove('is-active'); });
+      pill.classList.add('is-active');
+    }
+    pill.addEventListener('click', function () {
+      categoryPills.forEach(function (p) { p.classList.remove('is-active'); });
+      pill.classList.add('is-active');
+      activeCat = pill.getAttribute('data-cat');
+      renderListings();
+    });
+  });
+
+  var filterLoc = document.getElementById('filterLocation');
+  var filterPrice = document.getElementById('filterPrice');
+  var filterBeds = document.getElementById('filterBeds');
+  var filterTitle = document.getElementById('filterTitle');
+
+  [filterLoc, filterPrice, filterBeds, filterTitle].forEach(function (el) {
+    if (el) el.addEventListener('change', renderListings);
+  });
+
+  function renderListings() {
+    if (!window.EastGateDB) return;
+    var allProps = window.EastGateDB.get().properties;
+
+    // MANDATORY ADMIN APPROVAL RULE: ONLY SHOW APPROVED PROPERTIES TO USERS
+    var filtered = allProps.filter(function (p) {
+      if (p.status !== 'APPROVED') return false; // Dealer pending submissions are hidden!
+      if (p.category === 'Land') return false; // Land lives on land.html
+
+      if (activeCat !== 'ALL' && p.category !== activeCat) return false;
+      if (filterLoc.value !== 'ALL' && p.state !== filterLoc.value) return false;
+
+      if (filterPrice.value === 'under50' && p.price >= 50000000) return false;
+      if (filterPrice.value === '50to100' && (p.price < 50000000 || p.price > 100000000)) return false;
+      if (filterPrice.value === '100to200' && (p.price < 100000000 || p.price > 200000000)) return false;
+      if (filterPrice.value === 'over200' && p.price < 200000000) return false;
+
+      if (filterBeds.value !== 'ALL' && p.beds < Number(filterBeds.value)) return false;
+      if (filterTitle.value !== 'ALL' && p.titleDoc.indexOf(filterTitle.value) === -1) return false;
+
+      return true;
+    });
+
+    countEl.textContent = 'Showing ' + filtered.length + ' verified properties';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:60px 20px;color:var(--ink-60);font-size:1.1rem;">No properties match the selected criteria. Try adjusting your filters.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(function (p) {
+      var isSaved = window.EastGateDB.isPropertySaved(p.id);
+      return [
+        '<article class="prop-card">',
+        '  <div class="prop-card__media">',
+        '    <img src="' + p.image + '" alt="' + p.title + '" loading="lazy">',
+        '    <span class="prop-card__badge">' + p.category + '</span>',
+        '    <button class="prop-card__save ' + (isSaved ? 'is-saved' : '') + '" data-id="' + p.id + '" aria-label="Save property" style="' + (isSaved ? 'background:#C6A15B;color:#111;' : '') + '">',
+        '      <svg width="16" height="16" viewBox="0 0 24 24" fill="' + (isSaved ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.5"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>',
+        '    </button>',
+        '  </div>',
+        '  <div class="prop-card__body">',
+        '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
+        '      <span class="trust-badge trust-badge--verified" style="font-size:0.6rem;">' + p.titleDoc + ' ✓</span>',
+        '      <span style="font-size:0.7rem;color:var(--ink-60);">' + p.dealerName + '</span>',
+        '    </div>',
+        '    <h3 class="prop-card__title">' + p.title + '</h3>',
+        '    <p class="prop-card__loc">',
+        '      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+        '      ' + p.location,
+        '    </p>',
+        '    <div class="prop-card__price">' + p.priceDisplay + '</div>',
+        '    <ul class="prop-card__specs">',
+        '      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg> ' + p.beds + ' Beds</li>',
+        '      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h18v3.5a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 15.5z"/><path d="M6 12V6.5a2.5 2.5 0 0 1 5 0"/></svg> ' + p.baths + ' Baths</li>',
+        '      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15.5 5.7 10h12.6L20 15.5"/><path d="M3 15.5h18V19H3z"/><circle cx="7" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg> ' + p.cars + ' Cars</li>',
+        '    </ul>',
+        '    <div style="margin-top:20px;display:flex;gap:8px;">',
+        '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>',
+        '      <a href="https://wa.me/2348031234567?text=Hello%20East%20Gate%2C%20inquiring%20about%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp Dealer">',
+        '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
+        '      </a>',
+        '    </div>',
+        '  </div>',
+        '</article>'
+      ].join('');
+    }).join('');
+
+    // Rebind save buttons
+    if (window.initSaveButtons) window.initSaveButtons();
+  }
+
+  renderListings();
+});
+</script>
+
+</body>
+</html>

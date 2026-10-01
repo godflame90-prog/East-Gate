@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Services Ecosystem — East Gate Real-Estate | Verified Specialists</title>
+<meta name="description" content="Discover verified architects, structural engineers, general contractors, interior designers, and property managers.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.services-head {
+  padding: 120px 0 40px;
+  background: var(--obsidian);
+  color: var(--ivory);
+  border-bottom: 1px solid var(--line-light-soft);
+}
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+.service-card {
+  background: var(--ivory);
+  border: 1px solid var(--line-dark-soft);
+  border-radius: var(--r-md);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease);
+}
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+.service-card__cat {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.service-card__title {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+  line-height: 1.25;
+}
+.service-card__desc {
+  font-size: 0.84rem;
+  color: var(--ink-60);
+  line-height: 1.65;
+  margin-bottom: 24px;
+  flex: 1;
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html">Properties</a>
+      <a href="land.html">Land</a>
+      <a href="services.html" class="is-active">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="dealers.html">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#services" class="btn btn--gold btn--sm">Offer Services</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="services-head">
+    <div class="container">
+      <p class="eyebrow">Professional Services</p>
+      <h1 class="display" style="margin-top:10px;">The Housing Services Ecosystem</h1>
+      <p class="lede" style="margin-top:12px;">Vetted specialists at every stage — from soil investigation and structural design to project management and facility maintenance.</p>
+
+      <div class="type-pills" id="servicesPills" style="margin-top:28px;">
+        <button class="type-pill is-active" data-cat="ALL">All Services</button>
+        <button class="type-pill" data-cat="Construction">Construction &amp; Engineering</button>
+        <button class="type-pill" data-cat="Design">Architecture &amp; Design</button>
+        <button class="type-pill" data-cat="Property">Property &amp; Facilities</button>
+        <button class="type-pill" data-cat="Professional">Surveyors &amp; Legal</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--ivory);">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <span style="font-size:0.85rem;color:var(--ink-60);" id="servicesCount">Loading services...</span>
+        <span class="trust-badge trust-badge--verified">✓ Regulated &amp; Verified Professionals</span>
+      </div>
+
+      <div class="services-grid" id="servicesGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Everything Housing. One Premium Destination.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="https://wa.me/2348031234567" target="_blank">Consultation Desk</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var grid = document.getElementById('servicesGrid');
+  var countEl = document.getElementById('servicesCount');
+  var activeCat = 'ALL';
+
+  var pills = document.querySelectorAll('#servicesPills .type-pill');
+  pills.forEach(function (pill) {
+    pill.addEventListener('click', function () {
+      pills.forEach(function (p) { p.classList.remove('is-active'); });
+      pill.classList.add('is-active');
+      activeCat = pill.getAttribute('data-cat');
+      renderServices();
+    });
+  });
+
+  function renderServices() {
+    if (!window.EastGateDB || !grid) return;
+    var allServices = window.EastGateDB.get().services;
+
+    // MANDATORY ADMIN APPROVAL RULE: ONLY SHOW APPROVED SERVICES
+    var filtered = allServices.filter(function (s) {
+      if (s.status !== 'APPROVED') return false; // Pending submissions hidden until admin approves!
+      if (activeCat !== 'ALL' && s.category !== activeCat) return false;
+      return true;
+    });
+
+    countEl.textContent = 'Showing ' + filtered.length + ' vetted service specialists';
+
+    grid.innerHTML = filtered.map(function (s) {
+      return [
+        '<article class="service-card">',
+        '  <div style="display:flex;justify-content:space-between;align-items:flex-start;">',
+        '    <span class="service-card__cat">' + s.category + '</span>',
+        '    <span style="font-size:0.75rem;color:var(--gold-ink);font-weight:600;">★ ' + s.rating + ' (' + s.reviewsCount + ')</span>',
+        '  </div>',
+        '  <h3 class="service-card__title">' + s.title + '</h3>',
+        '  <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">',
+        s.badges.map(function(b){ return '<span class="trust-badge trust-badge--verified" style="font-size:0.58rem;">' + b + '</span>'; }).join(''),
+        '  </div>',
+        '  <p class="service-card__desc">' + s.description + '</p>',
+        '  <div style="border-top:1px solid var(--line-dark-soft);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">',
+        '    <div>',
+        '      <div style="font-size:0.8rem;font-weight:600;">' + s.providerName + '</div>',
+        '      <div style="font-size:0.7rem;color:var(--ink-60);">' + s.state + '</div>',
+        '    </div>',
+        '    <button type="button" onclick="window.showEastGateToast(\'Consultation request submitted for ' + s.providerName.replace(/'/g, "\\'") + '.\')" class="btn btn--gold btn--sm">Request Consult</button>',
+        '  </div>',
+        '</article>'
+      ].join('');
+    }).join('');
+  }
+
+  renderServices();
+});
+</script>
+
+</body>
+</html>

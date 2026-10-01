@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Land Marketplace — East Gate Real-Estate | Verified Plots</title>
+<meta name="description" content="Commercial, estate, and residential land plots with verified beacons and clean documentation in Aba, Owerri, Port Harcourt, and Abuja.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.land-hero {
+  padding: 130px 0 50px;
+  background: var(--obsidian);
+  color: var(--ivory);
+}
+.guide-box {
+  background: #141414;
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-md);
+  padding: 36px;
+  margin-top: 48px;
+}
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+.guide-card {
+  border-left: 2px solid var(--gold);
+  padding-left: 18px;
+}
+.guide-card h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: var(--ivory);
+  margin-bottom: 6px;
+}
+.guide-card p {
+  font-size: 0.8rem;
+  color: var(--ivory-62);
+  line-height: 1.6;
+}
+.land-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+  margin-top: 48px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html">Properties</a>
+      <a href="land.html" class="is-active">Land</a>
+      <a href="services.html">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="dealers.html">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="land-hero">
+    <div class="container">
+      <p class="eyebrow">Dedicated Land Exchange</p>
+      <h1 class="display" style="margin-top:10px;">Verified Land &amp; Plots</h1>
+      <p class="lede" style="margin-top:12px;">Acquire development land, estate plots, and commercial parcels with absolute documentation clarity and physical beacon inspection.</p>
+
+      <!-- Nigerian Title Guide -->
+      <div class="guide-box">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="trust-badge trust-badge--official">Title Transparency Guide</span>
+          <span style="font-size:0.75rem;color:var(--ivory-62);">How East Gate validates legal land ownership in Nigeria</span>
+        </div>
+        <div class="guide-grid">
+          <div class="guide-card">
+            <h4>Certificate of Occupancy</h4>
+            <p>Official state government grant of land rights for 99 years. Highest legal standard of title.</p>
+          </div>
+          <div class="guide-card">
+            <h4>Governor's Consent</h4>
+            <p>Legal validation by the Governor transferring ownership rights from previous holder to buyer.</p>
+          </div>
+          <div class="guide-card">
+            <h4>Registered Survey &amp; Deed</h4>
+            <p>Cadastral coordinate beacons registered with the Surveyor-General's office with non-encumbrance warranty.</p>
+          </div>
+          <div class="guide-card">
+            <h4>Government Excision / Gazette</h4>
+            <p>Lands officially excised and published in government gazette, free of committed acquisitions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--ivory);">
+    <div class="container">
+      <div class="sec-head" style="margin-bottom:20px;">
+        <div class="sec-head__text">
+          <p class="eyebrow">Available Plots</p>
+          <h2>Prime Parcels Ready for Allocation</h2>
+        </div>
+        <button type="button" onclick="openInspectionModal('prop_4', 'Commercial Land')" class="btn btn--gold btn--sm">Request On-Site Beacon Survey</button>
+      </div>
+
+      <div class="land-grid" id="landContainer">
+        <!-- Rendered dynamically from EastGateDB -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Everything Housing. One Premium Destination.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="https://wa.me/2348031234567" target="_blank">Land Inspection Desk</a></li>
+          <li><a href="#">Beacon Verification</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var container = document.getElementById('landContainer');
+  if (!container || !window.EastGateDB) return;
+
+  var lands = window.EastGateDB.get().properties.filter(function (p) {
+    return p.category === 'Land' && p.status === 'APPROVED';
+  });
+
+  container.innerHTML = lands.map(function (p) {
+    return [
+      '<article class="prop-card">',
+      '  <div class="prop-card__media" style="aspect-ratio:16/9;">',
+      '    <img src="' + p.image + '" alt="' + p.title + '" loading="lazy">',
+      '    <span class="prop-card__badge">Land Plot</span>',
+      '  </div>',
+      '  <div class="prop-card__body">',
+      '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
+      '      <span class="trust-badge trust-badge--verified" style="font-size:0.62rem;">' + p.titleDoc + '</span>',
+      '      <span style="font-size:0.7rem;color:var(--ink-60);">' + p.landSize + '</span>',
+      '    </div>',
+      '    <h3 class="prop-card__title">' + p.title + '</h3>',
+      '    <p class="prop-card__loc">' + p.location + '</p>',
+      '    <div class="prop-card__price">' + p.priceDisplay + '</div>',
+      '    <p style="font-size:0.8rem;color:var(--ink-60);margin-top:10px;line-height:1.6;">' + p.description + '</p>',
+      '    <div style="margin-top:20px;display:flex;gap:8px;">',
+      '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Beacon Inspection</button>',
+      '      <a href="https://wa.me/2348031234567?text=Inquiry%20regarding%20land%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp">',
+      '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
+      '      </a>',
+      '    </div>',
+      '  </div>',
+      '</article>'
+    ].join('');
+  }).join('');
+});
+</script>
+
+</body>
+</html>
