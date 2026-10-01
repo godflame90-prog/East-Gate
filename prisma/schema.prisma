@@ -1,0 +1,259 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  DEALER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum VerificationStatus {
+  NEW
+  UNDER_REVIEW
+  VERIFIED
+  SUSPENDED
+  REJECTED
+}
+
+enum ItemStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum ListingType {
+  BUY
+  RENT
+  LEASE
+  LAND
+}
+
+enum PropertyCategory {
+  RESIDENTIAL
+  COMMERCIAL
+  LAND
+  LUXURY
+  OFF_PLAN
+}
+
+enum TitleDocumentType {
+  C_OF_O
+  GOVERNORS_CONSENT
+  FEDERAL_C_OF_O
+  REGISTERED_SURVEY_DEED
+  FCDA_ALLOCATION
+  GOVERNMENT_GAZETTE
+  OTHER
+}
+
+enum InspectionStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  RESCHEDULED
+  CANCELLED
+}
+
+// ---------------- USER & IDENTITY ----------------
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  phone           String         @unique
+  passwordHash    String
+  fullName        String
+  role            Role           @default(CUSTOMER)
+  avatarUrl       String?
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  dealerProfile   DealerProfile?
+  savedProperties SavedListing[]
+  inspections     Inspection[]   @relation("UserInspections")
+  auditActions    AuditLog[]     @relation("AdminActions")
+  reportsFiled    Report[]
+}
+
+// ---------------- DEALER & CREDENTIALS ----------------
+model DealerProfile {
+  id               String             @id @default(uuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName     String
+  cacNumber        String?            @unique
+  category         String             // Real Estate Broker, Contractor, Architect, Supplier
+  bio              String?
+  state            String
+  city             String
+  officeAddress    String?
+  status           VerificationStatus @default(UNDER_REVIEW)
+  
+  // 4-Dimensional Verification Badges
+  badgeIdentity    Boolean            @default(false)
+  badgeCac         Boolean            @default(false)
+  badgePhone       Boolean            @default(false)
+  badgeTitleDocs   Boolean            @default(false)
+  
+  ratingAverage    Decimal            @default(5.0) @db.Decimal(2, 1)
+  reviewCount      Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  listings         Property[]
+  products         MarketplaceProduct[]
+  services         ServiceOffering[]
+  inspections      Inspection[]       @relation("DealerInspections")
+  verifications    VerificationDoc[]
+}
+
+model VerificationDoc {
+  id               String             @id @default(uuid())
+  dealerId         String
+  dealer           DealerProfile      @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  documentType     String             // CAC_CERT, NIN, TITLE_DEED, TAX_CLEARANCE
+  documentUrl      String
+  documentName     String
+  status           VerificationStatus @default(UNDER_REVIEW)
+  reviewedBy       String?
+  notes            String?
+  submittedAt      DateTime           @default(now())
+  reviewedAt       DateTime?
+}
+
+// ---------------- PROPERTY MARKETPLACE ----------------
+model Property {
+  id              String            @id @default(uuid())
+  dealerId        String
+  dealer          DealerProfile     @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  title           String
+  slug            String            @unique
+  listingType     ListingType       @default(BUY)
+  category        PropertyCategory  @default(RESIDENTIAL)
+  price           Decimal           @db.Decimal(14, 2)
+  currency        String            @default("NGN")
+  state           String
+  location        String            // City, LGA, Neighborhood
+  bedrooms        Int               @default(0)
+  bathrooms       Int               @default(0)
+  parkingSpaces   Int               @default(0)
+  landSize        String?           // e.g. "800 sqm"
+  titleDocument   TitleDocumentType @default(C_OF_O)
+  isTitleVerified Boolean           @default(false)
+  
+  mainImage       String
+  galleryImages   String[]          @default([])
+  description     String
+  features        String[]          @default([])
+  
+  status          ItemStatus        @default(PENDING_REVIEW) // MUST BE APPROVED BY ADMIN BEFORE PUBLIC VIEWING
+  isFeatured      Boolean           @default(false)
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  inspections     Inspection[]
+  saves           SavedListing[]
+}
+
+// ---------------- MARKETPLACE GOODS (BUILDING MATERIALS / INTERIORS) ----------------
+model MarketplaceProduct {
+  id              String            @id @default(uuid())
+  dealerId        String?           // Nullable if created directly by Admin
+  dealer          DealerProfile?    @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  name            String
+  category        String            // Building Materials, Home & Interior, Equipment
+  price           Decimal           @db.Decimal(14, 2)
+  stockInfo       String            @default("In Stock")
+  mainImage       String
+  specifications  String
+  
+  isOfficial      Boolean           @default(false) // True for East Gate Direct
+  status          ItemStatus        @default(PENDING_REVIEW) // Direct Admin listings set to APPROVED
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+// ---------------- SPECIALIST SERVICES ----------------
+model ServiceOffering {
+  id              String            @id @default(uuid())
+  dealerId        String
+  dealer          DealerProfile     @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  title           String
+  category        String            // Construction, Design, Property, Professional
+  coverageState   String            @default("Nationwide")
+  description     String
+  badges          String[]          @default([])
+  status          ItemStatus        @default(PENDING_REVIEW)
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+// ---------------- INSPECTIONS ----------------
+model Inspection {
+  id              String            @id @default(uuid())
+  userId          String
+  user            User              @relation("UserInspections", fields: [userId], references: [id])
+  propertyId      String
+  property        Property          @relation(fields: [propertyId], references: [id])
+  dealerId        String
+  dealer          DealerProfile     @relation("DealerInspections", fields: [dealerId], references: [id])
+  
+  date            DateTime          @db.Date
+  timeSlot        String            // e.g. "02:00 PM – 03:30 PM"
+  status          InspectionStatus  @default(PENDING)
+  clientNotes     String?
+  dealerNotes     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+// ---------------- SAVED LISTINGS ----------------
+model SavedListing {
+  id              String            @id @default(uuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId      String
+  property        Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+// ---------------- SECURITY AUDIT TRAIL ----------------
+model AuditLog {
+  id              String            @id @default(uuid())
+  adminId         String
+  admin           User              @relation("AdminActions", fields: [adminId], references: [id])
+  action          String            // APPROVE_PROPERTY, REJECT_PROPERTY, ADMIN_CREATE_PRODUCT, VERIFY_DEALER
+  targetEntity    String            // Property, Dealer, Product, Service
+  targetId        String
+  targetName      String
+  details         String
+  ipAddress       String?
+  timestamp       DateTime          @default(now())
+}
+
+// ---------------- REPORTS & MODERATION ----------------
+model Report {
+  id              String            @id @default(uuid())
+  reporterId      String?
+  reporter        User?             @relation(fields: [reporterId], references: [id])
+  targetType      String            // PROPERTY, DEALER, PRODUCT
+  targetId        String
+  reason          String
+  status          String            @default("PENDING")
+  createdAt       DateTime          @default(now())
+}
