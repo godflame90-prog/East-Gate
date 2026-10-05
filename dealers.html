@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dealers & Professionals Directory — East Gate Real-Estate</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Discover verified real estate agencies, property developers, and contractors with multi-tier credentials.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,7 +88,8 @@
     </nav>
 
     <div class="nav__actions">
-      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="contact.html">Contact Us</a>
+        <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#register" class="btn btn--gold btn--sm">Register as Dealer</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -133,7 +135,7 @@
           </svg>
           <span class="brand__name">EAST<span>·</span>GATE</span>
         </a>
-        <p>Everything Housing. One Premium Destination.</p>
+        <p>Find Your Place. Make It Home.</p>
       </div>
 
       <div class="footer__col">
@@ -142,13 +144,14 @@
           <li><a href="dashboard.html">Customer Dashboard</a></li>
           <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
           <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
         </ul>
       </div>
 
       <div class="footer__col">
         <h4>Verification Desk</h4>
         <ul>
-          <li><a href="https://wa.me/2348031234567" target="_blank">Compliance Hotline</a></li>
+          <li><a href="https://wa.me/2348108990239" target="_blank">Compliance Hotline</a></li>
           <li><a href="#">Report Suspicious Dealer</a></li>
         </ul>
       </div>
@@ -161,19 +164,58 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  var grid = document.getElementById('dealersGrid');
-  if (!grid || !window.EastGateDB) return;
+  // /api/dealers returns DealerProfile rows (already filtered to VERIFIED by the
+  // server, so an UNDER_REVIEW dealer is never public). The mock store instead
+  // holds plain users with a nested badges object. Fold both onto one shape.
+  function normDealer(raw) {
+    var badges = raw.badges || {};
+    return {
+      id: raw.id,
+      name: raw.businessName || raw.name || '',
+      cac: raw.cacNumber || raw.cac || 'CAC Registered',
+      category: raw.category || '',
+      verificationStatus: raw.status || raw.verificationStatus || '',
+      rating: raw.ratingAverage != null ? raw.ratingAverage : (raw.rating != null ? raw.rating : null),
+      reviewsCount: raw.reviewCount != null ? raw.reviewCount : (raw.reviewsCount != null ? raw.reviewsCount : null),
+      badges: {
+        identity: raw.badgeIdentity != null ? raw.badgeIdentity : badges.identity,
+        cac: raw.badgeCac != null ? raw.badgeCac : badges.cac,
+        phone: raw.badgePhone != null ? raw.badgePhone : badges.phone,
+        titleDocs: raw.badgeTitleDocs != null ? raw.badgeTitleDocs : badges.titleDocs
+      },
+      // The database carries a real per-dealer bio; the page used to print the
+      // same generic sentence for every firm regardless of who it was.
+      bio: raw.bio || 'Licensed real estate and infrastructure development firm.'
+    };
+  }
 
-  var dealers = window.EastGateDB.get().users.filter(function (u) {
-    return u.role === 'DEALER';
-  });
+  async function renderDealers() {
+    var grid = document.getElementById('dealersGrid');
+    if (!grid) return;
 
-  grid.innerHTML = dealers.map(function (d) {
-    var isVerified = d.verificationStatus === 'VERIFIED';
-    return [
+    var raw = window.EastGateAPI
+      ? await window.EastGateAPI.getDealers()
+      : (window.EastGateDB
+          ? window.EastGateDB.get().users.filter(function (u) { return u.role === 'DEALER'; })
+          : []);
+
+    var dealers = (raw || []).map(normDealer);
+
+    if (dealers.length === 0) {
+      grid.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:60px 20px;color:var(--ivory-62);font-size:1.1rem;">No verified dealers are listed yet. Please check back soon.</div>';
+      return;
+    }
+
+    grid.innerHTML = dealers.map(function (d) {
+      var isVerified = d.verificationStatus === 'VERIFIED';
+      var ratingLabel = d.rating != null
+        ? '★ ' + d.rating + (d.reviewsCount != null ? ' (' + d.reviewsCount + ' reviews)' : '')
+        : 'New';
+      return [
       '<div class="dealer-card">',
       '  <div class="dealer-header">',
       '    <div class="dealer-avatar">' + d.name.substring(0, 2).toUpperCase() + '</div>',
@@ -186,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '    <span class="trust-badge ' + (isVerified ? 'trust-badge--verified' : 'trust-badge--under-review') + '">',
       '      ' + (isVerified ? '✓ East Gate Verified' : '⏳ Verification In Progress'),
       '    </span>',
-      '    <span style="font-size:0.78rem;color:var(--ivory-62);">★ ' + d.rating + ' (' + d.reviewsCount + ' reviews)</span>',
+      '    <span style="font-size:0.78rem;color:var(--ivory-62);">' + ratingLabel + '</span>',
       '  </div>',
       '  <div class="badges-list">',
       '    <span class="trust-badge ' + (d.badges.identity ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">Identity ' + (d.badges.identity ? '✓' : '⏳') + '</span>',
@@ -194,14 +236,17 @@ document.addEventListener('DOMContentLoaded', function () {
       '    <span class="trust-badge ' + (d.badges.phone ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">Verified Tel ' + (d.badges.phone ? '✓' : '⏳') + '</span>',
       '    <span class="trust-badge ' + (d.badges.titleDocs ? 'trust-badge--verified' : 'trust-badge--under-review') + '" style="font-size:0.58rem;">Title Documents ' + (d.badges.titleDocs ? '✓' : '⏳') + '</span>',
       '  </div>',
-      '  <p style="font-size:0.8rem;color:var(--ivory-62);margin:16px 0;line-height:1.6;">Licensed real estate and infrastructure development firm. Specializing in high-value verified residential and commercial assets.</p>',
+      '  <p style="font-size:0.8rem;color:var(--ivory-62);margin:16px 0;line-height:1.6;">' + d.bio + '</p>',
       '  <div style="display:flex;gap:8px;margin-top:20px;">',
       '    <a href="properties.html" class="btn btn--gold btn--sm" style="flex:1;">View Listings</a>',
-      '    <a href="https://wa.me/2348031234567?text=Hello%20' + encodeURIComponent(d.name) + '%2C%20inquiry%20via%20East%20Gate" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 14px;border:1px solid rgba(255,255,255,0.15);">Contact</a>',
+      '    <a href="https://wa.me/2348108990239?text=Hello%20' + encodeURIComponent(d.name) + '%2C%20inquiry%20via%20East%20Gate" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 14px;border:1px solid rgba(255,255,255,0.15);">Contact</a>',
       '  </div>',
       '</div>'
     ].join('');
   }).join('');
+}
+
+  renderDealers();
 });
 </script>
 

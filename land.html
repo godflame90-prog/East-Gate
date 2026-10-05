@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Land Marketplace — East Gate Real-Estate | Verified Plots</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Commercial, estate, and residential land plots with verified beacons and clean documentation in Aba, Owerri, Port Harcourt, and Abuja.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -79,7 +80,8 @@
     </nav>
 
     <div class="nav__actions">
-      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="contact.html">Contact Us</a>
+        <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -131,7 +133,7 @@
           <p class="eyebrow">Available Plots</p>
           <h2>Prime Parcels Ready for Allocation</h2>
         </div>
-        <button type="button" onclick="openInspectionModal('prop_4', 'Commercial Land')" class="btn btn--gold btn--sm">Request On-Site Beacon Survey</button>
+        <button type="button" onclick="openInspectionModal('5003022d-302a-4015-97e3-7457eb49cc55', 'Commercial Land')" class="btn btn--gold btn--sm">Request On-Site Beacon Survey</button>
       </div>
 
       <div class="land-grid" id="landContainer">
@@ -154,7 +156,7 @@
           </svg>
           <span class="brand__name">EAST<span>·</span>GATE</span>
         </a>
-        <p>Everything Housing. One Premium Destination.</p>
+        <p>Find Your Place. Make It Home.</p>
       </div>
 
       <div class="footer__col">
@@ -163,13 +165,14 @@
           <li><a href="dashboard.html">Customer Dashboard</a></li>
           <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
           <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
         </ul>
       </div>
 
       <div class="footer__col">
         <h4>Support</h4>
         <ul>
-          <li><a href="https://wa.me/2348031234567" target="_blank">Land Inspection Desk</a></li>
+          <li><a href="https://wa.me/2348108990239" target="_blank">Land Inspection Desk</a></li>
           <li><a href="#">Beacon Verification</a></li>
         </ul>
       </div>
@@ -182,15 +185,52 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   var container = document.getElementById('landContainer');
-  if (!container || !window.EastGateDB) return;
+  if (!container) return;
 
-  var lands = window.EastGateDB.get().properties.filter(function (p) {
-    return p.category === 'Land' && p.status === 'APPROVED';
+  // LAND is a real PropertyCategory, so the filter is pushed to the server and
+  // the database does the narrowing. The API client falls back to the local store.
+  var raw = window.EastGateAPI
+    ? await window.EastGateAPI.getProperties({ category: 'LAND' })
+    : (window.EastGateDB
+        ? window.EastGateDB.get().properties.filter(function (p) { return p.category === 'Land'; })
+        : []);
+
+  var TITLE_DOC_LABELS = {
+    C_OF_O: 'C of O',
+    FEDERAL_C_OF_O: 'Federal C of O',
+    GOVERNORS_CONSENT: "Governor's Consent",
+    REGISTERED_SURVEY_DEED: 'Registered Survey Deed',
+    FCDA_ALLOCATION: 'FCDA Allocation',
+    GOVERNMENT_GAZETTE: 'Government Gazette',
+    OTHER: 'Other'
+  };
+
+  var lands = (raw || []).filter(function (p) {
+    var key = String(p.category == null ? '' : p.category).trim().toUpperCase().replace(/[\s-]+/g, '_');
+    var isLand = key === 'LAND' || p.category === 'Land';
+    return isLand && p.status === 'APPROVED';
+  }).map(function (p) {
+    var docKey = String(p.titleDocument == null ? '' : p.titleDocument).trim().toUpperCase().replace(/[\s-]+/g, '_');
+    return {
+      id: p.id,
+      title: p.title || '',
+      image: p.mainImage || p.image || '',
+      titleDoc: TITLE_DOC_LABELS[docKey] || p.titleDocument || p.titleDoc || '',
+      landSize: p.landSize || '',
+      location: p.location || '',
+      description: p.description || ''
+    };
   });
+
+  if (lands.length === 0) {
+    container.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:60px 20px;color:var(--ink-60);font-size:1.1rem;">No land plots are currently listed. Please check back soon.</div>';
+    return;
+  }
 
   container.innerHTML = lands.map(function (p) {
     return [
@@ -206,11 +246,11 @@ document.addEventListener('DOMContentLoaded', function () {
       '    </div>',
       '    <h3 class="prop-card__title">' + p.title + '</h3>',
       '    <p class="prop-card__loc">' + p.location + '</p>',
-      '    <div class="prop-card__price">' + p.priceDisplay + '</div>',
+      '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
       '    <p style="font-size:0.8rem;color:var(--ink-60);margin-top:10px;line-height:1.6;">' + p.description + '</p>',
       '    <div style="margin-top:20px;display:flex;gap:8px;">',
       '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Beacon Inspection</button>',
-      '      <a href="https://wa.me/2348031234567?text=Inquiry%20regarding%20land%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp">',
+      '      <a href="https://wa.me/2348108990239?text=Inquiry%20regarding%20land%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp">',
       '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
       '      </a>',
       '    </div>',

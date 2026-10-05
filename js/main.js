@@ -130,6 +130,28 @@
      EAST GATE PLATFORM ENHANCEMENTS
      ============================================================ */
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
+
+  function firstName(fullName) {
+    return String(fullName || '').trim().split(/\s+/)[0] || 'Guest';
+  }
+
+  function roleLabel(role) {
+    switch (role) {
+      case 'ADMIN':
+      case 'SUPER_ADMIN':
+        return 'Admin';
+      case 'DEALER':
+        return 'Dealer';
+      default:
+        return 'Customer';
+    }
+  }
+
   // Toast System
   window.showEastGateToast = function (message) {
     var toast = document.getElementById('eastToast');
@@ -147,15 +169,67 @@
     }, 3500);
   };
 
+  // Rewrites the header sign-in links: signed out → login with a return path,
+  // signed in → straight to the portal that matches the account role.
+  function initAuthNav() {
+    var links = document.querySelectorAll('.nav__signin');
+    if (!links.length) return;
+
+    var auth = window.EastGateAuth;
+    var session = auth ? auth.getSession() : null;
+
+    Array.prototype.forEach.call(links, function (link) {
+      if (session) {
+        link.href = auth.landingForRole(session.role);
+        link.textContent = 'My Portal';
+        link.setAttribute('title', 'Signed in as ' + session.name + ' (' + roleLabel(session.role) + ')');
+        link.classList.add('is-authenticated');
+      } else {
+        link.href = auth ? auth.loginUrlFor() : 'login.html';
+        link.textContent = 'Sign In';
+        link.removeAttribute('title');
+        link.classList.remove('is-authenticated');
+      }
+    });
+
+    // Plain `login.html` links (header CTAs, footer links) should also carry
+    // a return path so sign-in lands back on the page the visitor came from.
+    if (!session && auth) {
+      var plainLinks = document.querySelectorAll('a[href="login.html"]');
+      Array.prototype.forEach.call(plainLinks, function (link) {
+        link.href = auth.loginUrlFor();
+      });
+    }
+  }
+
   // Top Platform Switcher
   function initPlatformBar() {
     if (document.querySelector('.platform-bar')) return;
+    if (document.body.getAttribute('data-platform-bar') === 'off') return;
 
     document.body.classList.add('has-platform-bar');
 
     var currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    var db = window.EastGateDB ? window.EastGateDB.get() : null;
-    var userRole = db && db.currentUser ? db.currentUser.role : 'CUSTOMER';
+    var session = window.EastGateAuth ? window.EastGateAuth.getSession() : null;
+
+    var accountArea;
+    if (session) {
+      accountArea = [
+        '<div class="platform-bar__account">',
+        '  <span class="platform-bar__who">' + escapeHtml(firstName(session.name)) + '</span>',
+        '  <span class="platform-bar__role">' + roleLabel(session.role) + '</span>',
+        '</div>',
+        '<a href="' + window.EastGateAuth.landingForRole(session.role) + '" class="btn btn--gold btn--sm" style="padding:6px 14px;font-size:0.62rem;">Open Portal</a>',
+        '<button type="button" class="platform-bar__signout" id="signOutBtn">Sign out</button>'
+      ].join('');
+    } else {
+      // Signed out: offer both sign-in and join. initAuthNav() runs after this
+      // and rewrites the plain login.html href to carry a return path.
+      accountArea = [
+        '<a href="register.html" class="btn btn--ghost btn--sm" style="padding:6px 14px;font-size:0.62rem;">Create account</a>',
+        '<a href="login.html" class="btn btn--gold btn--sm" style="padding:6px 14px;font-size:0.62rem;">Sign in</a>'
+      ].join('');
+    }
 
     var bar = document.createElement('div');
     bar.className = 'platform-bar';
@@ -171,40 +245,58 @@
       '    <a href="dealers.html" class="' + (currentPath === 'dealers.html' ? 'is-current' : '') + '">Dealers & Pros</a>',
       '  </nav>',
       '</div>',
-      '<div class="platform-bar__right">',
-      '  <div class="role-switcher">',
-      '    <span>Portal:</span>',
-      '    <select id="portalRoleSelect">',
-      '      <option value="CUSTOMER" ' + (userRole === 'CUSTOMER' ? 'selected' : '') + '>👤 Customer (Jay)</option>',
-      '      <option value="DEALER" ' + (userRole === 'DEALER' ? 'selected' : '') + '>🧑🏾‍💼 Dealer (John Props)</option>',
-      '      <option value="ADMIN" ' + (userRole === 'ADMIN' ? 'selected' : '') + '>🛡️ Admin Control Center</option>',
-      '    </select>',
-      '  </div>',
-      '  <a href="' + (userRole === 'ADMIN' ? 'admin.html' : (userRole === 'DEALER' ? 'dealer-dashboard.html' : 'dashboard.html')) + '" class="btn btn--gold btn--sm" style="padding:4px 10px;font-size:0.65rem;" id="portalDirectBtn">Open Portal</a>',
-      '</div>'
+      '<div class="platform-bar__right">' + accountArea + '</div>'
     ].join('');
 
     document.body.prepend(bar);
 
-    var select = document.getElementById('portalRoleSelect');
-    var portalBtn = document.getElementById('portalDirectBtn');
-
-    if (select) {
-      select.addEventListener('change', function (e) {
-        var newRole = e.target.value;
-        if (window.EastGateDB) {
-          window.EastGateDB.switchUser(newRole);
-          window.showEastGateToast('Switched persona to: ' + newRole);
-          if (portalBtn) {
-            portalBtn.href = newRole === 'ADMIN' ? 'admin.html' : (newRole === 'DEALER' ? 'dealer-dashboard.html' : 'dashboard.html');
-          }
-          // Redirect if currently on a portal page
-          if (currentPath.indexOf('dashboard') > -1 || currentPath === 'admin.html') {
-            window.location.href = portalBtn.href;
-          }
-        }
+    var signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', function () {
+        signOutBtn.disabled = true;
+        window.EastGateAuth.logout().then(function () {
+          window.location.href = 'index.html';
+        });
       });
     }
+  }
+
+  // Admin access badge — fixed in the bottom-left corner of the page.
+  //
+  // Rendered ONLY for a visitor who is already signed in as an admin. It used to
+  // also appear for signed-out visitors (linking to login.html?next=admin.html)
+  // and for non-admins, which turned every public page into a signpost to the
+  // most privileged account on the platform.
+  //
+  // There is now no link to the admin console anywhere in the public UI. The
+  // console is reachable only by typing admin.html directly — an unlisted URL.
+  // That is obscurity, not access control: admin.html is still role-guarded by
+  // the server, and this badge is a convenience for an admin who is signed in.
+  function initAdminBadge() {
+    if (document.querySelector('.admin-badge')) return;
+
+    var auth = window.EastGateAuth;
+    var session = auth ? auth.getSession() : null;
+    var isAdmin = session && (session.role === 'ADMIN' || session.role === 'SUPER_ADMIN');
+
+    // Everyone who is not already an admin gets no badge at all.
+    if (!isAdmin) return;
+
+    var badge = document.createElement('a');
+    badge.className = 'admin-badge admin-badge--active';
+    badge.href = 'admin.html';
+    badge.title = 'Open the East Gate admin console';
+    badge.setAttribute('aria-label', 'Open the admin console');
+
+    badge.innerHTML = [
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+      '  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+      '</svg>',
+      '<span>Admin</span>',
+      '<span class="admin-badge__dot" aria-hidden="true"></span>'
+    ].join('');
+
+    document.body.appendChild(badge);
   }
 
   // Floating WhatsApp CTA
@@ -213,7 +305,7 @@
 
     var wa = document.createElement('a');
     wa.className = 'floating-whatsapp';
-    wa.href = 'https://wa.me/2348031234567?text=Hello%20East%20Gate%20Real-Estate%2C%20I%20am%20inquiring%20about%20a%20property%20listing.';
+    wa.href = 'https://wa.me/2348108990239?text=Hello%20East%20Gate%20Real-Estate%2C%20I%20am%20inquiring%20about%20a%20property%20listing.';
     wa.target = '_blank';
     wa.rel = 'noopener noreferrer';
     wa.setAttribute('aria-label', 'Contact East Gate on WhatsApp');
@@ -263,50 +355,77 @@
   }
 
   // Dynamic Search Tabs
+  //
+  // The Buy/Rent/Land tabs narrow the Purpose dropdown to the purposes that make
+  // sense for that axis, and Search hands the chosen purpose to properties.html.
   function initDynamicSearch() {
     var tabs = document.querySelectorAll('.search .tab');
-    var priceSelect = document.querySelector('.search select[aria-label="Price range"]');
-    if (!tabs.length || !priceSelect) return;
+    var purposeSelect = document.querySelector('.search select[aria-label="Purpose"]');
+    if (!tabs.length || !purposeSelect) return;
 
-    var priceOptions = {
-      Buy: [
-        'Any Price',
-        'Under ₦20,000,000',
-        '₦20,000,000 – ₦50,000,000',
-        '₦50,000,000 – ₦120,000,000',
-        '₦120,000,000 +'
-      ],
-      Rent: [
-        'Any Rental Price',
-        'Under ₦1,500,000 / year',
-        '₦1,500,000 – ₦3,500,000 / year',
-        '₦3,500,000 – ₦8,000,000 / year',
-        '₦8,000,000 + / year'
-      ],
-      Land: [
-        'Any Land Price',
-        'Under ₦10,000,000 / plot',
-        '₦10,000,000 – ₦30,000,000 / plot',
-        '₦30,000,000 – ₦70,000,000 / plot',
-        '₦70,000,000 +'
-      ]
+    // Read the value/label pairs out of the markup that is already in the page so
+    // this function never carries its own copy of the vocabulary. index.html is
+    // the fallback for when the API is unreachable, so the two must agree.
+    var allOptions = [];
+    Array.prototype.forEach.call(purposeSelect.options, function (option) {
+      if (option.value && option.value !== 'ALL') {
+        allOptions.push({ value: option.value, label: option.textContent });
+      }
+    });
+    if (!allOptions.length) return;
+
+    var anyLabel = purposeSelect.options[0] ? purposeSelect.options[0].textContent : 'Any Purpose';
+    var anyOption = { value: 'ALL', label: anyLabel };
+
+    // Grouped by the axis each tab represents. A purpose missing from a group is
+    // simply not offered under that tab.
+    var byTab = {
+      Buy: ['BUY', 'DISTRESS_SALE', 'JOINT_VENTURE', 'LAND_BANKING'],
+      Rent: ['SHORT_LET', 'LONG_LET', 'STAFF_QUARTERS'],
+      Land: ['LAND_BANKING', 'BUY', 'LONG_LEASE', 'JOINT_VENTURE']
     };
+
+    function applyTab(tabName) {
+      var allowed = byTab[tabName];
+      var options = [anyOption];
+
+      // An unrecognised tab name must not leave the visitor with a one-option
+      // dropdown, so fall back to the full list.
+      if (allowed) {
+        allOptions.forEach(function (option) {
+          if (allowed.indexOf(option.value) !== -1) options.push(option);
+        });
+      }
+      if (options.length === 1) options = [anyOption].concat(allOptions);
+
+      purposeSelect.innerHTML = options.map(function (option) {
+        return '<option value="' + escapeHtml(option.value) + '">' + escapeHtml(option.label) + '</option>';
+      }).join('');
+    }
 
     tabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
-        var tabName = tab.textContent.trim();
-        var options = priceOptions[tabName] || priceOptions.Buy;
-        priceSelect.innerHTML = options.map(function (opt) {
-          return '<option>' + opt + '</option>';
-        }).join('');
+        tabs.forEach(function (other) {
+          other.classList.remove('is-active');
+          other.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+        applyTab(tab.textContent.trim());
       });
     });
+
+    // Keep the dropdown consistent with the tab that starts out active.
+    var activeTab = document.querySelector('.search .tab.is-active');
+    applyTab(activeTab ? activeTab.textContent.trim() : 'Buy');
 
     var searchForm = document.querySelector('.search__fields');
     if (searchForm) {
       searchForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        window.location.href = 'properties.html';
+        var purpose = purposeSelect.value;
+        var query = purpose && purpose !== 'ALL' ? '?purpose=' + encodeURIComponent(purpose) : '';
+        window.location.href = 'properties.html' + query;
       });
     }
   }
@@ -326,7 +445,7 @@
       '  </div>',
       '  <p style="font-size:0.84rem;color:var(--ivory-62);margin-bottom:20px;">Book a verified on-site inspection with the certified dealer. An East Gate agent will accompany your walkthrough.</p>',
       '  <form id="inspectionForm">',
-      '    <input type="hidden" id="inspPropId" value="prop_1">',
+      '    <input type="hidden" id="inspPropId" value="">',
       '    <input type="hidden" id="inspPropTitle" value="Modern 4 Bedroom Villa">',
       '    <div class="form-group">',
       '      <label class="form-label">Property</label>',
@@ -395,9 +514,9 @@
   window.openInspectionModal = function (propId, propTitle) {
     var modal = document.getElementById('inspectionModal');
     if (!modal) return;
-    document.getElementById('inspPropId').value = propId || 'prop_1';
-    document.getElementById('inspPropTitle').value = propTitle || 'Modern 4 Bedroom Villa';
-    document.getElementById('inspDisplayTitle').value = propTitle || 'Modern 4 Bedroom Villa';
+    document.getElementById('inspPropId').value = propId || '';
+    document.getElementById('inspPropTitle').value = propTitle || 'Property';
+    document.getElementById('inspDisplayTitle').value = propTitle || 'Property';
     // set min date to tomorrow
     var tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -406,20 +525,22 @@
   };
 
   // Run enhancements on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      initPlatformBar();
-      initFloatingWhatsApp();
-      initSaveButtons();
-      initDynamicSearch();
-      initInspectionModal();
-    });
-  } else {
-    initPlatformBar();
-    initFloatingWhatsApp();
+  var wantsChrome = document.body.getAttribute('data-portal-chrome') !== 'off';
+
+  function initAll() {
+    if (wantsChrome) initPlatformBar();
+    if (wantsChrome) initAdminBadge();
+    if (wantsChrome) initFloatingWhatsApp();
+    initAuthNav();
     initSaveButtons();
     initDynamicSearch();
     initInspectionModal();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
   }
 
 })();

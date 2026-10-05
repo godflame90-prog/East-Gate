@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Properties — East Gate Real-Estate | Verified Listings</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Browse verified houses, luxury apartments, and duplexes across Aba, Owerri, Port Harcourt, Lagos, and Abuja.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,7 +97,8 @@
     </nav>
 
     <div class="nav__actions">
-      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="contact.html">Contact Us</a>
+        <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -114,7 +116,8 @@
     <a href="dealers.html">Dealers & Pros</a>
   </nav>
   <div class="menu__foot">
-    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="contact.html">Contact Us</a>
+        <a href="login.html" class="nav__signin">Sign In</a>
     <a href="dealer-dashboard.html#add" class="btn btn--gold">List Property</a>
   </div>
 </div>
@@ -140,6 +143,26 @@
       <!-- Filter Controls -->
       <div class="filter-bar">
         <div class="form-group" style="margin:0;">
+          <label class="form-label">Purpose</label>
+          <select class="form-select" id="filterPurpose">
+            <!-- Populated from GET /api/listing-types when the API is reachable.
+                 The options below are the offline fallback and must stay in step
+                 with LISTING_TYPE_LABELS in server/index.ts. -->
+            <option value="ALL">Any Purpose</option>
+            <option value="BUY">Buy (Outright Purchase)</option>
+            <option value="SHORT_LET">Rent (Short Let)</option>
+            <option value="LONG_LET">Rent (Long Let)</option>
+            <option value="LONG_LEASE">Long Lease</option>
+            <option value="COMMERCIAL_LEASE">Commercial Lease</option>
+            <option value="INDUSTRIAL_LEASE">Industrial Lease</option>
+            <option value="LAND_BANKING">Land Banking &amp; Investment</option>
+            <option value="DISTRESS_SALE">Sale (Distress / Auction)</option>
+            <option value="JOINT_VENTURE">Joint Venture / Development</option>
+            <option value="STAFF_QUARTERS">Student / Staff Quarters</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
           <label class="form-label">Location / State</label>
           <select class="form-select" id="filterLocation">
             <option value="ALL">All Locations</option>
@@ -149,17 +172,6 @@
             <option value="Lagos">Victoria Island & Lekki, Lagos</option>
             <option value="Abuja">Guzape & Maitama, Abuja</option>
             <option value="Enugu">Independence Layout, Enugu</option>
-          </select>
-        </div>
-
-        <div class="form-group" style="margin:0;">
-          <label class="form-label">Price Bracket</label>
-          <select class="form-select" id="filterPrice">
-            <option value="ALL">Any Price</option>
-            <option value="under50">Under ₦50,000,000</option>
-            <option value="50to100">₦50,000,000 – ₦100,000,000</option>
-            <option value="100to200">₦100,000,000 – ₦200,000,000</option>
-            <option value="over200">₦200,000,000 +</option>
           </select>
         </div>
 
@@ -214,7 +226,7 @@
           </svg>
           <span class="brand__name">EAST<span>·</span>GATE</span>
         </a>
-        <p>Everything Housing. One Premium Destination.</p>
+        <p>Find Your Place. Make It Home.</p>
       </div>
 
       <div class="footer__col">
@@ -234,6 +246,7 @@
           <li><a href="dashboard.html">Customer Dashboard</a></li>
           <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
           <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
           <li><a href="login.html">Sign In</a></li>
         </ul>
       </div>
@@ -241,7 +254,7 @@
       <div class="footer__col">
         <h4>Support</h4>
         <ul>
-          <li><a href="https://wa.me/2348031234567" target="_blank">WhatsApp Hotline</a></li>
+          <li><a href="https://wa.me/2348108990239" target="_blank">WhatsApp Hotline</a></li>
           <li><a href="#">Verification Guide</a></li>
           <li><a href="#">Report a Listing</a></li>
         </ul>
@@ -259,6 +272,7 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -286,33 +300,163 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   var filterLoc = document.getElementById('filterLocation');
-  var filterPrice = document.getElementById('filterPrice');
+  var filterPurpose = document.getElementById('filterPurpose');
   var filterBeds = document.getElementById('filterBeds');
   var filterTitle = document.getElementById('filterTitle');
 
-  [filterLoc, filterPrice, filterBeds, filterTitle].forEach(function (el) {
+  // Case/format-tolerant compare. The mock store stores Title-Case listing types
+  // ('Buy') while the URL, the API and the enum use SCREAMING_SNAKE ('BUY').
+  function purposeKey(value) {
+    return String(value == null ? '' : value).trim().toUpperCase().replace(/[\s-]+/g, '_');
+  }
+
+  // ---- API <-> mock shape bridge -----------------------------------------
+  // The Prisma/API row and the localStorage mock use different field names for
+  // the same facts. Everything downstream works on the display shape produced by
+  // normProperty() so the renderer never has to know which source it came from.
+  var TITLE_DOC_LABELS = {
+    C_OF_O: 'C of O',
+    FEDERAL_C_OF_O: 'Federal C of O',
+    GOVERNORS_CONSENT: "Governor's Consent",
+    REGISTERED_SURVEY_DEED: 'Registered Survey Deed',
+    FCDA_ALLOCATION: 'FCDA Allocation',
+    GOVERNMENT_GAZETTE: 'Government Gazette',
+    OTHER: 'Other'
+  };
+
+  var CATEGORY_LABELS = {
+    RESIDENTIAL: 'Residential',
+    COMMERCIAL: 'Commercial',
+    OFF_PLAN: 'Off-Plan',
+    LAND: 'Land',
+    LUXURY: 'Luxury'
+  };
+
+  // The three title-document filter options predate the enum and were free text.
+  // Each maps to every enum member a visitor selecting it would expect.
+  var TITLE_FILTER_KEYS = {
+    'C of O': ['C_OF_O', 'FEDERAL_C_OF_O'],
+    Governor: ['GOVERNORS_CONSENT'],
+    FCDA: ['FCDA_ALLOCATION']
+  };
+
+  // 'Luxury' is not a PropertyCategory — there is no LUXURY member in the enum,
+  // so the API can never return it. The pill is served by isFeatured (the
+  // admin-curated flag) instead, which keeps it returning results. The mock has
+  // no isFeatured, so it keeps matching on its own 'Luxury' category.
+  function isLuxury(p) {
+    return purposeKey(p.category) === 'LUXURY' || p.isFeatured === true || p.featured === true;
+  }
+
+  function normProperty(raw) {
+    var categoryKey = purposeKey(raw.category);
+    var docKey = purposeKey(raw.titleDocument);
+    var docLabel = TITLE_DOC_LABELS[docKey] || raw.titleDocument || raw.titleDoc || '';
+    return {
+      id: raw.id,
+      title: raw.title || '',
+      categoryKey: categoryKey,
+      category: CATEGORY_LABELS[categoryKey] || raw.category || '',
+      state: raw.state || '',
+      location: raw.location || '',
+      beds: raw.bedrooms != null ? raw.bedrooms : (raw.beds || 0),
+      baths: raw.bathrooms != null ? raw.bathrooms : (raw.baths || 0),
+      cars: raw.parkingSpaces != null ? raw.parkingSpaces : (raw.cars || 0),
+      titleDoc: docLabel,
+      image: raw.mainImage || raw.image || '',
+      dealerName: (raw.dealer && raw.dealer.businessName) || raw.dealerName || '',
+      listingType: raw.listingType || '',
+      status: raw.status || '',
+      isFeatured: raw.isFeatured === true || raw.featured === true
+    };
+  }
+
+  function matchesTitleFilter(p, wanted) {
+    var keys = TITLE_FILTER_KEYS[wanted];
+    if (!keys) return true;
+    var docKey = purposeKey(p.titleDoc);
+    // Compare against the label too so a mock free-text doc still matches.
+    for (var i = 0; i < keys.length; i++) {
+      if (docKey === keys[i]) return true;
+    }
+    return p.titleDoc.indexOf(wanted) !== -1;
+  }
+
+  // Deep link from index.html: ?purpose=BUY preselects the purpose filter.
+  var paramPurpose = urlParams.get('purpose') || urlParams.get('listingType');
+  if (paramPurpose) {
+    var wanted = purposeKey(paramPurpose);
+    // Only honour a value the dropdown actually offers, so a hand-edited URL
+    // cannot silently filter the visitor down to nothing.
+    for (var i = 0; i < filterPurpose.options.length; i++) {
+      if (purposeKey(filterPurpose.options[i].value) === wanted) {
+        filterPurpose.value = filterPurpose.options[i].value;
+        break;
+      }
+    }
+  }
+
+  // Refresh the purpose options from the enum so the labels cannot drift from
+  // the database. Any failure leaves the static markup above in place.
+  if (window.EastGateAPI && window.EastGateAPI.getListingTypes) {
+    window.EastGateAPI.getListingTypes().then(function (types) {
+      if (!types || !types.length) return;
+      var selected = filterPurpose.value;
+      filterPurpose.innerHTML = '<option value="ALL">Any Purpose</option>' + types.map(function (t) {
+        var value = String(t.value == null ? '' : t.value);
+        var label = String(t.label == null ? '' : t.label);
+        return '<option value="' + value.replace(/"/g, '&quot;') + '">' + label.replace(/[&<>]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+        }) + '</option>';
+      }).join('');
+      if (selected) filterPurpose.value = selected;
+    });
+  }
+
+  [filterLoc, filterPurpose, filterBeds, filterTitle].forEach(function (el) {
     if (el) el.addEventListener('change', renderListings);
   });
 
-  function renderListings() {
-    if (!window.EastGateDB) return;
-    var allProps = window.EastGateDB.get().properties;
+  async function renderListings() {
+    // The API client carries its own localStorage fallback, so the direct store
+    // read here only matters if js/api.js failed to load at all.
+    if (!window.EastGateAPI && !window.EastGateDB) return;
+
+    // Hand the three server-supported filters to the API so the database does the
+    // narrowing. 'Luxury' and the Land exclusion have no server equivalent and are
+    // applied below. Passing an unknown category to /api/properties is a 400, so
+    // only genuine enum members are forwarded.
+    var serverCategory = purposeKey(activeCat);
+    var forwardCategory = (serverCategory && serverCategory !== 'ALL' && serverCategory !== 'LUXURY')
+      ? serverCategory
+      : null;
+
+    var query = {
+      category: forwardCategory,
+      state: filterLoc.value !== 'ALL' ? filterLoc.value : null,
+      listingType: filterPurpose.value !== 'ALL' ? filterPurpose.value : null
+    };
+
+    var raw = window.EastGateAPI
+      ? await window.EastGateAPI.getProperties(query)
+      : (window.EastGateDB ? window.EastGateDB.get().properties : []);
+
+    var allProps = (raw || []).map(normProperty);
 
     // MANDATORY ADMIN APPROVAL RULE: ONLY SHOW APPROVED PROPERTIES TO USERS
     var filtered = allProps.filter(function (p) {
       if (p.status !== 'APPROVED') return false; // Dealer pending submissions are hidden!
-      if (p.category === 'Land') return false; // Land lives on land.html
+      if (p.categoryKey === 'LAND') return false; // Land lives on land.html
 
-      if (activeCat !== 'ALL' && p.category !== activeCat) return false;
+      if (serverCategory === 'LUXURY') return isLuxury(p);
+      if (activeCat !== 'ALL' && p.categoryKey !== purposeKey(activeCat)) return false;
       if (filterLoc.value !== 'ALL' && p.state !== filterLoc.value) return false;
 
-      if (filterPrice.value === 'under50' && p.price >= 50000000) return false;
-      if (filterPrice.value === '50to100' && (p.price < 50000000 || p.price > 100000000)) return false;
-      if (filterPrice.value === '100to200' && (p.price < 100000000 || p.price > 200000000)) return false;
-      if (filterPrice.value === 'over200' && p.price < 200000000) return false;
+      // Purpose (why the property is offered): Buy / Short Let / Long Lease / etc.
+      if (filterPurpose.value !== 'ALL' && purposeKey(p.listingType) !== purposeKey(filterPurpose.value)) return false;
 
       if (filterBeds.value !== 'ALL' && p.beds < Number(filterBeds.value)) return false;
-      if (filterTitle.value !== 'ALL' && p.titleDoc.indexOf(filterTitle.value) === -1) return false;
+      if (filterTitle.value !== 'ALL' && !matchesTitleFilter(p, filterTitle.value)) return false;
 
       return true;
     });
@@ -345,7 +489,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>',
         '      ' + p.location,
         '    </p>',
-        '    <div class="prop-card__price">' + p.priceDisplay + '</div>',
+        '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
         '    <ul class="prop-card__specs">',
         '      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg> ' + p.beds + ' Beds</li>',
         '      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h18v3.5a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 15.5z"/><path d="M6 12V6.5a2.5 2.5 0 0 1 5 0"/></svg> ' + p.baths + ' Baths</li>',
@@ -353,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '    </ul>',
         '    <div style="margin-top:20px;display:flex;gap:8px;">',
         '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>',
-        '      <a href="https://wa.me/2348031234567?text=Hello%20East%20Gate%2C%20inquiring%20about%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp Dealer">',
+        '      <a href="https://wa.me/2348108990239?text=Hello%20East%20Gate%2C%20inquiring%20about%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp Dealer">',
         '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
         '      </a>',
         '    </div>',

@@ -30,11 +30,21 @@ enum ItemStatus {
   ARCHIVED
 }
 
+// Why a property is being offered — the axis a buyer/renter filters on.
+// Deliberately distinct from PropertyCategory, which describes what the
+// property IS (a house, a shop, a plot of land). A plot of land can be
+// BUY (outright purchase) or LAND_BANKING (held for future appreciation).
 enum ListingType {
   BUY
-  RENT
-  LEASE
-  LAND
+  SHORT_LET
+  LONG_LET
+  LONG_LEASE
+  COMMERCIAL_LEASE
+  INDUSTRIAL_LEASE
+  LAND_BANKING
+  DISTRESS_SALE
+  JOINT_VENTURE
+  STAFF_QUARTERS
 }
 
 enum PropertyCategory {
@@ -82,6 +92,7 @@ model User {
   inspections     Inspection[]   @relation("UserInspections")
   auditActions    AuditLog[]     @relation("AdminActions")
   reportsFiled    Report[]
+  revokedSessions RevokedSession[]
 }
 
 // ---------------- DEALER & CREDENTIALS ----------------
@@ -164,6 +175,11 @@ model Property {
 
   inspections     Inspection[]
   saves           SavedListing[]
+
+  // The public catalogue always filters on status + deletedAt and commonly on
+  // listingType/state, so index the combination the listing query actually uses.
+  @@index([status, listingType])
+  @@index([status, state])
 }
 
 // ---------------- MARKETPLACE GOODS (BUILDING MATERIALS / INTERIORS) ----------------
@@ -244,6 +260,62 @@ model AuditLog {
   details         String
   ipAddress       String?
   timestamp       DateTime          @default(now())
+}
+
+// ---------------- LOGIN THROTTLING ----------------
+// Failed-login counters, keyed by client IP. This lived in an in-process Map,
+// which meant a restart wiped every lockout and a second instance enforced its
+// own independent count — so restarting the server was a reliable way to defeat
+// the brute-force limit.
+model LoginThrottle {
+  key       String   @id
+  count     Int      @default(0)
+  firstAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firstAt])
+}
+
+// ---------------- SESSION REVOCATION ----------------
+// Session tokens are self-contained HMACs, so nothing in the token itself can be
+// withdrawn — "log out" used to be purely client-side and a leaked token stayed
+// valid for its full lifetime (up to 30 days with "remember me"). Each token
+// carries a jti; logging out records that jti here and requireAuth rejects it.
+//
+// expiresAt mirrors the token's own exp, so rows can be pruned on a timer and the
+// table never grows without bound.
+model RevokedSession {
+  jti       String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+// ---------------- CONTACT MESSAGES ----------------
+// Messages sent through the public contact.html form.
+//
+// contact.html used to fake its own submission: the handler waited 800ms, then
+// displayed "your message has been sent" without any network call, so every
+// enquiry was silently discarded while the visitor was told it had been
+// delivered. These rows are the real destination.
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  // Recorded so an admin triaging spam can see where a message came from.
+  // Null when the visitor submitted without a phone number.
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([createdAt])
+  @@index([readAt])
 }
 
 // ---------------- REPORTS & MODERATION ----------------

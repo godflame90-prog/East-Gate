@@ -62,34 +62,52 @@
   gap: 12px;
 }
 
-.role-switcher {
+.platform-bar__account {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255,255,255,0.08);
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.12);
+  align-items: baseline;
+  gap: 8px;
 }
 
-.role-switcher span {
-  opacity: 0.7;
-  font-size: 0.68rem;
+.platform-bar__who {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ivory);
 }
 
-.role-switcher select {
-  font-size: 0.7rem;
-  color: var(--gold);
+.platform-bar__role {
+  font-size: 0.6rem;
   font-weight: 600;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  outline: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 2px 7px;
+  border: 1px solid rgba(198, 161, 91, 0.35);
+  border-radius: 2px;
 }
 
-.role-switcher select option {
-  background: #111;
-  color: #fff;
+.platform-bar__signout {
+  background: none;
+  border: 1px solid rgba(245, 242, 234, 0.16);
+  border-radius: 4px;
+  color: rgba(245, 242, 234, 0.72);
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: color 0.35s var(--ease), border-color 0.35s var(--ease);
+}
+
+.platform-bar__signout:hover:not(:disabled) {
+  color: var(--gold);
+  border-color: rgba(198, 161, 91, 0.45);
+}
+
+.platform-bar__signout:disabled {
+  opacity: 0.5;
+  cursor: progress;
 }
 
 /* Adjust page padding when platform bar is active */
@@ -646,4 +664,157 @@ body.has-platform-bar .nav {
   .platform-bar__nav {
     display: none;
   }
+}
+
+/* ============================================================
+   SHARED AUTH SURFACES (login.html + dealer registration)
+   ============================================================ */
+.auth-alert {
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding: 13px 15px;
+  border: 1px solid rgba(214, 106, 82, 0.42);
+  background: rgba(214, 106, 82, 0.10);
+  border-radius: var(--r-sm);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #E8B4A5;
+}
+.auth-alert.is-visible { display: flex; }
+.auth-alert svg { flex: none; margin-top: 1px; color: #D66A52; }
+
+.auth-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 26px 0 22px;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ivory-40);
+}
+.auth-rule::before,
+.auth-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line-light-soft);
+}
+
+/* ---------- DEALER REGISTRATION ---------- */
+.register-pane {
+  display: none;
+}
+
+body.is-register-only .register-pane {
+  display: block;
+  min-height: 100vh;
+  background: var(--obsidian-deep);
+  color: var(--ivory);
+  padding: 56px 24px;
+}
+
+body.is-register-only .portal-wrap {
+  display: none;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  background: #141414;
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-md);
+  padding: 44px 40px 36px;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55);
+}
+
+.register-head {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.register-head h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.72rem;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.register-head p {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--ivory-62);
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 18px;
+}
+
+@media (max-width: 640px) {
+  .register-card { padding: 34px 22px 28px; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- ADMIN ACCESS BADGE (bottom-left) ---------- */
+.admin-badge {
+  position: fixed;
+  bottom: 26px;
+  left: 26px;
+  z-index: 160;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid rgba(198, 161, 91, 0.28);
+  border-radius: 999px;
+  background: rgba(11, 12, 14, 0.82);
+  backdrop-filter: blur(6px);
+  color: var(--ivory-62);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: 0.62;
+  transition: opacity 0.25s ease, color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.admin-badge svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.admin-badge:hover,
+.admin-badge:focus-visible {
+  opacity: 1;
+  color: var(--gold);
+  border-color: rgba(198, 161, 91, 0.6);
+  background: rgba(198, 161, 91, 0.1);
+  outline: none;
+}
+
+/* Signed in as an admin: this is now their console shortcut. */
+.admin-badge--active {
+  opacity: 0.9;
+  color: var(--gold);
+  border-color: rgba(198, 161, 91, 0.45);
+}
+
+.admin-badge__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #2ecc71;
+  box-shadow: 0 0 7px rgba(46, 204, 113, 0.85);
+}
+
+@media (max-width: 640px) {
+  .admin-badge { bottom: 16px; left: 16px; padding: 8px 12px; font-size: 0.56rem; }
 }

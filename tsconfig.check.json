@@ -1,0 +1,9 @@
+{
+  "//": "Typechecks server/ AND prisma/. The root tsconfig.json can only cover server/ because its rootDir is ./server — adding prisma/ there would break the dist/ layout. prisma/seed.ts runs via tsx and would otherwise never be typechecked, so a stale enum reference in it only surfaces at runtime. Run: node node_modules/typescript/bin/tsc --project tsconfig.check.json",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["server/**/*", "prisma/**/*"]
+}

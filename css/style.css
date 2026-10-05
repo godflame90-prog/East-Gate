@@ -11,6 +11,18 @@
   --gold-soft:#D8BC85;
   --stone:#8A877F;
 
+  /* Button colour only. Gold stays the accent for text, rules, icons and
+     hover states everywhere else, so buttons can be re-hued by changing these
+     three values without touching the rest of the palette.
+     Fill is milk with an obsidian label: 16.88:1, far past WCAG AA.
+     The edge matters — body is milk and .section is transparent, so roughly
+     half of these buttons sit on milk. Without a hairline edge they would be
+     invisible. On the obsidian sections the same edge simply disappears and the
+     fill carries the button on its own. */
+  --btn-fill:var(--ivory);
+  --btn-ink:var(--obsidian);
+  --btn-edge:rgba(17,17,17,.16);
+
   --line-dark:rgba(17,17,17,.13);
   --line-dark-soft:rgba(17,17,17,.07);
   --line-light:rgba(245,242,234,.14);
@@ -200,8 +212,10 @@ h1,h2,h3,h4{
 .btn:hover::after{transform:scaleY(1)}
 .btn:active{transform:translateY(1px)}
 
-.btn--gold{background:var(--gold);color:var(--obsidian)}
-.btn--gold::after{background:var(--ivory)}
+.btn--gold{background:var(--btn-fill);color:var(--btn-ink);border:1px solid var(--btn-edge)}
+.btn--gold::after{background:var(--btn-ink)}
+/* The fill sweeps in as obsidian, so the label flips to milk to stay legible. */
+.btn--gold:hover{color:var(--btn-fill);border-color:var(--btn-ink)}
 
 .btn--obsidian{background:var(--obsidian);color:var(--ivory)}
 .btn--obsidian::after{background:var(--gold)}
@@ -222,6 +236,7 @@ h1,h2,h3,h4{
 .btn--outline:hover{color:var(--ivory);border-color:var(--obsidian)}
 
 .btn--sm{padding:12px 22px;font-size:.68rem;letter-spacing:.14em}
+.btn--block{width:100%}
 
 .btn svg{transition:transform .5s var(--ease)}
 .btn:hover svg{transform:translateX(4px)}
@@ -757,13 +772,30 @@ body.is-loaded .search{opacity:1;transform:none}
 .prop-card__loc svg{flex:none;color:var(--gold-ink);opacity:.85}
 
 .prop-card__price{
-  font-size:1.32rem;
-  font-weight:500;
-  letter-spacing:-.01em;
-  color:var(--obsidian);
-  padding-bottom:22px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.08rem;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--gold-ink);
+  background:linear-gradient(135deg, rgba(198,161,91,0.12) 0%, rgba(198,161,91,0.08) 100%);
+  border:1px solid rgba(198,161,91,0.35);
+  border-radius:999px;
+  padding:10px 20px;
   margin-bottom:20px;
-  border-bottom:1px solid var(--line-dark-soft);
+  transition:all .4s var(--ease);
+  box-shadow:0 10px 40px -30px rgba(198,161,91,0.9);
+}
+.prop-card__price:hover{
+  background:var(--gold);
+  color:#111111;
+  transform:translateY(-2px);
+  box-shadow:0 14px 60px -28px rgba(198,161,91,0.95);
+}
+.prop-card__price:active{
+  transform:translateY(-1px);
 }
 
 .prop-card__specs{
@@ -1403,6 +1435,163 @@ body.is-loaded .search{opacity:1;transform:none}
   .search__btn{grid-column:span 1}
   .search__tabs{padding:0 8px;overflow-x:auto}
   .tab{padding:18px 14px 16px;white-space:nowrap}
+}
+
+/* ============================================================
+   18b — CONTACT PAGE
+   ============================================================ */
+.contact-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+  gap:clamp(28px,3.4vw,48px);
+  align-items:start;
+}
+.contact-aside{display:grid;gap:clamp(28px,3.4vw,48px)}
+
+.contact-panel{
+  background:var(--ivory);
+  border:1px solid var(--line-dark-soft);
+  border-radius:var(--r-lg);
+  padding:clamp(26px,3vw,40px);
+}
+.contact-panel__title{
+  font-family:'Playfair Display',serif;
+  font-weight:600;
+  font-size:clamp(1.28rem,1.9vw,1.6rem);
+  line-height:1.25;
+  margin-bottom:26px;
+}
+
+.contact-field{margin-bottom:18px}
+.contact-field:last-of-type{margin-bottom:26px}
+.contact-field label{
+  display:block;
+  margin-bottom:7px;
+  font-size:.61rem;
+  font-weight:500;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--stone);
+}
+/* Global reset strips input borders/background, so each control needs its
+   own surface back — otherwise they render as flat, invisible text. */
+.contact-field input,
+.contact-field select,
+.contact-field textarea{
+  display:block;
+  width:100%;
+  padding:13px 15px;
+  font-size:.94rem;
+  color:var(--obsidian);
+  background:var(--ivory);
+  /* Inputs get the full-strength edge, not --line-dark-soft: a control needs a
+     firmer outline than a panel to read as fillable. */
+  border:1px solid var(--line-dark);
+  border-radius:var(--r-md);
+  transition:border-color .4s var(--ease), background-color .4s var(--ease);
+}
+.contact-field textarea{resize:vertical;min-height:120px;line-height:1.6}
+.contact-field select{
+  appearance:none;
+  -webkit-appearance:none;
+  cursor:pointer;
+  /* Chevron drawn with gradients so no extra markup or image is needed. */
+  background-image:
+    linear-gradient(45deg,transparent 50%,var(--stone) 50%),
+    linear-gradient(135deg,var(--stone) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 21px, calc(100% - 14px) 21px;
+  background-size:6px 6px, 6px 6px;
+  background-repeat:no-repeat;
+}
+.contact-field select option{color:var(--obsidian);background:var(--ivory)}
+.contact-field input::placeholder,
+.contact-field textarea::placeholder{color:var(--ink-45)}
+.contact-field input:hover,
+.contact-field select:hover,
+.contact-field textarea:hover{border-color:var(--ink-45)}
+/* Focus needs a visible ring: the global reset removes the UA outline. */
+.contact-field input:focus,
+.contact-field select:focus,
+.contact-field textarea:focus{
+  outline:none;
+  border-color:var(--gold-ink);
+  box-shadow:0 0 0 3px rgba(198,161,91,.22);
+}
+.contact-field input:focus-visible,
+.contact-field select:focus-visible,
+.contact-field textarea:focus-visible{border-color:var(--gold-ink)}
+
+.contact-form__success{
+  margin-top:16px;
+  padding:13px 16px;
+  font-size:.88rem;
+  text-align:center;
+  color:var(--obsidian);
+  background:rgba(198,161,91,.14);
+  border:1px solid rgba(198,161,91,.42);
+  border-radius:var(--r-md);
+}
+.contact-form__success[hidden]{display:none}
+
+/* Failure counterpart to .contact-form__success. Deliberately red rather than a
+   tint of the brand gold: the visitor has lost something by seeing this. */
+.contact-form__error{
+  margin-top:16px;
+  padding:13px 16px;
+  font-size:.88rem;
+  text-align:center;
+  color:#8a1f1f;
+  background:rgba(180,60,60,.12);
+  border:1px solid rgba(180,60,60,.34);
+  border-radius:var(--r-md);
+}
+.contact-form__error[hidden]{display:none}
+
+.contact-list{display:grid;gap:22px}
+.contact-list__item{display:flex;gap:16px;align-items:flex-start}
+.contact-list__icon{
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--gold-ink);
+  background:rgba(198,161,91,.12);
+  border-radius:var(--r-md);
+}
+.contact-list__item h3{
+  font-size:1.02rem;
+  font-weight:500;
+  margin-bottom:3px;
+}
+.contact-list__item p,
+.contact-list__item a{
+  font-size:.92rem;
+  line-height:1.6;
+  color:var(--ink-60);
+  text-decoration:none;
+}
+.contact-list__item a{
+  border-bottom:1px solid var(--line-dark-soft);
+  transition:color .35s var(--ease), border-color .35s var(--ease);
+}
+.contact-list__item a:hover{color:var(--obsidian);border-color:var(--gold-ink)}
+
+.contact-hours{margin:0}
+.contact-hours__row{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  padding:11px 0;
+  border-bottom:1px solid var(--line-dark-soft);
+  font-size:.92rem;
+}
+.contact-hours__row:last-child{border-bottom:0}
+.contact-hours__row dd{margin:0;color:var(--ink-60)}
+
+@media (max-width:900px){
+  .contact-grid{grid-template-columns:1fr}
 }
 
 /* ============================================================

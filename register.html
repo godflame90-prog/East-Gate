@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — East Gate</title>
+<meta name="description" content="Create a free East Gate member account to save properties, shortlist listings and speak to verified developers and specialists.">
+<link rel="icon" type="image/png" href="images/EastGate-core.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body data-portal-chrome="off">
+
+<main class="auth-page">
+  <div class="auth-shell">
+
+    <div class="auth-brand">
+      <a href="index.html" class="brand" aria-label="East Gate — back to home">
+        <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+          <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+          <path d="M2.5 21h19"/>
+        </svg>
+        <span class="brand__name">EAST<span>·</span>GATE</span>
+      </a>
+    </div>
+
+    <section class="auth-card">
+      <header class="auth-head">
+        <h1 class="auth-title">Create your account</h1>
+        <p class="auth-sub">Save properties, shortlist listings and speak directly to verified developers.</p>
+      </header>
+
+      <div class="auth-alert" id="registerAlert" role="alert" aria-live="polite">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.4h.01"/>
+        </svg>
+        <span id="registerAlertText"></span>
+      </div>
+
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="regFullName">Full name</label>
+          <div class="auth-field">
+            <svg class="auth-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="3.4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
+            </svg>
+            <input type="text" class="form-input" id="regFullName" name="fullName"
+                   placeholder="Amaka Obi" autocomplete="name" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regEmail">Email address</label>
+          <div class="auth-field">
+            <svg class="auth-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>
+            </svg>
+            <input type="email" class="form-input" id="regEmail" name="email"
+                   placeholder="you@example.com" autocomplete="email" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regPhone">Phone number</label>
+          <div class="auth-field">
+            <svg class="auth-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6.5 3.5h3l1.5 4-2 1.4a12 12 0 0 0 6.1 6.1l1.4-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z"/>
+            </svg>
+            <input type="tel" class="form-input" id="regPhone" name="phone"
+                   placeholder="+234 802 000 0000" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Password</label>
+          <div class="auth-field has-reveal">
+            <svg class="auth-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="10.5" width="15" height="9.5" rx="2"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/>
+            </svg>
+            <input type="password" class="form-input" id="regPassword" name="password"
+                   placeholder="At least 10 characters" autocomplete="new-password" required>
+            <button type="button" class="auth-reveal" id="togglePassword" aria-label="Show password" aria-pressed="false">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/>
+                <circle cx="12" cy="12" r="2.9"/>
+              </svg>
+            </button>
+          </div>
+          <p style="font-size:0.72rem;color:var(--ivory-40);margin:6px 0 0;">Use 10 characters or more. A mix of letters and numbers is best.</p>
+        </div>
+
+        <button type="submit" class="btn btn--gold auth-submit" id="registerSubmitBtn">
+          <span id="registerSubmitLabel">Create account</span>
+        </button>
+      </form>
+
+      <div class="auth-rule"><span>Already a member?</span></div>
+
+      <p class="auth-foot">
+        <a href="login.html">Sign in instead</a> &nbsp;·&nbsp;
+        <a href="dealer-dashboard.html#register">Register as a dealer</a>
+      </p>
+    </section>
+
+    <a href="index.html" class="auth-back">&#8592; Back to East Gate</a>
+  </div>
+</main>
+
+<script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Already signed in? There is nothing to register — send them to their portal.
+  if (window.EastGateAuth && window.EastGateAuth.isAuthenticated()) {
+    var existing = window.EastGateAuth.getSession();
+    window.location.replace(window.EastGateAuth.landingForRole(existing.role));
+    return;
+  }
+
+  var form = document.getElementById('registerForm');
+  var alertBox = document.getElementById('registerAlert');
+  var alertText = document.getElementById('registerAlertText');
+  var submitBtn = document.getElementById('registerSubmitBtn');
+  var submitLabel = document.getElementById('registerSubmitLabel');
+  var originalLabel = submitLabel.textContent;
+
+  function showError(message) {
+    alertText.textContent = message;
+    alertBox.classList.add('is-visible');
+  }
+  function clearError() {
+    alertBox.classList.remove('is-visible');
+  }
+
+  // Password reveal, matching the login screen.
+  var toggle = document.getElementById('togglePassword');
+  var passwordInput = document.getElementById('regPassword');
+  toggle.addEventListener('click', function () {
+    var showing = passwordInput.type === 'text';
+    passwordInput.type = showing ? 'password' : 'text';
+    toggle.setAttribute('aria-pressed', String(!showing));
+    toggle.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  });
+
+  function value(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearError();
+
+    var fullName = value('regFullName');
+    var email = value('regEmail');
+    var phone = value('regPhone');
+    var password = passwordInput.value;
+
+    if (fullName.length < 2) { showError('Please enter your full name.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('Please enter a valid email address.'); return; }
+    if (!/^\+?[\d\s()-]{7,20}$/.test(phone)) { showError('Please enter a valid phone number.'); return; }
+    if (password.length < 10) { showError('Password must be at least 10 characters.'); return; }
+
+    submitBtn.disabled = true;
+    submitLabel.textContent = 'Creating account…';
+
+    fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName: fullName, email: email, phone: phone, password: password })
+    })
+      .then(function (res) {
+        return res.json().then(function (body) { return { status: res.status, body: body }; });
+      })
+      .then(function (result) {
+        if (result.status !== 201 || !result.body.success) {
+          submitBtn.disabled = false;
+          submitLabel.textContent = originalLabel;
+          showError(result.body.error || 'Registration failed. Please try again.');
+          return;
+        }
+
+        // Sign the new member in straight away so they land in their portal.
+        window.EastGateAuth.login(email, password, false).then(function (session) {
+          if (!session.ok) {
+            window.location.href = 'login.html?next=dashboard.html';
+            return;
+          }
+          window.location.href = 'dashboard.html';
+        });
+      })
+      .catch(function () {
+        submitBtn.disabled = false;
+        submitLabel.textContent = originalLabel;
+        showError('Cannot reach the East Gate server. Start it with "npm run dev" and try again.');
+      });
+  });
+});
+</script>
+
+</body>
+</html>

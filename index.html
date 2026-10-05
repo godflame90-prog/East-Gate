@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>East Gate Real-Estate — Everything Housing. One Premium Destination.</title>
-<meta name="description" content="Discover properties, land, professionals, materials and services for every stage of your housing journey.">
+<title>EastGate — Find Your Place. Make It Home.</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
+<meta name="description" content="Everything you need to find, build, furnish, and care for your home — all in one place.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +17,7 @@
 <link rel="stylesheet" href="css/portals.css">
 </head>
 
-<body>
+<body data-platform-bar="off">
 
 <!-- SCROLL PROGRESS -->
 <div class="progress" id="progress" aria-hidden="true"></div>
@@ -41,6 +42,7 @@
       <a href="land.html">Land</a>
       <a href="services.html">Services</a>
       <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
       <a href="dealers.html">Dealers & Pros</a>
     </nav>
 
@@ -62,6 +64,7 @@
     <a href="land.html">Land</a>
     <a href="services.html">Services</a>
     <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
     <a href="dealers.html">Dealers & Pros</a>
   </nav>
   <div class="menu__foot">
@@ -87,12 +90,12 @@
       <p class="eyebrow hero__eyebrow">East Gate Real-Estate</p>
 
       <h1>
-        Everything Housing.
-        <em>One Premium Destination.</em>
+        EastGate
+        <em>Find Your Place. Make It Home.</em>
       </h1>
 
       <p class="hero__sub">
-        Discover properties, land, professionals, materials and services for every stage of your housing journey.
+        Everything you need to find, build, furnish, and care for your home — all in one place.
       </p>
 
       <div class="hero__meta">
@@ -163,14 +166,20 @@
           </label>
 
           <label class="field">
-            <span class="field__label">Price Range</span>
+            <span class="field__label">Purpose</span>
             <span class="field__control">
-              <select aria-label="Price range">
-                <option>Any Price</option>
-                <option>Under ₦20,000,000</option>
-                <option>₦20,000,000 – ₦50,000,000</option>
-                <option>₦50,000,000 – ₦120,000,000</option>
-                <option>₦120,000,000 +</option>
+              <select aria-label="Purpose" id="searchPurpose">
+                <option value="ALL">Any Purpose</option>
+                <option value="BUY">Buy (Outright Purchase)</option>
+                <option value="SHORT_LET">Rent (Short Let)</option>
+                <option value="LONG_LET">Rent (Long Let)</option>
+                <option value="LONG_LEASE">Long Lease</option>
+                <option value="COMMERCIAL_LEASE">Commercial Lease</option>
+                <option value="INDUSTRIAL_LEASE">Industrial Lease</option>
+                <option value="LAND_BANKING">Land Banking &amp; Investment</option>
+                <option value="DISTRESS_SALE">Sale (Distress / Auction)</option>
+                <option value="JOINT_VENTURE">Joint Venture / Development</option>
+                <option value="STAFF_QUARTERS">Student / Staff Quarters</option>
               </select>
             </span>
             <svg class="field__chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
@@ -222,7 +231,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
               Aba, Abia State
             </p>
-            <div class="prop-card__price">₦85,000,000</div>
+            <a href="https://wa.me/2348108990239?text=Hello%20East%20Gate%2C%20I%20would%20like%20a%20quote%20for%20this%20property" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>
             <ul class="prop-card__specs">
               <li>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg>
@@ -238,7 +247,7 @@
               </li>
             </ul>
             <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
-              <button type="button" onclick="openInspectionModal('prop_1', 'Modern 4 Bedroom Villa')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
+              <button type="button" onclick="openInspectionModal('89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'Modern 4 Bedroom Villa')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
               <span class="trust-badge trust-badge--verified">C of O ✓</span>
             </div>
           </div>
@@ -260,7 +269,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
               Owerri, Imo State
             </p>
-            <div class="prop-card__price">₦42,500,000</div>
+            <a href="https://wa.me/2348108990239?text=Hello%20East%20Gate%2C%20I%20would%20like%20a%20quote%20for%20this%20property" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>
             <ul class="prop-card__specs">
               <li>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg>
@@ -276,7 +285,7 @@
               </li>
             </ul>
             <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
-              <button type="button" onclick="openInspectionModal('prop_2', 'Contemporary 3 Bedroom Apartment')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
+              <button type="button" onclick="openInspectionModal('1ae3a47f-5265-42e4-bf7f-dbbdb7ef05c6', 'Contemporary 3 Bedroom Apartment')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
               <span class="trust-badge trust-badge--verified">Gov Consent ✓</span>
             </div>
           </div>
@@ -298,7 +307,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
               Port Harcourt, Rivers State
             </p>
-            <div class="prop-card__price">₦150,000,000</div>
+            <a href="https://wa.me/2348108990239?text=Hello%20East%20Gate%2C%20I%20would%20like%20a%20quote%20for%20this%20property" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>
             <ul class="prop-card__specs">
               <li>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18v-5h20v5"/><path d="M4 13V9.5A2.5 2.5 0 0 1 6.5 7h11A2.5 2.5 0 0 1 20 9.5V13"/><path d="M2 18v2"/><path d="M22 18v2"/></svg>
@@ -314,7 +323,7 @@
               </li>
             </ul>
             <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
-              <button type="button" onclick="openInspectionModal('prop_3', 'Executive 5 Bedroom Detached Duplex')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
+              <button type="button" onclick="openInspectionModal('e86dffae-0a6e-4a93-b458-336366ec9536', 'Executive 5 Bedroom Detached Duplex')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
               <span class="trust-badge trust-badge--verified">C of O ✓</span>
             </div>
           </div>
@@ -712,7 +721,7 @@
           </svg>
           <span class="brand__name">EAST<span>·</span>GATE</span>
         </a>
-        <p>Everything Housing. One Premium Destination.</p>
+        <p>Find Your Place. Make It Home.</p>
       </div>
 
       <div class="footer__col">
@@ -723,6 +732,7 @@
           <li><a href="dealers.html">Dealers & Pros</a></li>
           <li><a href="services.html">Services</a></li>
           <li><a href="marketplace.html">Marketplace</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
         </ul>
       </div>
 

@@ -5,7 +5,11 @@
 (function (window) {
   'use strict';
 
-  var STORAGE_KEY = 'east_gate_db_v1';
+  // v2 — listing types moved from Title-Case ('Buy') to ListingType enum members
+  // ('BUY') and the catalogue gained rental/lease/auction properties. Bump this
+  // key whenever defaultData changes shape, or returning visitors keep serving
+  // their stale copy out of localStorage and never see the new rows.
+  var STORAGE_KEY = 'east_gate_db_v2';
 
   var defaultData = {
     currentUser: {
@@ -23,10 +27,10 @@
         email: 'jay@example.com',
         phone: '+234 803 123 4567',
         role: 'CUSTOMER',
-        saved: ['prop_1', 'prop_3']
+        saved: ['89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'e86dffae-0a6e-4a93-b458-336366ec9536']
       },
       {
-        id: 'usr_dealer_john',
+        id: 'ee050f69-b910-435c-898f-00f298708968',
         name: 'John Properties Ltd',
         email: 'dealer@johnproperties.ng',
         phone: '+234 802 987 6543',
@@ -39,7 +43,7 @@
         reviewsCount: 38
       },
       {
-        id: 'usr_dealer_apex',
+        id: 'beaa266f-c9f9-4147-ba21-fdc2fd011479',
         name: 'Apex Build & Construction',
         email: 'apex@apexbuilders.ng',
         phone: '+234 814 555 1234',
@@ -53,8 +57,8 @@
       },
       {
         id: 'usr_admin_sarah',
-        name: 'Sarah Alabi',
-        email: 'admin@eastgate.ng',
+        name: 'Administration',
+        email: 'admin@eastgate.com',
         phone: '+234 809 000 8888',
         role: 'ADMIN',
         adminRole: 'SUPER_ADMIN'
@@ -62,13 +66,13 @@
     ],
     properties: [
       {
-        id: 'prop_1',
+        id: '89bc3c5d-11d8-48b5-bf87-9b95018ae8fd',
         title: 'Modern 4 Bedroom Villa',
         slug: 'modern-4-bedroom-villa-aba',
         category: 'Residential',
-        listingType: 'Buy',
+        listingType: 'BUY',
         price: 85000000,
-        priceDisplay: '₦85,000,000',
+        priceDisplay: 'Request for Quote',
         location: 'Aba, Abia State',
         state: 'Abia',
         beds: 4,
@@ -78,7 +82,7 @@
         titleDoc: 'Certificate of Occupancy (C of O)',
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         dealerVerified: true,
         status: 'APPROVED',
@@ -87,13 +91,13 @@
         features: ['Solar Power Inverter', 'Borehole with Industrial Filter', 'CCTV & Electric Fence', 'Fitted Italian Kitchen', 'En-suite Bedrooms']
       },
       {
-        id: 'prop_2',
+        id: '1ae3a47f-5265-42e4-bf7f-dbbdb7ef05c6',
         title: 'Contemporary 3 Bedroom Apartment',
         slug: 'contemporary-3-bedroom-apartment-owerri',
         category: 'Residential',
-        listingType: 'Buy',
+        listingType: 'BUY',
         price: 42500000,
-        priceDisplay: '₦42,500,000',
+        priceDisplay: 'Request for Quote',
         location: 'Owerri, Imo State',
         state: 'Imo',
         beds: 3,
@@ -103,7 +107,7 @@
         titleDoc: "Governor's Consent",
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         dealerVerified: true,
         status: 'APPROVED',
@@ -112,13 +116,13 @@
         features: ['24/7 Security Patrol', 'Access Controlled Gate', 'High-Speed Fiber Ready', 'Gym & Clubhouse', 'Dedicated Transformer']
       },
       {
-        id: 'prop_3',
+        id: 'e86dffae-0a6e-4a93-b458-336366ec9536',
         title: 'Executive 5 Bedroom Detached Duplex',
         slug: 'executive-5-bedroom-duplex-port-harcourt',
         category: 'Residential',
-        listingType: 'Buy',
+        listingType: 'BUY',
         price: 150000000,
-        priceDisplay: '₦150,000,000',
+        priceDisplay: 'Request for Quote',
         location: 'GRA Phase 2, Port Harcourt',
         state: 'Rivers',
         beds: 5,
@@ -128,7 +132,7 @@
         titleDoc: 'Certificate of Occupancy (C of O)',
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         dealerVerified: true,
         status: 'APPROVED',
@@ -137,13 +141,13 @@
         features: ['Private Cinema Room', 'Swimming Pool Ready', 'Automated Gates', 'Smart Climate Control', 'Dual BQ Staff Quarters']
       },
       {
-        id: 'prop_4',
+        id: '5003022d-302a-4015-97e3-7457eb49cc55',
         title: '2 Plots Prime Commercial Land',
         slug: 'prime-commercial-land-aba',
         category: 'Land',
-        listingType: 'Land',
+        listingType: 'LAND_BANKING',
         price: 35000000,
-        priceDisplay: '₦35,000,000',
+        priceDisplay: 'Request for Quote',
         location: 'Enugu Expressway, Aba',
         state: 'Abia',
         beds: 0,
@@ -153,7 +157,7 @@
         titleDoc: 'Registered Survey & Deed of Conveyance',
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         dealerVerified: true,
         status: 'APPROVED',
@@ -166,9 +170,9 @@
         title: 'Luxury 4 Bedroom Waterfront Penthouse',
         slug: 'luxury-penthouse-lagos',
         category: 'Luxury',
-        listingType: 'Buy',
+        listingType: 'BUY',
         price: 280000000,
-        priceDisplay: '₦280,000,000',
+        priceDisplay: 'Request for Quote',
         location: 'Victoria Island, Lagos',
         state: 'Lagos',
         beds: 4,
@@ -178,7 +182,7 @@
         titleDoc: 'Federal Certificate of Occupancy',
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         dealerVerified: true,
         status: 'APPROVED',
@@ -191,9 +195,9 @@
         title: 'Off-Plan 4 Bedroom Terrace Duplex',
         slug: 'off-plan-terrace-abuja',
         category: 'Off-Plan',
-        listingType: 'Buy',
+        listingType: 'JOINT_VENTURE',
         price: 110000000,
-        priceDisplay: '₦110,000,000',
+        priceDisplay: 'Request for Quote',
         location: 'Guzape, Abuja (FCT)',
         state: 'Abuja',
         beds: 4,
@@ -203,7 +207,7 @@
         titleDoc: 'FCDA Allocation & Approved Building Plan',
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=80',
-        dealerId: 'usr_dealer_apex',
+        dealerId: 'beaa266f-c9f9-4147-ba21-fdc2fd011479',
         dealerName: 'Apex Build & Construction',
         dealerVerified: false,
         status: 'APPROVED',
@@ -216,9 +220,9 @@
         title: 'Executive 5 Bedroom Villa with Swimming Pool',
         slug: 'executive-5-bed-villa-enugu',
         category: 'Luxury',
-        listingType: 'Buy',
+        listingType: 'BUY',
         price: 185000000,
-        priceDisplay: '₦185,000,000',
+        priceDisplay: 'Request for Quote',
         location: 'Independence Layout, Enugu',
         state: 'Enugu',
         beds: 5,
@@ -228,13 +232,188 @@
         titleDoc: 'State C of O',
         verifiedTitle: true,
         image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-        dealerId: 'usr_dealer_apex',
+        dealerId: 'beaa266f-c9f9-4147-ba21-fdc2fd011479',
         dealerName: 'Apex Build & Construction',
         dealerVerified: false,
         status: 'PENDING_REVIEW', // MUST BE APPROVED BY ADMIN FIRST
         featured: false,
         description: 'Newly submitted estate awaiting compliance verification. Premium finishes, private pool, smart automation.',
         features: ['Olympic Swimming Pool', 'Gym House', 'Solar Inverter 15kVA']
+      },
+      {
+        id: 'prop_8',
+        title: 'Furnished 3 Bedroom Apartment — Short Let',
+        slug: 'furnished-3bed-shortlet-aba',
+        category: 'Residential',
+        listingType: 'SHORT_LET',
+        price: 3500000,
+        priceDisplay: '₦3,500,000 / year',
+        location: 'Old GRA, Aba, Abia State',
+        state: 'Abia',
+        beds: 3,
+        baths: 2,
+        cars: 1,
+        landSize: '220 sqm',
+        titleDoc: 'Certificate of Occupancy (C of O)',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
+        dealerName: 'John Properties Ltd',
+        dealerVerified: true,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Fully furnished and serviced short-let apartment in the Old GRA. Includes 24-hour power, water treatment, and weekly housekeeping.',
+        features: ['Fully Furnished', '24hr Power & Water', 'Serviced Weekly', 'Secure Estate']
+      },
+      {
+        id: 'prop_9',
+        title: 'Executive 4 Bedroom Family Residence — Long Let',
+        slug: 'executive-4bed-longlet-owerri',
+        category: 'Residential',
+        listingType: 'LONG_LET',
+        price: 4800000,
+        priceDisplay: '₦4,800,000 / year',
+        location: 'Orji, Owerri, Imo State',
+        state: 'Imo',
+        beds: 4,
+        baths: 3,
+        cars: 2,
+        landSize: '600 sqm',
+        titleDoc: 'Governor\'s Consent',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
+        dealerName: 'John Properties Ltd',
+        dealerVerified: true,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Detached family home available on a minimum 5-year lease. Landlord maintains grounds, security and the generator; tenant handles utilities.',
+        features: ['Minimum 5-Year Term', 'Boys\' & Girls\' Quarters', 'Standby Generator', 'Estate Security']
+      },
+      {
+        id: 'prop_10',
+        title: 'Grade A Office Space — Commercial Lease',
+        slug: 'grade-a-office-lekki-lagos',
+        category: 'Commercial',
+        listingType: 'COMMERCIAL_LEASE',
+        price: 45000000,
+        priceDisplay: '₦45,000,000 / year',
+        location: 'Victoria Island, Lagos',
+        state: 'Lagos',
+        beds: 0,
+        baths: 4,
+        cars: 12,
+        landSize: '1,400 sqm',
+        titleDoc: 'Governance Lease / Consent',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
+        dealerName: 'John Properties Ltd',
+        dealerVerified: true,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Grade A fitted-and-furnished office floor on the 4th level with lift access, dedicated power, and 12 allocated parking bays. Suitable for corporate HQ or a professional firm.',
+        features: ['4th Floor with Lift', '12 Parking Bays', 'Fitted & Furnished', 'Dedicated Power & HVAC']
+      },
+      {
+        id: 'prop_11',
+        title: 'Bonded Warehouse & Factory Floor — Industrial Lease',
+        slug: 'bonded-warehouse-aba',
+        category: 'Commercial',
+        listingType: 'INDUSTRIAL_LEASE',
+        price: 25000000,
+        priceDisplay: '₦25,000,000 / year',
+        location: 'Aba North Industrial Layout, Abia State',
+        state: 'Abia',
+        beds: 0,
+        baths: 2,
+        cars: 8,
+        landSize: '4,000 sqm',
+        titleDoc: 'Registered Survey Deed',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
+        dealerName: 'John Properties Ltd',
+        dealerVerified: true,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Bonded warehouse and factory floor with 6m clear height, heavy-duty loading bays, and bonded goods access. Suitable for manufacturing, cold storage, or distribution.',
+        features: ['6m Clear Height', 'Bonded Goods Access', '3 Loading Bays', '3-Phase Power']
+      },
+      {
+        id: 'prop_12',
+        title: '2 Bedroom Staff Quarters — Gated Development',
+        slug: 'staff-quarters-guzape-abuja',
+        category: 'Residential',
+        listingType: 'STAFF_QUARTERS',
+        price: 2400000,
+        priceDisplay: '₦2,400,000 / year',
+        location: 'Guzape, Abuja (FCT)',
+        state: 'Abuja',
+        beds: 2,
+        baths: 2,
+        cars: 1,
+        landSize: '150 sqm',
+        titleDoc: 'FCDA Allocation & Approved Building Plan',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'beaa266f-c9f9-4147-ba21-fdc2fd011479',
+        dealerName: 'Apex Build & Construction',
+        dealerVerified: false,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Newly completed staff quarters within a gated estate, walking distance to the site. Let in units of four or the whole block.',
+        features: ['Let in Units of 4', 'Gated Estate', 'Borehole & Solar', 'Near Site']
+      },
+      {
+        id: 'prop_13',
+        title: '4 Bedroom Duplex — Distress Auction Sale',
+        slug: '4bed-duplex-distress-ph',
+        category: 'Residential',
+        listingType: 'DISTRESS_SALE',
+        price: 62000000,
+        priceDisplay: '₦62,000,000 (auction reserve)',
+        location: 'GRA Phase 2, Port Harcourt, Rivers State',
+        state: 'Rivers',
+        beds: 4,
+        baths: 4,
+        cars: 2,
+        landSize: '500 sqm',
+        titleDoc: 'Governance Lease / Consent',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
+        dealerName: 'John Properties Ltd',
+        dealerVerified: true,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Vacant possession recovered on a defaulted facility and offered by public auction. Title documents verified by East Gate; reserve price applies.',
+        features: ['Vacant Possession', 'Auction Reserve Price', 'Title Verified by East Gate', 'Legal & Advisory Available']
+      },
+      {
+        id: 'prop_14',
+        title: '4 Bedroom Terrace — 10 Year Lease with Purchase Option',
+        slug: '4bed-terrace-long-lease-abuja',
+        category: 'Residential',
+        listingType: 'LONG_LEASE',
+        price: 24000000,
+        priceDisplay: '₦24,000,000 / year',
+        location: 'Maitama, Abuja (FCT)',
+        state: 'Abuja',
+        beds: 4,
+        baths: 4,
+        cars: 2,
+        landSize: '350 sqm',
+        titleDoc: 'Certificate of Occupancy (C of O)',
+        verifiedTitle: true,
+        image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
+        dealerName: 'John Properties Ltd',
+        dealerVerified: true,
+        status: 'APPROVED',
+        featured: false,
+        description: 'Ten-year lease with a registered option to purchase at year 10. Rent is fixed for the term with a 5-year review; the option price is indexed and stated in the lease deed.',
+        features: ['10-Year Registered Lease', 'Option to Purchase', 'Fixed 5-Year Review', 'Maitama Address']
       }
     ],
     marketplaceProducts: [
@@ -243,7 +422,7 @@
         name: 'Dangote 42.5R Portland Limestone Cement (50kg)',
         category: 'Building Materials',
         price: 9500,
-        priceDisplay: '₦9,500 / bag',
+        priceDisplay: 'Request for Quote',
         vendor: 'East Gate Direct (Official)',
         isOfficial: true,
         image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
@@ -256,7 +435,7 @@
         name: 'High-Density Vibrated Hollow Blocks (9-inch & 6-inch)',
         category: 'Building Materials',
         price: 650,
-        priceDisplay: '₦650 / block',
+        priceDisplay: 'Request for Quote',
         vendor: 'Apex Concrete Works',
         isOfficial: false,
         image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=800&q=80',
@@ -269,7 +448,7 @@
         name: 'German Stone-Coated Roofing Tiles (Milano Profile)',
         category: 'Building Materials',
         price: 4800,
-        priceDisplay: '₦4,800 / sqm',
+        priceDisplay: 'Request for Quote',
         vendor: 'East Gate Direct (Official)',
         isOfficial: true,
         image: 'https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&w=800&q=80',
@@ -282,7 +461,7 @@
         name: 'Luxury Italian Velvet Chesterfield 7-Seater Suite',
         category: 'Home & Interior',
         price: 1850000,
-        priceDisplay: '₦1,850,000',
+        priceDisplay: 'Request for Quote',
         vendor: 'Maison Living Co.',
         isOfficial: false,
         image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80',
@@ -295,7 +474,7 @@
         name: 'Heavy-Duty Reversible Concrete Mixer (500 Liters, Diesel)',
         category: 'Equipment',
         price: 2400000,
-        priceDisplay: '₦2,400,000',
+        priceDisplay: 'Request for Quote',
         vendor: 'Apex Machinery & Plant Hire',
         isOfficial: false,
         image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
@@ -308,7 +487,7 @@
         name: 'Handcrafted Solid Teak 8-Seater Dining Suite',
         category: 'Home & Interior',
         price: 920000,
-        priceDisplay: '₦920,000',
+        priceDisplay: 'Request for Quote',
         vendor: 'Heritage Woods Ltd',
         isOfficial: false,
         image: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=800&q=80',
@@ -397,10 +576,10 @@
         userId: 'usr_jay',
         userName: 'Jay Nwosu',
         userPhone: '+234 803 123 4567',
-        propertyId: 'prop_1',
+        propertyId: '89bc3c5d-11d8-48b5-bf87-9b95018ae8fd',
         propertyTitle: 'Modern 4 Bedroom Villa',
         propertyLocation: 'Aba, Abia State',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         date: '2026-10-14',
         time: '02:00 PM',
@@ -412,10 +591,10 @@
         userId: 'usr_jay',
         userName: 'Jay Nwosu',
         userPhone: '+234 803 123 4567',
-        propertyId: 'prop_3',
+        propertyId: 'e86dffae-0a6e-4a93-b458-336366ec9536',
         propertyTitle: 'Executive 5 Bedroom Detached Duplex',
         propertyLocation: 'GRA Phase 2, Port Harcourt',
-        dealerId: 'usr_dealer_john',
+        dealerId: 'ee050f69-b910-435c-898f-00f298708968',
         dealerName: 'John Properties Ltd',
         date: '2026-10-19',
         time: '11:00 AM',
@@ -426,7 +605,7 @@
     verifications: [
       {
         id: 'ver_201',
-        dealerId: 'usr_dealer_apex',
+        dealerId: 'beaa266f-c9f9-4147-ba21-fdc2fd011479',
         dealerName: 'Apex Build & Construction',
         dimension: 'CAC_BUSINESS',
         documentName: 'CAC_Incorporation_RC2039481.pdf',
@@ -437,7 +616,7 @@
       },
       {
         id: 'ver_202',
-        dealerId: 'usr_dealer_apex',
+        dealerId: 'beaa266f-c9f9-4147-ba21-fdc2fd011479',
         dealerName: 'Apex Build & Construction',
         dimension: 'TITLE_DOCUMENTS',
         documentName: 'Deed_Of_Conveyance_Apex_Plot.pdf',
@@ -452,7 +631,7 @@
         id: 'rep_301',
         reporter: 'Chidi E.',
         targetType: 'PROPERTY',
-        targetId: 'prop_2',
+        targetId: '1ae3a47f-5265-42e4-bf7f-dbbdb7ef05c6',
         targetTitle: 'Contemporary 3 Bedroom Apartment',
         reason: 'Price discrepancy reported compared to signpost on site',
         status: 'PENDING',
@@ -462,7 +641,7 @@
     auditLogs: [
       {
         id: 'aud_401',
-        adminName: 'Sarah Alabi (Super Admin)',
+        adminName: 'Administration (Super Admin)',
         action: 'VERIFY_DEALER',
         target: 'John Properties Ltd',
         details: 'Approved Identity, CAC, and Title documentation credentials.',
@@ -470,7 +649,7 @@
       },
       {
         id: 'aud_402',
-        adminName: 'Sarah Alabi (Super Admin)',
+        adminName: 'Administration (Super Admin)',
         action: 'APPROVE_LISTING',
         target: 'Contemporary 3 Bedroom Apartment (Owerri)',
         details: 'Verified Governor’s Consent file before clearing for public view.',
@@ -478,7 +657,7 @@
       },
       {
         id: 'aud_403',
-        adminName: 'Sarah Alabi (Super Admin)',
+        adminName: 'Administration (Super Admin)',
         action: 'ADMIN_CREATE_PRODUCT',
         target: 'Dangote 42.5R Portland Limestone Cement',
         details: 'Admin published direct official East Gate inventory.',
@@ -537,7 +716,20 @@
       return db.currentUser;
     },
 
-    // Save/Bookmark Property
+    // Adopt an authenticated account (from /api/auth/login) as the active user
+    setCurrentUser: function (user) {
+      if (!user || !user.id) return db.currentUser;
+      db.currentUser = {
+        id: user.id,
+        name: user.name || user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        role: user.role || 'CUSTOMER',
+        avatar: user.avatar || db.currentUser.avatar
+      };
+      saveDatabase(db);
+      return db.currentUser;
+    },
     toggleSaveProperty: function (propId) {
       var user = db.users.find(function (u) { return u.id === db.currentUser.id; });
       if (!user) return false;
@@ -562,24 +754,43 @@
 
     // Schedule Inspection
     bookInspection: function (booking) {
-      var newInspection = {
-        id: 'insp_' + Date.now(),
-        userId: db.currentUser.id,
-        userName: booking.name || db.currentUser.name,
-        userPhone: booking.phone || db.currentUser.phone,
+      var payload = {
         propertyId: booking.propertyId,
-        propertyTitle: booking.propertyTitle,
-        propertyLocation: booking.propertyLocation,
-        dealerId: booking.dealerId || 'usr_dealer_john',
-        dealerName: booking.dealerName || 'John Properties Ltd',
+        dealerId: booking.dealerId,
         date: booking.date,
-        time: booking.time,
-        status: 'PENDING',
-        notes: booking.notes || 'Inspection requested via website'
+        timeSlot: booking.time || booking.timeSlot,
+        clientNotes: booking.notes || booking.clientNotes || 'Inspection requested via website'
       };
-      db.inspections.unshift(newInspection);
-      saveDatabase(db);
-      return newInspection;
+
+      if (!window.EastGateAPI || !window.EastGateAPI.bookInspection) {
+        console.error('EastGateAPI.bookInspection is not available');
+        throw new Error('API unavailable');
+      }
+
+      return window.EastGateAPI.bookInspection(payload).then(function (res) {
+        if (!res || !res.success) {
+          throw new Error(res && res.error ? res.error : 'Failed to book inspection');
+        }
+        var data = res.data || {};
+        var newInspection = {
+          id: data.id || 'insp_' + Date.now(),
+          userId: db.currentUser.id,
+          userName: booking.name || db.currentUser.name,
+          userPhone: booking.phone || db.currentUser.phone,
+          propertyId: data.propertyId || payload.propertyId,
+          propertyTitle: booking.propertyTitle || data.property?.title,
+          propertyLocation: booking.propertyLocation || data.property?.location,
+          dealerId: data.dealerId || payload.dealerId,
+          dealerName: booking.dealerName || data.dealer?.businessName,
+          date: booking.date,
+          time: booking.time || payload.timeSlot,
+          status: 'PENDING',
+          notes: payload.clientNotes
+        };
+        db.inspections.unshift(newInspection);
+        saveDatabase(db);
+        return newInspection;
+      });
     },
 
     // DEALER ACTIONS (Submitted items default to PENDING_REVIEW)
@@ -589,9 +800,9 @@
         title: listing.title,
         slug: listing.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         category: listing.category || 'Residential',
-        listingType: listing.listingType || 'Buy',
+        listingType: listing.listingType || 'BUY',
         price: Number(listing.price),
-        priceDisplay: '₦' + Number(listing.price).toLocaleString(),
+        priceDisplay: 'Request for Quote',
         location: listing.location,
         state: listing.state || 'Abia',
         beds: Number(listing.beds || 0),
@@ -620,7 +831,7 @@
         name: product.name,
         category: product.category || 'Building Materials',
         price: Number(product.price),
-        priceDisplay: '₦' + Number(product.price).toLocaleString(),
+        priceDisplay: 'Request for Quote',
         vendor: db.currentUser.name,
         isOfficial: false,
         image: product.image || 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
@@ -658,7 +869,7 @@
         name: product.name,
         category: product.category || 'Building Materials',
         price: Number(product.price),
-        priceDisplay: '₦' + Number(product.price).toLocaleString(),
+        priceDisplay: 'Request for Quote',
         vendor: 'East Gate Direct (Official)',
         isOfficial: true,
         image: product.image || 'https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&w=800&q=80',

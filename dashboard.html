@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Customer Dashboard — East Gate Real-Estate</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,7 +81,7 @@
           <h1>Welcome back, Jay Nwosu</h1>
           <p>Track your verified property viewings, saved homes, and dealer communications.</p>
         </div>
-        <button type="button" onclick="openInspectionModal('prop_1', 'Modern 4 Bedroom Villa')" class="btn btn--gold btn--sm">Schedule Inspection</button>
+        <button type="button" onclick="openInspectionModal('89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'Modern 4 Bedroom Villa')" class="btn btn--gold btn--sm">Schedule Inspection</button>
       </div>
 
       <!-- KPI METRICS -->
@@ -220,16 +221,16 @@
 
       <div style="max-width:600px;background:#141414;border:1px solid var(--line-light-soft);border-radius:var(--r-md);padding:32px;">
         <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-input" value="Jay Nwosu">
+          <label class="form-label" for="profName">Full Name</label>
+          <input type="text" class="form-input" id="profName" value="Jay Nwosu">
         </div>
         <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" class="form-input" value="jay@example.com" readonly style="opacity:0.7;">
+          <label class="form-label" for="profEmail">Email Address</label>
+          <input type="email" class="form-input" id="profEmail" value="jay@example.com" readonly style="opacity:0.7;">
         </div>
         <div class="form-group">
-          <label class="form-label">Phone Number (SMS Verified for Inspections)</label>
-          <input type="text" class="form-input" value="+234 803 123 4567">
+          <label class="form-label" for="profPhone">Phone Number (SMS Verified for Inspections)</label>
+          <input type="text" class="form-input" id="profPhone" value="+234 803 123 4567">
         </div>
         <button type="button" onclick="window.showEastGateToast('Account settings saved.')" class="btn btn--gold">Save Changes</button>
       </div>
@@ -240,6 +241,11 @@
 </div>
 
 <script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+window.EastGateAuth.guardPage(['CUSTOMER', 'DEALER', 'ADMIN']);
+</script>
 <script src="js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -255,16 +261,45 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  function renderCustomerData() {
-    if (!window.EastGateDB) return;
-    var db = window.EastGateDB.get();
-    var userInspections = db.inspections.filter(function (i) { return i.userId === 'usr_jay'; });
-    var userSavedIds = (db.users.find(function (u) { return u.id === 'usr_jay'; }) || {}).saved || [];
+  // An API Inspection arrives as { date, timeSlot, status, clientNotes,
+  // property: {title, location}, dealer: {businessName} }. The mock store uses a
+  // flat shape. Fold both onto the fields the tables below render.
+  function normInspection(i) {
+    return {
+      id: i.id,
+      propertyTitle: (i.property && i.property.title) || i.propertyTitle || '',
+      propertyLocation: (i.property && i.property.location) || i.propertyLocation || '',
+      dealerName: (i.dealer && i.dealer.businessName) || i.dealerName || '',
+      date: i.date ? String(i.date).slice(0, 10) : '',
+      time: i.timeSlot || i.time || '',
+      status: i.status || '',
+      notes: i.clientNotes || i.notes || ''
+    };
+  }
+
+  async function renderCustomerData() {
+    var db = window.EastGateDB ? window.EastGateDB.get() : { users: [], properties: [] };
+
+    // The page used to hardcode 'usr_jay', which meant every signed-in customer
+    // saw the demo customer's data. Read the real id out of the session instead.
+    var session = window.EastGateAuth ? window.EastGateAuth.getSession() : null;
+    var userId = session && session.sub;
+
+    var rawInspections = window.EastGateAPI && userId
+      ? await window.EastGateAPI.getUserInspections(userId)
+      : (db.inspections || []);
+    var userInspections = (rawInspections || []).map(normInspection);
+
+    // Saved listings have no server endpoint — the heart button is local-only
+    // state, so it stays on the mock store and is looked up by mock id.
+    var savedIds = userId
+      ? []
+      : ((db.users.find(function (u) { return u.id === 'usr_jay'; }) || {}).saved || []);
 
     // KPI Badges
     document.getElementById('badgeInspections').textContent = userInspections.length;
-    document.getElementById('badgeSaved').textContent = userSavedIds.length;
-    document.getElementById('kpiSaved').textContent = userSavedIds.length;
+    document.getElementById('badgeSaved').textContent = savedIds.length;
+    document.getElementById('kpiSaved').textContent = savedIds.length;
     document.getElementById('kpiInspections').textContent = userInspections.length;
 
     // Overview Table
@@ -276,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '  <td>' + i.dealerName + '</td>',
         '  <td>' + i.date + '<br><span style="font-size:0.7rem;color:var(--gold);">' + i.time + '</span></td>',
         '  <td><span class="status-pill status-pill--' + (i.status === 'CONFIRMED' ? 'approved' : 'pending') + '">' + i.status + '</span></td>',
-        '  <td><a href="https://wa.me/2348031234567?text=Regarding%20inspection%20' + i.id + '" target="_blank" class="btn-action btn-action--approve">Chat Dealer</a></td>',
+        '  <td><a href="https://wa.me/2348108990239?text=Regarding%20inspection%20' + i.id + '" target="_blank" class="btn-action btn-action--approve">Chat Dealer</a></td>',
         '</tr>'
       ].join('');
     }).join('');
@@ -298,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Saved Grid
     var savedGrid = document.getElementById('savedGrid');
-    var savedProps = db.properties.filter(function (p) { return userSavedIds.indexOf(p.id) > -1; });
+    var savedProps = db.properties.filter(function (p) { return savedIds.indexOf(p.id) > -1; });
 
     if (savedProps.length === 0) {
       savedGrid.innerHTML = '<p style="color:var(--ivory-62);padding:20px;">You have no saved properties yet. Browse properties and click the heart icon to save.</p>';
@@ -313,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '  <div class="prop-card__body">',
           '    <h3 class="prop-card__title" style="color:var(--ivory);font-size:1.1rem;">' + p.title + '</h3>',
           '    <p class="prop-card__loc">' + p.location + '</p>',
-          '    <div class="prop-card__price">' + p.priceDisplay + '</div>',
+          '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
           '    <div style="margin-top:16px;display:flex;gap:8px;">',
           '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Inspection</button>',
           '      <button type="button" onclick="window.EastGateDB.toggleSaveProperty(\'' + p.id + '\');renderCustomerData();" class="btn btn--ghost btn--sm" style="color:#e74c3c;border:1px solid rgba(231,76,60,0.3);">Remove</button>',

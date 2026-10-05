@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin Control Center — East Gate Real-Estate Fortress</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,9 +54,9 @@
     </div>
 
     <div class="portal-user-badge" style="border-color:rgba(231,76,60,0.4);">
-      <div class="dealer-avatar" style="width:40px;height:40px;font-size:0.9rem;background:#e74c3c;color:#fff;">SA</div>
+      <div class="dealer-avatar" style="width:40px;height:40px;font-size:0.9rem;background:#e74c3c;color:#fff;">AD</div>
       <div class="portal-user-info">
-        <h4>Sarah Alabi</h4>
+        <h4>Administration</h4>
         <span class="admin-badge">Super Admin</span>
       </div>
     </div>
@@ -88,7 +89,12 @@
       <button data-tab="reports">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         Dispute &amp; Reports
-        <span class="portal-nav__count" id="countReports">1</span>
+        <span class="portal-nav__count" id="countReports">0</span>
+      </button>
+      <button data-tab="contact-inbox">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg>
+        Contact Inbox
+        <span class="portal-nav__count" id="countUnreadMessages" style="background:#e67e22;color:#fff;">0</span>
       </button>
       <button data-tab="audit-logs">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -177,6 +183,7 @@
           <thead>
             <tr>
               <th>Property Title</th>
+              <th>Purpose</th>
               <th>Category</th>
               <th>Location</th>
               <th>Price</th>
@@ -341,7 +348,35 @@
       </div>
     </div>
 
-    <!-- TAB 7: AUDIT LOGS -->
+    <!-- TAB 7: CONTACT INBOX -->
+    <div id="tab-contact-inbox" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Contact Form Inbox</h1>
+          <p>Enquiries submitted through the public contact page. Unread messages are listed first.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Received</th>
+              <th>From</th>
+              <th>Subject</th>
+              <th>Message</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="contactMessageRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 8: AUDIT LOGS -->
     <div id="tab-audit-logs" class="tab-pane" style="display:none;">
       <div class="portal-header">
         <div>
@@ -361,6 +396,11 @@
 </div>
 
 <script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+window.EastGateAuth.guardPage(['ADMIN']);
+</script>
 <script src="js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -376,218 +416,435 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  function renderAdminData() {
-    if (!window.EastGateDB) return;
-    var db = window.EastGateDB.get();
+  // ---- Data access -------------------------------------------------------
+  // The console reads live data from the API and falls back to EastGateDB only
+  // when the server is unreachable (e.g. the page is opened from the file://
+  // protocol). Every value below originates from public, unauthenticated input
+  // (dealer registration), so it is escaped before it reaches innerHTML.
+  var PLACEHOLDER = '<tr><td colspan="7" style="text-align:center;color:var(--ivory-62);padding:24px;">Nothing pending.</td></tr>';
 
-    var pendingProps = db.properties.filter(function (p) { return p.status === 'PENDING_REVIEW'; });
-    var pendingProds = db.marketplaceProducts.filter(function (p) { return p.status === 'PENDING_REVIEW'; });
-    var pendingSrvs = db.services.filter(function (s) { return s.status === 'PENDING_REVIEW'; });
-    var pendingVers = db.verifications.filter(function (v) { return v.status === 'PENDING'; });
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function naira(price, fallback) {
+    var n = Number(price);
+    return isFinite(n) && n > 0 ? '₦' + n.toLocaleString('en-NG') : (fallback || 'Request for Quote');
+  }
+
+  function safeUrl(value) {
+    var raw = String(value == null ? '' : value).trim();
+    // An absolute URL carries a scheme: allow only http/https, so javascript:,
+    // data: and vbscript: can never become a live href. Relative paths and
+    // fragments are passed through unchanged.
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) {
+      return /^https?:/i.test(raw) ? raw : '#';
+    }
+    return raw;
+  }
+
+  function shortDate(value) {
+    if (!value) return '—';
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return esc(value);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // Normalisers accept both the API shape and the legacy mock-store shape so the
+  // offline fallback keeps working.
+  // Purpose (ListingType) labels. Kept alongside the other page-local helpers;
+  // LISTING_TYPE_LABELS in server/index.ts is the authoritative copy and is served
+  // by GET /api/listing-types.
+  var LISTING_TYPE_LABELS = {
+    BUY: 'Buy (Outright Purchase)',
+    SHORT_LET: 'Rent (Short Let)',
+    LONG_LET: 'Rent (Long Let)',
+    LONG_LEASE: 'Long Lease',
+    COMMERCIAL_LEASE: 'Commercial Lease',
+    INDUSTRIAL_LEASE: 'Industrial Lease',
+    LAND_BANKING: 'Land Banking & Investment',
+    DISTRESS_SALE: 'Sale (Distress / Auction)',
+    JOINT_VENTURE: 'Joint Venture / Development',
+    STAFF_QUARTERS: 'Student / Staff Quarters'
+  };
+
+  function purposeLabel(value) {
+    var key = String(value == null ? '' : value).trim().toUpperCase().replace(/[\s-]+/g, '_');
+    return LISTING_TYPE_LABELS[key] || key || '—';
+  }
+
+  function normProperty(p) {
+    return {
+      id: p.id,
+      title: p.title,
+      purpose: purposeLabel(p.listingType),
+      category: p.category,
+      location: p.location,
+      priceDisplay: p.priceDisplay || naira(p.price),
+      titleDoc: p.titleDoc || p.titleDocument || '—',
+      dealerName: p.dealerName || (p.dealer && p.dealer.businessName) || 'Unknown dealer'
+    };
+  }
+
+  function normProduct(p) {
+    return {
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      priceDisplay: p.priceDisplay || naira(p.price),
+      vendor: p.vendor || (p.dealer && p.dealer.businessName) || 'East Gate Official',
+      specs: p.specs || p.specifications || p.stockInfo || '—'
+    };
+  }
+
+  function normService(s) {
+    return {
+      id: s.id,
+      title: s.title,
+      category: s.category,
+      providerName: s.providerName || (s.dealer && s.dealer.businessName) || 'Unknown provider',
+      state: s.state || s.coverageState || 'Nationwide'
+    };
+  }
+
+  function normVerification(v) {
+    return {
+      id: v.id,
+      dealerName: v.dealerName || (v.dealer && v.dealer.businessName) || 'Unknown dealer',
+      dimension: v.dimension || v.documentType || 'DOCUMENT',
+      documentUrl: safeUrl(v.documentUrl),
+      documentName: v.documentName,
+      submittedAt: shortDate(v.submittedAt),
+      // The API uses UNDER_REVIEW / VERIFIED; the store used PENDING / APPROVED.
+      status: v.status === 'VERIFIED' ? 'APPROVED' : v.status === 'UNDER_REVIEW' ? 'PENDING' : v.status
+    };
+  }
+
+  function normAudit(a) {
+    return {
+      action: a.action,
+      target: a.target || a.targetName || a.targetEntity || '—',
+      details: a.details,
+      adminName: a.adminName || (a.admin && a.admin.fullName) || 'System',
+      timestamp: a.timestamp || (a.createdAt ? new Date(a.createdAt).toLocaleString() : '')
+    };
+  }
+
+  function normContactMessage(m) {
+    return {
+      id: m.id,
+      name: m.name || 'Unknown sender',
+      email: m.email || '',
+      phone: m.phone || '',
+      subject: m.subject || '—',
+      message: m.message || '',
+      createdAt: m.createdAt ? new Date(m.createdAt).toLocaleString() : '—',
+      isRead: !!m.readAt
+    };
+  }
+
+  function normReport(r) {
+    var reporter = typeof r.reporter === 'string' ? r.reporter : (r.reporter && r.reporter.fullName);
+    return {
+      id: String(r.id || '').slice(0, 8),
+      reporter: reporter || 'Anonymous',
+      targetTitle: r.targetTitle || (r.targetType + ' ' + String(r.targetId || '').slice(0, 8)),
+      reason: r.reason,
+      status: r.status
+    };
+  }
+
+  function row(action, entity, id, label) {
+    return '  <td>' +
+      '    <button class="btn-action btn-action--approve" onclick="' + action + '(\'' + entity + '\', \'' + esc(id) + '\')">' + label + '</button> ' +
+      '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'' + entity + '\', \'' + esc(id) + '\')">Reject</button>' +
+      '  </td>';
+  }
+
+  function paint(data) {
+    var pendingProps = data.properties;
+    var pendingProds = data.products;
+    var pendingSrvs = data.services;
+    var vers = data.verifications;
+    var logs = data.auditLogs;
+    var reports = data.reports;
+    var messages = data.contactMessages || [];
+    var verifiedDealers = data.verifiedDealers;
 
     // KPI Counters
     document.getElementById('countPendingProps').textContent = pendingProps.length;
     document.getElementById('countPendingProds').textContent = pendingProds.length;
     document.getElementById('countPendingSrvs').textContent = pendingSrvs.length;
-    document.getElementById('countPendingVers').textContent = pendingVers.length;
-    document.getElementById('kpiTotalPending').textContent = (pendingProps.length + pendingProds.length + pendingSrvs.length);
-    document.getElementById('kpiPendingVerifications').textContent = pendingVers.length;
-    document.getElementById('kpiAuditCount').textContent = db.auditLogs.length;
+    document.getElementById('countPendingVers').textContent = vers.length;
+    document.getElementById('kpiTotalPending').textContent = pendingProps.length + pendingProds.length + pendingSrvs.length;
+    document.getElementById('kpiPendingVerifications').textContent = vers.length;
+    document.getElementById('kpiAuditCount').textContent = logs.length;
+    document.getElementById('countReports').textContent = reports.length;
+    document.getElementById('countUnreadMessages').textContent = messages.filter(function (m) { return !m.isRead; }).length;
+    document.getElementById('kpiVerifiedDealers').textContent = verifiedDealers;
 
     // Overview Table
-    var overviewTable = document.getElementById('overviewQueueRows');
     var combined = [];
     pendingProps.forEach(function (p) { combined.push({ type: 'PROPERTY', id: p.id, name: p.title, by: p.dealerName, detail: p.titleDoc }); });
-    pendingProds.forEach(function (p) { combined.push({ type: 'PRODUCT', id: p.id, name: p.name, by: p.vendor, detail: p.specs }); });
+    pendingProds.forEach(function (p) { combined.push({ type: 'PRODUCT', id: p.id, name: p.name, by: p.vendor, detail: p.category }); });
     pendingSrvs.forEach(function (s) { combined.push({ type: 'SERVICE', id: s.id, name: s.title, by: s.providerName, detail: s.category }); });
 
-    if (combined.length === 0) {
-      overviewTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">All queues cleared! Zero pending approvals.</td></tr>';
-    } else {
-      overviewTable.innerHTML = combined.map(function (item) {
-        return [
-          '<tr>',
-          '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + item.type + '</span></td>',
-          '  <td><strong>' + item.name + '</strong></td>',
-          '  <td>' + item.by + '</td>',
-          '  <td>' + item.detail + '</td>',
-          '  <td><span class="status-pill status-pill--pending">PENDING REVIEW</span></td>',
-          '  <td>',
-          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'' + item.type.toLowerCase() + '\', \'' + item.id + '\')">Approve Live</button> ',
-          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'' + item.type.toLowerCase() + '\', \'' + item.id + '\')">Reject</button>',
-          '  </td>',
-          '</tr>'
-        ].join('');
-      }).join('');
-    }
+    var overviewTable = document.getElementById('overviewQueueRows');
+    overviewTable.innerHTML = combined.length === 0 ? PLACEHOLDER : combined.map(function (item) {
+      return [
+        '<tr>',
+        '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + esc(item.type) + '</span></td>',
+        '  <td><strong>' + esc(item.name) + '</strong></td>',
+        '  <td>' + esc(item.by) + '</td>',
+        '  <td>' + esc(item.detail) + '</td>',
+        '  <td><span class="status-pill status-pill--pending">PENDING REVIEW</span></td>',
+        row('approveQueueItem', item.type.toLowerCase(), item.id, 'Approve Live'),
+        '</tr>'
+      ].join('');
+    }).join('');
 
     // Properties Queue Table
     var propQueueTable = document.getElementById('propertiesQueueRows');
-    if (pendingProps.length === 0) {
-      propQueueTable.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ivory-62);padding:24px;">No property listings pending approval.</td></tr>';
-    } else {
-      propQueueTable.innerHTML = pendingProps.map(function (p) {
-        return [
-          '<tr>',
-          '  <td><strong>' + p.title + '</strong></td>',
-          '  <td>' + p.category + '</td>',
-          '  <td>' + p.location + '</td>',
-          '  <td>' + p.priceDisplay + '</td>',
-          '  <td><span class="trust-badge trust-badge--verified" style="font-size:0.62rem;">' + p.titleDoc + '</span></td>',
-          '  <td>' + p.dealerName + '</td>',
-          '  <td>',
-          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'property\', \'' + p.id + '\')">Approve &amp; Publish</button> ',
-          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'property\', \'' + p.id + '\')">Reject</button>',
-          '  </td>',
-          '</tr>'
-        ].join('');
-      }).join('');
-    }
+    propQueueTable.innerHTML = pendingProps.length === 0 ? PLACEHOLDER : pendingProps.map(function (p) {
+      return [
+        '<tr>',
+        '  <td><strong>' + esc(p.title) + '</strong></td>',
+        '  <td>' + esc(p.purpose) + '</td>',
+        '  <td>' + esc(p.category) + '</td>',
+        '  <td>' + esc(p.location) + '</td>',
+        '  <td>' + esc(p.priceDisplay) + '</td>',
+        '  <td><span class="trust-badge trust-badge--verified" style="font-size:0.62rem;">' + esc(p.titleDoc) + '</span></td>',
+        '  <td>' + esc(p.dealerName) + '</td>',
+        row('approveQueueItem', 'property', p.id, 'Approve &amp; Publish'),
+        '</tr>'
+      ].join('');
+    }).join('');
 
     // Products Queue Table
     var prodQueueTable = document.getElementById('productsQueueRows');
-    if (pendingProds.length === 0) {
-      prodQueueTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No vendor products pending approval.</td></tr>';
-    } else {
-      prodQueueTable.innerHTML = pendingProds.map(function (p) {
-        return [
-          '<tr>',
-          '  <td><strong>' + p.name + '</strong></td>',
-          '  <td>' + p.category + '</td>',
-          '  <td>' + p.priceDisplay + '</td>',
-          '  <td>' + p.vendor + '</td>',
-          '  <td style="font-size:0.75rem;color:var(--ivory-62);">' + p.specs + '</td>',
-          '  <td>',
-          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'product\', \'' + p.id + '\')">Approve</button> ',
-          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'product\', \'' + p.id + '\')">Reject</button>',
-          '  </td>',
-          '</tr>'
-        ].join('');
-      }).join('');
-    }
+    prodQueueTable.innerHTML = pendingProds.length === 0 ? PLACEHOLDER : pendingProds.map(function (p) {
+      return [
+        '<tr>',
+        '  <td><strong>' + esc(p.name) + '</strong></td>',
+        '  <td>' + esc(p.category) + '</td>',
+        '  <td>' + esc(p.priceDisplay) + '</td>',
+        '  <td>' + esc(p.vendor) + '</td>',
+        '  <td style="font-size:0.75rem;color:var(--ivory-62);">' + esc(p.specs) + '</td>',
+        row('approveQueueItem', 'product', p.id, 'Approve'),
+        '</tr>'
+      ].join('');
+    }).join('');
 
     // Services Queue Table
     var srvQueueTable = document.getElementById('servicesQueueRows');
-    if (pendingSrvs.length === 0) {
-      srvQueueTable.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No service specialists pending approval.</td></tr>';
-    } else {
-      srvQueueTable.innerHTML = pendingSrvs.map(function (s) {
+    srvQueueTable.innerHTML = pendingSrvs.length === 0 ? PLACEHOLDER : pendingSrvs.map(function (s) {
+      return [
+        '<tr>',
+        '  <td><strong>' + esc(s.title) + '</strong></td>',
+        '  <td>' + esc(s.category) + '</td>',
+        '  <td>' + esc(s.providerName) + '</td>',
+        '  <td>' + esc(s.state) + '</td>',
+        '  <td><span class="status-pill status-pill--pending">PENDING REVIEW</span></td>',
+        row('approveQueueItem', 'service', s.id, 'Approve Specialist'),
+        '</tr>'
+      ].join('');
+    }).join('');
+
+    // Verifications Table
+    var verTable = document.getElementById('verificationsRows');
+    verTable.innerHTML = vers.length === 0
+      ? '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No credentials awaiting review.</td></tr>'
+      : vers.map(function (v) {
+        var isApproved = v.status === 'APPROVED';
         return [
           '<tr>',
-          '  <td><strong>' + s.title + '</strong></td>',
-          '  <td>' + s.category + '</td>',
-          '  <td>' + s.providerName + '</td>',
-          '  <td>' + s.state + '</td>',
-          '  <td><span class="status-pill status-pill--pending">PENDING REVIEW</span></td>',
-          '  <td>',
-          '    <button class="btn-action btn-action--approve" onclick="approveQueueItem(\'service\', \'' + s.id + '\')">Approve Specialist</button> ',
-          '    <button class="btn-action btn-action--reject" onclick="rejectQueueItem(\'service\', \'' + s.id + '\')">Reject</button>',
+          '  <td><strong>' + esc(v.dealerName) + '</strong></td>',
+          '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + esc(v.dimension) + '</span></td>',
+          '  <td><a href="' + esc(v.documentUrl) + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">' + esc(v.documentName) + '</a></td>',
+          '  <td>' + esc(v.submittedAt) + '</td>',
+          '  <td><span class="status-pill status-pill--' + (isApproved ? 'approved' : 'pending') + '">' + esc(v.status) + '</span></td>',
+          '  <td>' + (isApproved
+            ? '<span style="color:#2ecc71;font-size:0.75rem;">Verified ✓</span>'
+            : '<button class="btn-action btn-action--approve" onclick="verifyDealerDoc(\'' + esc(v.id) + '\')">Verify &amp; Award Badge</button>') +
+          '</td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+
+    // Reports Table
+    var repTable = document.getElementById('reportsRows');
+    repTable.innerHTML = reports.length === 0
+      ? '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No reports lodged.</td></tr>'
+      : reports.map(function (r) {
+        return [
+          '<tr>',
+          '  <td><code>' + esc(r.id) + '</code></td>',
+          '  <td>' + esc(r.reporter) + '</td>',
+          '  <td><strong>' + esc(r.targetTitle) + '</strong></td>',
+          '  <td style="color:#e74c3c;">' + esc(r.reason) + '</td>',
+          '  <td><span class="status-pill status-pill--pending">' + esc(r.status) + '</span></td>',
+          '  <td><button class="btn-action btn-action--approve" onclick="window.showEastGateToast(\'Investigated report ' + esc(r.id) + '\')">Investigate</button></td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+
+    // Contact Inbox Table
+    var msgTable = document.getElementById('contactMessageRows');
+    msgTable.innerHTML = messages.length === 0
+      ? '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No messages yet.</td></tr>'
+      : messages.map(function (m) {
+        var contactLine = m.phone
+          ? '<a href="tel:' + esc(m.phone) + '">' + esc(m.phone) + '</a>'
+          : '<span style="color:var(--ivory-62);">—</span>';
+        return [
+          '<tr data-message-id="' + esc(m.id) + '" data-read="' + (m.isRead ? 'true' : 'false') + '"' + (m.isRead ? '' : ' style="background:rgba(230,126,34,.07);"') + '>',
+          '  <td style="white-space:nowrap;">' + esc(m.createdAt) + '</td>',
+          '  <td><strong>' + esc(m.name) + '</strong><br><a href="mailto:' + esc(m.email) + '">' + esc(m.email) + '</a><br>' + contactLine + '</td>',
+          '  <td>' + esc(m.subject) + '</td>',
+          '  <td style="max-width:340px;white-space:pre-wrap;">' + esc(m.message) + '</td>',
+          '  <td>' + (m.isRead
+            ? '<span style="color:#2ecc71;font-size:0.72rem;">Read</span>'
+            : '<span class="status-pill status-pill--pending">UNREAD</span>') + '</td>',
+          '  <td>' +
+          '    <button class="btn-action btn-action--approve" onclick="toggleMessageRead(\'' + esc(m.id) + '\')">' + (m.isRead ? 'Mark unread' : 'Mark read') + '</button> ' +
+          '    <button class="btn-action btn-action--reject" onclick="deleteContactMessage(\'' + esc(m.id) + '\')">Delete</button>' +
           '  </td>',
           '</tr>'
         ].join('');
       }).join('');
-    }
-
-    // Verifications Table
-    var verTable = document.getElementById('verificationsRows');
-    verTable.innerHTML = db.verifications.map(function (v) {
-      var isApproved = v.status === 'APPROVED';
-      return [
-        '<tr>',
-        '  <td><strong>' + v.dealerName + '</strong></td>',
-        '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + v.dimension + '</span></td>',
-        '  <td><a href="' + v.documentUrl + '" target="_blank" style="color:var(--gold);text-decoration:underline;">' + v.documentName + '</a></td>',
-        '  <td>' + v.submittedAt + '</td>',
-        '  <td><span class="status-pill status-pill--' + (isApproved ? 'approved' : 'pending') + '">' + v.status + '</span></td>',
-        '  <td>',
-        isApproved
-          ? '<span style="color:#2ecc71;font-size:0.75rem;">Verified ✓</span>'
-          : '<button class="btn-action btn-action--approve" onclick="verifyDealerDoc(\'' + v.id + '\')">Verify &amp; Award Badge</button>',
-        '  </td>',
-        '</tr>'
-      ].join('');
-    }).join('');
-
-    // Reports Table
-    var repTable = document.getElementById('reportsRows');
-    repTable.innerHTML = db.reports.map(function (r) {
-      return [
-        '<tr>',
-        '  <td><code>' + r.id + '</code></td>',
-        '  <td>' + r.reporter + '</td>',
-        '  <td><strong>' + r.targetTitle + '</strong></td>',
-        '  <td style="color:#e74c3c;">' + r.reason + '</td>',
-        '  <td><span class="status-pill status-pill--pending">' + r.status + '</span></td>',
-        '  <td><button class="btn-action btn-action--approve" onclick="window.showEastGateToast(\'Investigated report ' + r.id + '\')">Investigate</button></td>',
-        '</tr>'
-      ].join('');
-    }).join('');
 
     // Audit Timeline
     var auditDiv = document.getElementById('auditTimeline');
-    auditDiv.innerHTML = db.auditLogs.map(function (a) {
-      return [
-        '<div class="audit-item">',
-        '  <div class="audit-item__icon">',
-        '    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-        '  </div>',
-        '  <div class="audit-item__body">',
-        '    <div class="audit-item__title">[' + a.action + '] — ' + a.target + '</div>',
-        '    <div class="audit-item__desc">' + a.details + '</div>',
-        '    <div style="font-size:0.7rem;color:var(--gold);margin-top:4px;">Recorded by: ' + a.adminName + '</div>',
-        '  </div>',
-        '  <div class="audit-item__time">' + a.timestamp + '</div>',
-        '</div>'
-      ].join('');
-    }).join('');
+    auditDiv.innerHTML = logs.length === 0
+      ? '<div class="audit-item__desc">No audit entries yet.</div>'
+      : logs.map(function (a) {
+        return [
+          '<div class="audit-item">',
+          '  <div class="audit-item__icon">',
+          '    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+          '  </div>',
+          '  <div class="audit-item__body">',
+          '    <div class="audit-item__title">[' + esc(a.action) + '] — ' + esc(a.target) + '</div>',
+          '    <div class="audit-item__desc">' + esc(a.details) + '</div>',
+          '    <div style="font-size:0.7rem;color:var(--gold);margin-top:4px;">Recorded by: ' + esc(a.adminName) + '</div>',
+          '  </div>',
+          '  <div class="audit-item__time">' + esc(a.timestamp) + '</div>',
+          '</div>'
+        ].join('');
+      }).join('');
   }
 
-  window.approveQueueItem = function (type, id) {
-    if (window.EastGateDB) {
-      window.EastGateDB.adminApproveItem(type, id);
-      window.showEastGateToast('Item approved and published live to public platform!');
+  async function renderAdminData() {
+    if (!window.EastGateAPI) return;
+
+    var queue = await window.EastGateAPI.getAdminQueue();
+    var auditLogs = await window.EastGateAPI.getAuditLogs();
+    var reports = await window.EastGateAPI.getAdminReports();
+    var contactMessages = await window.EastGateAPI.getAdminContactMessages();
+
+    paint({
+      properties: (queue.properties || []).map(normProperty),
+      products: (queue.products || []).map(normProduct),
+      services: (queue.services || []).map(normService),
+      verifications: (queue.verifications || []).map(normVerification),
+      auditLogs: (auditLogs || []).map(normAudit),
+      reports: (reports || []).map(normReport),
+      contactMessages: (contactMessages || []).map(normContactMessage),
+      verifiedDealers: typeof queue.verifiedDealerCount === 'number'
+        ? queue.verifiedDealerCount
+        : ((window.EastGateDB && window.EastGateDB.get().verifications || [])
+            .filter(function (v) { return v.status === 'APPROVED'; }).length)
+    });
+  }
+
+  // ---- Actions -----------------------------------------------------------
+  function busy(btn, label) {
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = label || 'Working…';
+  }
+
+  window.approveQueueItem = async function (type, id) {
+    busy(event && event.target, 'Approving…');
+    var res = await window.EastGateAPI.adminApprove(type, id);
+    if (res && res.success) {
+      window.showEastGateToast('Approved and published live to the public platform.');
+      renderAdminData();
+    } else {
+      window.showEastGateToast('Approval failed. Are you still signed in as an admin?');
       renderAdminData();
     }
   };
 
-  window.rejectQueueItem = function (type, id) {
-    var reason = prompt('Reason for rejection:');
-    if (reason && window.EastGateDB) {
-      window.EastGateDB.adminRejectItem(type, id, reason);
-      window.showEastGateToast('Item rejected with compliance notes.');
+  window.rejectQueueItem = async function (type, id) {
+    var reason = window.prompt('Reason for rejection:');
+    if (!reason) return;
+    var res = await window.EastGateAPI.adminReject(type, id, reason);
+    if (res && res.success) {
+      window.showEastGateToast('Rejected with compliance notes.');
       renderAdminData();
+    } else {
+      window.showEastGateToast('Rejection failed. Are you still signed in as an admin?');
     }
   };
 
-  window.verifyDealerDoc = function (verId) {
-    if (window.EastGateDB) {
-      window.EastGateDB.adminVerifyDealerDoc(verId);
-      window.showEastGateToast('Dealer credentials verified! Badge updated to East Gate Verified.');
+  window.toggleMessageRead = async function (id) {
+    var row = document.querySelector('tr[data-message-id="' + id + '"]');
+    var wasRead = row && row.getAttribute('data-read') === 'true';
+
+    var ok = await window.EastGateAPI.markContactMessageRead(id, !wasRead);
+    if (!ok) {
+      window.showEastGateToast('Could not update the message. Are you still signed in as an admin?');
+      return;
+    }
+    renderAdminData();
+  };
+
+  window.deleteContactMessage = async function (id) {
+    if (!window.confirm('Delete this contact message permanently?')) return;
+
+    var ok = await window.EastGateAPI.deleteContactMessage(id);
+    window.showEastGateToast(ok ? 'Message deleted.' : 'Delete failed. Are you still signed in as an admin?');
+    renderAdminData();
+  };
+
+  window.verifyDealerDoc = async function (verId) {
+    var res = await window.EastGateAPI.adminVerifyDealer(verId);
+    if (res && res.success) {
+      window.showEastGateToast('Credentials verified! East Gate Verified badge awarded.');
       renderAdminData();
+    } else {
+      window.showEastGateToast('Verification failed.');
     }
   };
 
   // ADMIN DIRECT CREATE PRODUCT
   var adminProdForm = document.getElementById('adminProductForm');
   if (adminProdForm) {
-    adminProdForm.addEventListener('submit', function (e) {
+    adminProdForm.addEventListener('submit', async function (e) {
       e.preventDefault();
-      var name = document.getElementById('adminProdName').value;
-      var category = document.getElementById('adminProdCat').value;
-      var price = document.getElementById('adminProdPrice').value;
-      var specs = document.getElementById('adminProdSpecs').value;
 
-      if (window.EastGateDB) {
-        window.EastGateDB.adminCreateProduct({
-          name: name,
-          category: category,
-          price: price,
-          specs: specs
-        });
+      var payload = {
+        name: document.getElementById('adminProdName').value.trim(),
+        category: document.getElementById('adminProdCat').value,
+        price: document.getElementById('adminProdPrice').value,
+        specifications: document.getElementById('adminProdSpecs').value
+      };
 
+      if (!payload.name) {
+        window.showEastGateToast('Product name is required.');
+        return;
+      }
+
+      var res = await window.EastGateAPI.adminCreateProduct(payload);
+      if (res && res.success) {
         adminProdForm.reset();
-        window.showEastGateToast('Official product published to Marketplace and recorded in Audit Log!');
+        window.showEastGateToast('Official product published and recorded in the Audit Log!');
         renderAdminData();
+      } else {
+        window.showEastGateToast('Could not create the product.');
       }
     });
   }

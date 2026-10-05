@@ -1,11 +1,127 @@
 import { PrismaClient, Role, VerificationStatus, ItemStatus, ListingType, PropertyCategory, TitleDocumentType, InspectionStatus } from '@prisma/client';
+import dotenv from 'dotenv';
+import { hashPassword } from '../server/auth';
+
+// Prisma reads .env for DATABASE_URL on its own, but nothing populates the rest of
+// process.env in this process — server/index.ts does that, and it is not loaded
+// here. Without this the ADMIN_SEED_PASSWORD lookup below always sees undefined.
+dotenv.config();
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('Seeding East Gate production database...');
+const ADMIN_EMAIL = 'admin@eastgate.com';
 
-  // Clean existing tables
+// Demo credentials. The three non-admin passwords are documented in README.md and
+// wired to the one-click demo panel on login.html.
+//
+// The super-admin password is NOT stored here. It is read from the
+// ADMIN_SEED_PASSWORD environment variable (see .env.example) so that it never
+// enters version control. `.env` is gitignored.
+const DEMO_PASSWORDS = {
+  customer: 'EastGate@Jay2026',
+  dealer: 'EastGate@John2026',
+  apex: 'EastGate@Apex2026'
+};
+
+// The accounts this seed owns. Anything else in the User table is a real account,
+// and its presence makes the destructive demo-data stage refuse to run.
+const DEMO_EMAILS = [
+  ADMIN_EMAIL,
+  'jay@example.com',
+  'dealer@johnproperties.ng',
+  'apex@apexbuilders.ng'
+];
+
+/**
+ * Creates the super-admin when it is missing; leaves it completely alone when it
+ * already exists.
+ *
+ * The password is only ever set on creation. This function cannot reset a live
+ * admin password back to a known value — re-running the seed used to do exactly
+ * that, which handed super-admin to anyone who could run `npm run db:seed`.
+ * Rotating the password is now a deliberate manual act.
+ */
+async function bootstrapAdmin() {
+  const existing = await prisma.user.findUnique({ where: { email: ADMIN_EMAIL } });
+
+  if (existing) {
+    if (existing.role !== Role.SUPER_ADMIN) {
+      await prisma.user.update({
+        where: { email: ADMIN_EMAIL },
+        data: { role: Role.SUPER_ADMIN }
+      });
+      console.log(`  ${ADMIN_EMAIL} promoted to SUPER_ADMIN`);
+    }
+    console.log(`  ${ADMIN_EMAIL} already exists — password left untouched`);
+    return existing;
+  }
+
+  const password = process.env.ADMIN_SEED_PASSWORD;
+  if (!password) {
+    throw new Error(
+      '\n  ADMIN_SEED_PASSWORD is not set and the super-admin does not exist yet,\n' +
+      '  so the seed cannot create it.\n\n' +
+      '  Add it to .env (see .env.example) and re-run. Generate one with:\n' +
+      '    node -e "console.log(require(\'crypto\').randomBytes(24).toString(\'base64url\'))"\n'
+    );
+  }
+
+  return prisma.user.create({
+    data: {
+      email: ADMIN_EMAIL,
+      phone: '+234 809 000 8888',
+      fullName: 'Administration',
+      passwordHash: await hashPassword(password),
+      role: Role.SUPER_ADMIN
+    }
+  });
+}
+
+/**
+ * Refuses to wipe a database that holds accounts this seed did not create.
+ *
+ * The demo dataset is only ever safe to destroy on a throwaway database. On a
+ * real one this would delete every user, dealer, listing and audit log — and
+ * the audit log is the evidence trail for exactly the abuse it would hide.
+ */
+async function assertDestructiveSeedAllowed() {
+  if (process.env.ALLOW_DESTRUCTIVE_SEED === '1') return;
+
+  const foreign = await prisma.user.findMany({
+    where: { NOT: { email: { in: DEMO_EMAILS } } },
+    select: { email: true }
+  });
+
+  if (foreign.length === 0) return;
+
+  console.error(
+    '\n  REFUSING TO SEED\n\n' +
+    '  This database holds ' + foreign.length + ' account(s) this seed did not create:\n' +
+    foreign.slice(0, 5).map(u => '    - ' + u.email).join('\n') + '\n\n' +
+    '  Continuing would delete every user, dealer, listing and audit log, and rebuild\n' +
+    '  the demo dataset over real data.\n\n' +
+    '  If this really is a throwaway demo database, re-run with:\n' +
+    '    ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed\n'
+  );
+  process.exit(1);
+}
+
+async function main() {
+  console.log('Seeding East Gate database...');
+
+  // First and independently of the demo data: the super-admin must exist, and must
+  // survive a demo rebuild with its password intact.
+  const admin = await bootstrapAdmin();
+
+  await assertDestructiveSeedAllowed();
+
+  const [customerHash, dealerHash, apexHash] = await Promise.all([
+    hashPassword(DEMO_PASSWORDS.customer),
+    hashPassword(DEMO_PASSWORDS.dealer),
+    hashPassword(DEMO_PASSWORDS.apex)
+  ]);
+
+  // Clean existing demo tables
   await prisma.auditLog.deleteMany();
   await prisma.inspection.deleteMany();
   await prisma.savedListing.deleteMany();
@@ -15,18 +131,10 @@ async function main() {
   await prisma.marketplaceProduct.deleteMany();
   await prisma.serviceOffering.deleteMany();
   await prisma.dealerProfile.deleteMany();
-  await prisma.user.deleteMany();
-
-  // 1. Create Super Admin
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@eastgate.ng',
-      phone: '+234 809 000 8888',
-      fullName: 'Sarah Alabi',
-      passwordHash: 'argon2_or_bcrypt_hash_placeholder',
-      role: Role.SUPER_ADMIN
-    }
-  });
+  // Demo users only. The super-admin was created/preserved above and must not be
+  // deleted, or re-seeding would hand the platform a brand-new admin id.
+  await prisma.user.deleteMany({ where: { NOT: { email: { in: DEMO_EMAILS } } } });
+  await prisma.user.deleteMany({ where: { email: { not: ADMIN_EMAIL } } });
 
   // 2. Create Normal User (Customer)
   const customer = await prisma.user.create({
@@ -34,7 +142,7 @@ async function main() {
       email: 'jay@example.com',
       phone: '+234 803 123 4567',
       fullName: 'Jay Nwosu',
-      passwordHash: 'customer_password_hash',
+      passwordHash: customerHash,
       role: Role.CUSTOMER
     }
   });
@@ -45,7 +153,7 @@ async function main() {
       email: 'dealer@johnproperties.ng',
       phone: '+234 802 987 6543',
       fullName: 'Chief John Okafor',
-      passwordHash: 'dealer_password_hash',
+      passwordHash: dealerHash,
       role: Role.DEALER
     }
   });
@@ -76,7 +184,7 @@ async function main() {
       email: 'apex@apexbuilders.ng',
       phone: '+234 814 555 1234',
       fullName: 'Engr. Michael Adeyemi',
-      passwordHash: 'apex_password_hash',
+      passwordHash: apexHash,
       role: Role.DEALER
     }
   });
@@ -204,7 +312,7 @@ async function main() {
       dealerId: dealerProfile1.id,
       title: '2 Plots Prime Commercial Land',
       slug: 'prime-commercial-land-aba',
-      listingType: ListingType.LAND,
+      listingType: ListingType.LAND_BANKING,
       category: PropertyCategory.LAND,
       price: 35000000,
       currency: 'NGN',
@@ -249,6 +357,176 @@ async function main() {
       isFeatured: false
     }
   });
+
+  // 7. Rental / lease / auction properties.
+  //
+  // The Purpose filter on the public catalogue is only demonstrable if the table
+  // holds more than BUY, so seed one listing per remaining ListingType.
+  const purposeSeed = [
+    {
+      title: 'Furnished 3 Bedroom Apartment — Short Let',
+      slug: 'furnished-3bed-shortlet-aba',
+      listingType: ListingType.SHORT_LET,
+      category: PropertyCategory.RESIDENTIAL,
+      price: 3500000,
+      state: 'Abia',
+      location: 'Old GRA, Aba',
+      bedrooms: 3,
+      bathrooms: 2,
+      parkingSpaces: 1,
+      landSize: '220 sqm',
+      titleDocument: TitleDocumentType.C_OF_O,
+      mainImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1600&q=80',
+      description: 'Fully furnished and serviced short-let apartment in the Old GRA. Includes 24-hour power, water treatment and weekly housekeeping.',
+      features: ['Fully Furnished', '24hr Power & Water', 'Serviced Weekly', 'Secure Estate']
+    },
+    {
+      title: 'Executive 4 Bedroom Family Residence — Long Let',
+      slug: 'executive-4bed-longlet-owerri',
+      listingType: ListingType.LONG_LET,
+      category: PropertyCategory.RESIDENTIAL,
+      price: 4800000,
+      state: 'Imo',
+      location: 'Orji, Owerri',
+      bedrooms: 4,
+      bathrooms: 3,
+      parkingSpaces: 2,
+      landSize: '600 sqm',
+      titleDocument: TitleDocumentType.GOVERNORS_CONSENT,
+      mainImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
+      description: 'Detached family home on a minimum 5-year lease. Landlord maintains grounds, security and the generator.',
+      features: ['Minimum 5-Year Term', 'Boys & Girls Quarters', 'Standby Generator', 'Estate Security']
+    },
+    {
+      title: 'Grade A Office Space — Commercial Lease',
+      slug: 'grade-a-office-lekki-lagos',
+      listingType: ListingType.COMMERCIAL_LEASE,
+      category: PropertyCategory.COMMERCIAL,
+      price: 45000000,
+      state: 'Lagos',
+      location: 'Victoria Island, Lagos',
+      bedrooms: 0,
+      bathrooms: 4,
+      parkingSpaces: 12,
+      landSize: '1,400 sqm',
+      titleDocument: TitleDocumentType.OTHER,
+      mainImage: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80',
+      description: 'Grade A fitted-and-furnished office floor with lift access, dedicated power and 12 allocated parking bays.',
+      features: ['4th Floor with Lift', '12 Parking Bays', 'Fitted & Furnished', 'Dedicated Power & HVAC']
+    },
+    {
+      title: 'Bonded Warehouse & Factory Floor — Industrial Lease',
+      slug: 'bonded-warehouse-aba',
+      listingType: ListingType.INDUSTRIAL_LEASE,
+      category: PropertyCategory.COMMERCIAL,
+      price: 25000000,
+      state: 'Abia',
+      location: 'Aba North Industrial Layout',
+      bedrooms: 0,
+      bathrooms: 2,
+      parkingSpaces: 8,
+      landSize: '4,000 sqm',
+      titleDocument: TitleDocumentType.REGISTERED_SURVEY_DEED,
+      mainImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1600&q=80',
+      description: 'Bonded warehouse and factory floor with 6m clear height, heavy-duty loading bays and bonded goods access.',
+      features: ['6m Clear Height', 'Bonded Goods Access', '3 Loading Bays', '3-Phase Power']
+    },
+    {
+      title: 'Off-Plan 4 Bedroom Terrace — Joint Venture',
+      slug: 'off-plan-jv-terrace-abuja',
+      listingType: ListingType.JOINT_VENTURE,
+      category: PropertyCategory.OFF_PLAN,
+      price: 110000000,
+      state: 'Abuja',
+      location: 'Guzape, Abuja (FCT)',
+      bedrooms: 4,
+      bathrooms: 4,
+      parkingSpaces: 2,
+      landSize: '400 sqm',
+      titleDocument: TitleDocumentType.FCDA_ALLOCATION,
+      mainImage: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1600&q=80',
+      description: 'Off-plan units offered under a structured joint-venture agreement with milestone payments and a capital appreciation guarantee.',
+      features: ['Flexible 18-Month Plan', 'Capital Appreciation Guarantee', 'Underground Utilities', 'Estate Sports Complex']
+    },
+    {
+      title: '2 Bedroom Staff Quarters — Gated Development',
+      slug: 'staff-quarters-guzape-abuja',
+      listingType: ListingType.STAFF_QUARTERS,
+      category: PropertyCategory.RESIDENTIAL,
+      price: 2400000,
+      state: 'Abuja',
+      location: 'Guzape, Abuja (FCT)',
+      bedrooms: 2,
+      bathrooms: 2,
+      parkingSpaces: 1,
+      landSize: '150 sqm',
+      titleDocument: TitleDocumentType.FCDA_ALLOCATION,
+      mainImage: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80',
+      description: 'Newly completed staff quarters within a gated estate, walking distance to the site. Let in units of four.',
+      features: ['Let in Units of 4', 'Gated Estate', 'Borehole & Solar', 'Near Site']
+    },
+    {
+      title: '4 Bedroom Duplex — Distress Auction Sale',
+      slug: '4bed-duplex-distress-ph',
+      listingType: ListingType.DISTRESS_SALE,
+      category: PropertyCategory.RESIDENTIAL,
+      price: 62000000,
+      state: 'Rivers',
+      location: 'GRA Phase 2, Port Harcourt',
+      bedrooms: 4,
+      bathrooms: 4,
+      parkingSpaces: 2,
+      landSize: '500 sqm',
+      titleDocument: TitleDocumentType.GOVERNORS_CONSENT,
+      mainImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80',
+      description: 'Vacant possession recovered on a defaulted facility and offered by public auction. Reserve price applies.',
+      features: ['Vacant Possession', 'Auction Reserve Price', 'Title Verified by East Gate', 'Legal & Advisory Available']
+    },
+    {
+      title: '4 Bedroom Terrace — 10 Year Lease with Purchase Option',
+      slug: '4bed-terrace-long-lease-abuja',
+      listingType: ListingType.LONG_LEASE,
+      category: PropertyCategory.RESIDENTIAL,
+      price: 24000000,
+      state: 'Abuja',
+      location: 'Maitama, Abuja (FCT)',
+      bedrooms: 4,
+      bathrooms: 4,
+      parkingSpaces: 2,
+      landSize: '350 sqm',
+      titleDocument: TitleDocumentType.C_OF_O,
+      mainImage: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80',
+      description: 'Ten-year lease with a registered option to purchase at year 10. Rent fixed for five years before review.',
+      features: ['10-Year Registered Lease', 'Option to Purchase', 'Fixed 5-Year Review', 'Maitama Address']
+    }
+  ];
+
+  for (const row of purposeSeed) {
+    await prisma.property.create({
+      data: {
+        dealerId: dealerProfile1.id,
+        title: row.title,
+        slug: row.slug,
+        listingType: row.listingType,
+        category: row.category,
+        price: row.price,
+        currency: 'NGN',
+        state: row.state,
+        location: row.location,
+        bedrooms: row.bedrooms,
+        bathrooms: row.bathrooms,
+        parkingSpaces: row.parkingSpaces,
+        landSize: row.landSize,
+        titleDocument: row.titleDocument,
+        isTitleVerified: true,
+        mainImage: row.mainImage,
+        description: row.description,
+        features: row.features,
+        status: ItemStatus.APPROVED,
+        isFeatured: false
+      }
+    });
+  }
 
   // 7. Create Marketplace Products
   // A. Admin Direct Official Products (status: APPROVED, isOfficial: true)
@@ -393,6 +671,11 @@ async function main() {
   });
 
   console.log('Database seeded successfully with Nigerian property dataset!');
+  console.log('Demo logins:');
+  console.log(`  ${ADMIN_EMAIL}               / (ADMIN_SEED_PASSWORD — not printed)`);
+  console.log(`  dealer@johnproperties.ng   / ${DEMO_PASSWORDS.dealer}`);
+  console.log(`  apex@apexbuilders.ng       / ${DEMO_PASSWORDS.apex}`);
+  console.log(`  jay@example.com            / ${DEMO_PASSWORDS.customer}`);
 }
 
 main()

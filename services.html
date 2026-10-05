@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Services Ecosystem — East Gate Real-Estate | Verified Specialists</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Discover verified architects, structural engineers, general contractors, interior designers, and property managers.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,7 +86,8 @@
     </nav>
 
     <div class="nav__actions">
-      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="contact.html">Contact Us</a>
+        <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#services" class="btn btn--gold btn--sm">Offer Services</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -139,7 +141,7 @@
           </svg>
           <span class="brand__name">EAST<span>·</span>GATE</span>
         </a>
-        <p>Everything Housing. One Premium Destination.</p>
+        <p>Find Your Place. Make It Home.</p>
       </div>
 
       <div class="footer__col">
@@ -148,13 +150,14 @@
           <li><a href="dashboard.html">Customer Dashboard</a></li>
           <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
           <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
         </ul>
       </div>
 
       <div class="footer__col">
         <h4>Connect</h4>
         <ul>
-          <li><a href="https://wa.me/2348031234567" target="_blank">Consultation Desk</a></li>
+          <li><a href="https://wa.me/2348108990239" target="_blank">Consultation Desk</a></li>
         </ul>
       </div>
     </div>
@@ -166,6 +169,7 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -183,12 +187,40 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  function renderServices() {
-    if (!window.EastGateDB || !grid) return;
-    var allServices = window.EastGateDB.get().services;
+  // ServiceOffering has no rating, review-count or state column — the equivalents
+  // are dealer.ratingAverage and coverageState. Fold both sources onto one shape
+  // and build the rating label here so the renderer stays declarative.
+  function normService(raw) {
+    var rating = raw.dealer && raw.dealer.ratingAverage;
+    var reviews = raw.reviewsCount;
+    return {
+      id: raw.id,
+      title: raw.title || '',
+      category: raw.category || '',
+      badges: Array.isArray(raw.badges) ? raw.badges : [],
+      description: raw.description || '',
+      providerName: (raw.dealer && raw.dealer.businessName) || raw.providerName || '',
+      state: raw.coverageState || raw.state || '',
+      // Only show a review count when one genuinely exists; the database has
+      // ratings but no review tally, so "(0)" would be a fabricated number.
+      ratingLabel: rating
+        ? '★ ' + rating + (reviews != null ? ' (' + reviews + ')' : '')
+        : 'New',
+      status: raw.status || ''
+    };
+  }
+
+  async function renderServices() {
+    if (!grid) return;
+
+    // /api/services filters on a free-text category, so the pill value forwards
+    // as-is. The API client falls back to the local store by itself.
+    var raw = window.EastGateAPI
+      ? await window.EastGateAPI.getServices(activeCat === 'ALL' ? null : activeCat)
+      : (window.EastGateDB ? window.EastGateDB.get().services : []);
 
     // MANDATORY ADMIN APPROVAL RULE: ONLY SHOW APPROVED SERVICES
-    var filtered = allServices.filter(function (s) {
+    var filtered = (raw || []).map(normService).filter(function (s) {
       if (s.status !== 'APPROVED') return false; // Pending submissions hidden until admin approves!
       if (activeCat !== 'ALL' && s.category !== activeCat) return false;
       return true;
@@ -201,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<article class="service-card">',
         '  <div style="display:flex;justify-content:space-between;align-items:flex-start;">',
         '    <span class="service-card__cat">' + s.category + '</span>',
-        '    <span style="font-size:0.75rem;color:var(--gold-ink);font-weight:600;">★ ' + s.rating + ' (' + s.reviewsCount + ')</span>',
+        '    <span style="font-size:0.75rem;color:var(--gold-ink);font-weight:600;">' + s.ratingLabel + '</span>',
         '  </div>',
         '  <h3 class="service-card__title">' + s.title + '</h3>',
         '  <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">',

@@ -1,167 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Unified Sign In — East Gate Real-Estate Platform</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign In — East Gate Platform</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+    rel="stylesheet">
 
-<script>document.documentElement.classList.add('js');</script>
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/portals.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/portals.css">
 
-<style>
-.auth-page {
-  min-height: calc(100vh - 38px);
-  background: var(--obsidian-deep);
-  color: var(--ivory);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 24px;
-}
-.auth-card {
-  width: 100%;
-  max-width: 520px;
-  background: #141414;
-  border: 1px solid var(--line-light-soft);
-  border-radius: var(--r-md);
-  padding: 44px;
-  box-shadow: 0 40px 90px rgba(0,0,0,0.6);
-}
-.role-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 28px 0;
-}
-.role-btn {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--line-light-soft);
-  border-radius: var(--r-sm);
-  padding: 16px 10px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s var(--ease);
-}
-.role-btn:hover,
-.role-btn.is-active {
-  background: rgba(198,161,91,0.15);
-  border-color: var(--gold);
-}
-.role-btn__icon {
-  font-size: 1.4rem;
-  margin-bottom: 6px;
-  display: block;
-}
-.role-btn__label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ivory);
-}
-</style>
+  <link rel="stylesheet" href="css/auth.css">
 </head>
 
-<body>
+<body data-portal-chrome="off">
 
-<div class="auth-page">
-  <div class="auth-card">
-    <div style="text-align:center;margin-bottom:28px;">
-      <a href="index.html" class="brand" aria-label="East Gate Real-Estate" style="justify-content:center;margin-bottom:12px;">
-        <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
-          <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
-          <path d="M2.5 21h19"/>
-        </svg>
-        <span class="brand__name">EAST<span>·</span>GATE</span>
-      </a>
-      <h2 style="font-size:1.6rem;font-weight:500;">Unified Access Gateway</h2>
-      <p style="font-size:0.8rem;color:var(--ivory-62);margin-top:6px;">Select your access persona or enter your credentials</p>
+  <main class="auth-page">
+    <div class="auth-shell">
+
+      <div class="auth-brand">
+        <a href="index.html" class="brand" aria-label="East Gate — back to home">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21" />
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10" />
+            <path d="M2.5 21h19" />
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+      </div>
+
+      <section class="auth-card">
+        <header class="auth-head">
+          <h1 class="auth-title">Welcome back</h1>
+          <p class="auth-sub">Sign in to your East Gate account to continue.</p>
+        </header>
+
+        <div class="auth-alert" id="loginAlert" role="alert" aria-live="polite">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.5v5.5" />
+            <path d="M12 16.4h.01" />
+          </svg>
+          <span id="loginAlertText"></span>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email address</label>
+            <div class="auth-field">
+              <svg class="auth-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="m3.5 7 8.5 6 8.5-6" />
+              </svg>
+              <input type="email" class="form-input" id="loginEmail" name="email" placeholder="you@example.com"
+                autocomplete="username" spellcheck="false" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <div class="auth-field has-reveal" id="passwordField">
+              <svg class="auth-field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4.5" y="10.5" width="15" height="9.5" rx="2" />
+                <path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" />
+              </svg>
+              <input type="password" class="form-input" id="loginPassword" name="password"
+                placeholder="Enter your password" autocomplete="current-password" minlength="8" required>
+              <button type="button" class="auth-reveal" id="togglePassword" aria-label="Show password"
+                aria-pressed="false">
+                <svg id="toggleIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z" />
+                  <circle cx="12" cy="12" r="2.9" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-meta">
+            <label class="auth-check">
+              <input type="checkbox" id="rememberMe">
+              <span class="auth-check__box" aria-hidden="true"></span>
+              <span>Remember me</span>
+            </label>
+            <a href="#" class="auth-link" id="forgotLink">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn--gold auth-submit" id="loginSubmitBtn">
+            <span id="loginSubmitLabel">Sign in</span>
+          </button>
+        </form>
+
+        <div class="auth-rule" id="demoRule" hidden><span>Demo access</span></div>
+
+        <details class="auth-demo" id="demoAccounts" hidden>
+          <summary>Use a pre-seeded account</summary>
+          <div class="auth-demo__list" id="demoAccountList"></div>
+        </details>
+
+        <p class="auth-foot">
+          New to East Gate?
+          <a href="register.html">Create an account</a> &nbsp;·&nbsp;
+          <a href="dealer-dashboard.html#register">Register as a dealer</a>
+        </p>
+      </section>
+
+      <a href="index.html" class="auth-back">&#8592; Back to East Gate</a>
     </div>
+  </main>
 
-    <!-- Quick Persona Selector -->
-    <div class="role-cards" id="roleSelector">
-      <div class="role-btn is-active" data-role="CUSTOMER" data-url="dashboard.html">
-        <span class="role-btn__icon">👤</span>
-        <span class="role-btn__label">Customer</span>
-      </div>
-      <div class="role-btn" data-role="DEALER" data-url="dealer-dashboard.html">
-        <span class="role-btn__icon">🧑🏾‍💼</span>
-        <span class="role-btn__label">Dealer / Pro</span>
-      </div>
-      <div class="role-btn" data-role="ADMIN" data-url="admin.html">
-        <span class="role-btn__icon">🛡️</span>
-        <span class="role-btn__label">Admin Desk</span>
-      </div>
-    </div>
+  <script src="js/store.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('loginForm');
+      var emailInput = document.getElementById('loginEmail');
+      var passwordInput = document.getElementById('loginPassword');
+      var rememberInput = document.getElementById('rememberMe');
+      var submitBtn = document.getElementById('loginSubmitBtn');
+      var submitLabel = document.getElementById('loginSubmitLabel');
+      var alertBox = document.getElementById('loginAlert');
+      var alertText = document.getElementById('loginAlertText');
 
-    <form id="loginForm">
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input type="email" class="form-input" id="loginEmail" value="jay@example.com" required>
-      </div>
+      function nextTarget(fallback) {
+        var params = new URLSearchParams(window.location.search);
+        var next = params.get('next');
+        // Only follow same-directory page references, optionally with a query and anchor.
+        if (next && /^[a-z0-9._-]+\.html(\?[^#]*)?(#[a-z0-9_-]+)?$/i.test(next)) return next;
+        return fallback;
+      }
 
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" class="form-input" value="••••••••••••" required>
-      </div>
+      // Already signed in? Skip straight to the correct portal.
+      if (window.EastGateAuth && window.EastGateAuth.isAuthenticated()) {
+        var existing = window.EastGateAuth.getSession();
+        window.location.replace(nextTarget(window.EastGateAuth.landingForRole(existing.role)));
+        return;
+      }
 
-      <button type="submit" class="btn btn--gold" style="width:100%;margin-top:10px;" id="loginSubmitBtn">
-        Enter as Customer (Jay)
-      </button>
-    </form>
+      function showError(message) {
+        alertText.textContent = message;
+        alertBox.classList.add('is-visible');
+      }
 
-    <div style="margin-top:28px;text-align:center;border-top:1px solid var(--line-light-soft);padding-top:20px;font-size:0.78rem;color:var(--ivory-62);">
-      Are you a real estate agent or builder? <a href="dealer-dashboard.html#register" style="color:var(--gold);font-weight:500;">Register as an East Gate Dealer</a>
-    </div>
-  </div>
-</div>
+      function clearError() {
+        alertBox.classList.remove('is-visible');
+      }
 
-<script src="js/store.js"></script>
-<script src="js/main.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  var roleBtns = document.querySelectorAll('.role-btn');
-  var emailInput = document.getElementById('loginEmail');
-  var submitBtn = document.getElementById('loginSubmitBtn');
-  var currentRole = 'CUSTOMER';
-  var targetUrl = 'dashboard.html';
+      function setBusy(busy) {
+        submitBtn.disabled = busy;
+        if (busy) {
+          submitLabel.textContent = '';
+          var spinner = document.createElement('span');
+          spinner.className = 'auth-spinner';
+          submitBtn.appendChild(spinner);
+        } else {
+          submitLabel.textContent = 'Sign in';
+          var stale = submitBtn.querySelector('.auth-spinner');
+          if (stale) stale.remove();
+        }
+      }
 
-  var roleConfig = {
-    CUSTOMER: { email: 'jay@example.com', label: 'Enter as Customer (Jay)', url: 'dashboard.html' },
-    DEALER: { email: 'dealer@johnproperties.ng', label: 'Enter Dealer Command Center', url: 'dealer-dashboard.html' },
-    ADMIN: { email: 'admin@eastgate.ng', label: 'Enter Admin Control Center', url: 'admin.html' }
-  };
+      var remembered = window.EastGateAuth ? window.EastGateAuth.getRememberedEmail() : '';
+      if (remembered) {
+        emailInput.value = remembered;
+        rememberInput.checked = true;
+      }
 
-  roleBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      roleBtns.forEach(function (b) { b.classList.remove('is-active'); });
-      btn.classList.add('is-active');
-      currentRole = btn.getAttribute('data-role');
-      var cfg = roleConfig[currentRole];
-      emailInput.value = cfg.email;
-      submitBtn.textContent = cfg.label;
-      targetUrl = cfg.url;
+      // Show / hide password
+      var toggle = document.getElementById('togglePassword');
+      var toggleIcon = document.getElementById('toggleIcon');
+      var EYE = '<path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.9"/>';
+      var EYE_OFF = '<path d="M9.9 5.9A9.8 9.8 0 0 1 12 5.8c6 0 9.5 6.2 9.5 6.2a17 17 0 0 1-3.3 4"/><path d="M6.4 7.6A17.2 17.2 0 0 0 2.5 12S6 18.2 12 18.2c1.3 0 2.5-.3 3.6-.8"/><path d="m3 3 18 18"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>';
+
+      toggle.addEventListener('click', function () {
+        var revealed = passwordInput.type === 'text';
+        passwordInput.type = revealed ? 'password' : 'text';
+        toggle.setAttribute('aria-pressed', String(!revealed));
+        toggle.setAttribute('aria-label', revealed ? 'Show password' : 'Hide password');
+        toggleIcon.innerHTML = revealed ? EYE : EYE_OFF;
+        passwordInput.focus();
+      });
+
+      document.getElementById('forgotLink').addEventListener('click', function (e) {
+        e.preventDefault();
+        window.showEastGateToast('Password reset is handled by East Gate support — email support@eastgate.ng');
+      });
+
+      // Pre-seeded credential shortcuts.
+      //
+      // The passwords are no longer in this file — they used to be data-password
+      // attributes here, so every deployment shipped three working logins to any
+      // visitor. They are fetched from /api/auth/demo-accounts, which returns
+      // nothing when demo login is disabled (the default in production).
+      var demoRule = document.getElementById('demoRule');
+      var demoPanel = document.getElementById('demoAccounts');
+      var demoList = document.getElementById('demoAccountList');
+
+      function renderDemoAccounts(accounts) {
+        if (!accounts || !accounts.length) return;
+
+        accounts.forEach(function (account) {
+          var row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'auth-demo__row';
+          row.setAttribute('data-email', account.email);
+          row.setAttribute('data-password', account.password);
+
+          var role = document.createElement('span');
+          role.className = 'auth-demo__role';
+          role.textContent = account.role;
+
+          var mail = document.createElement('span');
+          mail.className = 'auth-demo__mail';
+          mail.textContent = account.email;
+
+          row.appendChild(role);
+          row.appendChild(mail);
+          demoList.appendChild(row);
+        });
+
+        demoRule.hidden = false;
+        demoPanel.hidden = false;
+      }
+
+      fetch('/api/auth/demo-accounts')
+        .then(function (res) { return res.json(); })
+        .then(function (body) {
+          renderDemoAccounts(body && body.data && body.data.enabled ? body.data.accounts : []);
+        })
+        .catch(function () {
+          /* demo panel simply stays hidden */
+        });
+
+      // Delegated, because the rows are created after this handler is attached.
+      demoList.addEventListener('click', function (e) {
+        var row = e.target.closest ? e.target.closest('.auth-demo__row') : null;
+        if (!row) return;
+        emailInput.value = row.getAttribute('data-email');
+        passwordInput.value = row.getAttribute('data-password');
+        clearError();
+        submitBtn.focus();
+      });
+
+      emailInput.addEventListener('input', clearError);
+      passwordInput.addEventListener('input', clearError);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearError();
+
+        var email = emailInput.value.trim();
+        var password = passwordInput.value;
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showError('Enter a valid email address.');
+          emailInput.focus();
+          return;
+        }
+
+        if (password.length < 8) {
+          showError('Your password must be at least 8 characters.');
+          passwordInput.focus();
+          return;
+        }
+
+        setBusy(true);
+
+        window.EastGateAuth.login(email, password, rememberInput.checked).then(function (result) {
+          if (!result.ok) {
+            setBusy(false);
+            showError(result.error);
+            passwordInput.select();
+            return;
+          }
+
+          if (window.showEastGateToast) {
+            window.showEastGateToast('Welcome back, ' + result.user.fullName.split(' ')[0]);
+          }
+
+          setTimeout(function () {
+            window.location.href = nextTarget(result.redirectTo);
+          }, 450);
+        }).catch(function () {
+          setBusy(false);
+          showError('Cannot reach the East Gate server. Start it with "npm run dev" and try again.');
+        });
+      });
     });
-  });
-
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (window.EastGateDB) {
-      window.EastGateDB.switchUser(currentRole);
-      window.showEastGateToast('Access granted as ' + currentRole);
-      setTimeout(function () {
-        window.location.href = targetUrl;
-      }, 400);
-    }
-  });
-});
-</script>
+  </script>
 
 </body>
+
 </html>
