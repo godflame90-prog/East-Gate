@@ -202,62 +202,47 @@
     }
   }
 
-  // Top Platform Switcher
-  function initPlatformBar() {
-    if (document.querySelector('.platform-bar')) return;
-    if (document.body.getAttribute('data-platform-bar') === 'off') return;
+  // Log-out control — rendered only for a visitor who is signed in.
+  //
+  // `EastGateAuth.logout()` existed but nothing in the UI ever called it, so a
+  // session could only be ended by clearing browser storage by hand. A button
+  // is now dropped next to every sign-in link (header actions and the mobile
+  // menu foot) and into each portal sidebar footer; clicking it posts
+  // /api/auth/logout, clears the session, and sends the visitor home.
+  function initLogoutControls() {
+    var auth = window.EastGateAuth;
+    var session = auth ? auth.getSession() : null;
+    if (!auth || !session) return;
 
-    document.body.classList.add('has-platform-bar');
-
-    var currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    var session = window.EastGateAuth ? window.EastGateAuth.getSession() : null;
-
-    var accountArea;
-    if (session) {
-      accountArea = [
-        '<div class="platform-bar__account">',
-        '  <span class="platform-bar__who">' + escapeHtml(firstName(session.name)) + '</span>',
-        '  <span class="platform-bar__role">' + roleLabel(session.role) + '</span>',
-        '</div>',
-        '<a href="' + window.EastGateAuth.landingForRole(session.role) + '" class="btn btn--gold btn--sm" style="padding:6px 14px;font-size:0.62rem;">Open Portal</a>',
-        '<button type="button" class="platform-bar__signout" id="signOutBtn">Sign out</button>'
-      ].join('');
-    } else {
-      // Signed out: offer both sign-in and join. initAuthNav() runs after this
-      // and rewrites the plain login.html href to carry a return path.
-      accountArea = [
-        '<a href="register.html" class="btn btn--ghost btn--sm" style="padding:6px 14px;font-size:0.62rem;">Create account</a>',
-        '<a href="login.html" class="btn btn--gold btn--sm" style="padding:6px 14px;font-size:0.62rem;">Sign in</a>'
-      ].join('');
-    }
-
-    var bar = document.createElement('div');
-    bar.className = 'platform-bar';
-    bar.innerHTML = [
-      '<div class="platform-bar__left">',
-      '  <span class="platform-bar__tag">EAST GATE PLATFORM</span>',
-      '  <nav class="platform-bar__nav">',
-      '    <a href="index.html" class="' + (currentPath === 'index.html' ? 'is-current' : '') + '">Home</a>',
-      '    <a href="properties.html" class="' + (currentPath === 'properties.html' ? 'is-current' : '') + '">Properties</a>',
-      '    <a href="land.html" class="' + (currentPath === 'land.html' ? 'is-current' : '') + '">Land</a>',
-      '    <a href="marketplace.html" class="' + (currentPath === 'marketplace.html' ? 'is-current' : '') + '">Marketplace</a>',
-      '    <a href="services.html" class="' + (currentPath === 'services.html' ? 'is-current' : '') + '">Services</a>',
-      '    <a href="dealers.html" class="' + (currentPath === 'dealers.html' ? 'is-current' : '') + '">Dealers & Pros</a>',
-      '  </nav>',
-      '</div>',
-      '<div class="platform-bar__right">' + accountArea + '</div>'
-    ].join('');
-
-    document.body.prepend(bar);
-
-    var signOutBtn = document.getElementById('signOutBtn');
-    if (signOutBtn) {
-      signOutBtn.addEventListener('click', function () {
-        signOutBtn.disabled = true;
-        window.EastGateAuth.logout().then(function () {
+    function makeLogout(className) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = className;
+      btn.textContent = 'Log Out';
+      btn.setAttribute('aria-label', 'Sign out of ' + session.name);
+      btn.addEventListener('click', function () {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.textContent = 'Signing out…';
+        auth.logout().then(function () {
           window.location.href = 'index.html';
         });
       });
+      return btn;
+    }
+
+    // Public pages: beside each sign-in link — header actions and menu foot.
+    var signInLinks = document.querySelectorAll('.nav__signin');
+    Array.prototype.forEach.call(signInLinks, function (link) {
+      if (link.nextElementSibling && link.nextElementSibling.classList.contains('nav__signout')) return;
+      link.parentNode.insertBefore(makeLogout('nav__signout'), link.nextSibling);
+    });
+
+    // Portal pages: under the sidebar's "visit the live platform" link.
+    var sidebar = document.querySelector('.portal-sidebar');
+    if (sidebar && !sidebar.querySelector('.portal-logout')) {
+      var foot = sidebar.lastElementChild;
+      (foot || sidebar).appendChild(makeLogout('portal-logout'));
     }
   }
 
@@ -524,14 +509,172 @@
     modal.classList.add('is-open');
   };
 
+  /* ---------- Property photo gallery ---------- */
+  /**
+   * Assembles the photo list for one listing from the API/local record.
+   *
+   * `cover` (the record's mainImage) is forced to the front so the lightbox
+   * opens on exactly the image the card shows, and duplicates are dropped.
+   * Lives here rather than in each page so properties.html, land.html and any
+   * future catalogue page cannot drift apart on the ordering rule.
+   */
+  window.propertyGallery = function (raw, cover) {
+    var source = raw || {};
+    var list = Array.isArray(source.galleryImages)
+      ? source.galleryImages
+      : (Array.isArray(source.gallery) ? source.gallery : []);
+
+    var seen = {};
+    var images = [];
+
+    if (cover) {
+      images.push(cover);
+      seen[cover] = true;
+    }
+
+    list.forEach(function (src) {
+      if (typeof src !== 'string' || !src || seen[src]) return;
+      seen[src] = true;
+      images.push(src);
+    });
+
+    return images;
+  };
+
+  var galleryState = { images: [], index: 0, opener: null };
+
+  function closeGallery() {
+    var shell = document.getElementById('propertyGallery');
+    if (!shell || !shell.classList.contains('is-open')) return;
+
+    shell.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (galleryState.opener && galleryState.opener.focus) galleryState.opener.focus();
+  }
+
+  function showGalleryImage(index) {
+    var images = galleryState.images;
+    if (!images.length) return;
+
+    galleryState.index = ((index % images.length) + images.length) % images.length;
+
+    var stage = document.getElementById('galleryStageImg');
+    var counter = document.getElementById('galleryCounter');
+    if (stage) {
+      stage.src = images[galleryState.index];
+      stage.alt = 'Property photo ' + (galleryState.index + 1) + ' of ' + images.length;
+    }
+    if (counter) {
+      counter.textContent = 'Photo ' + (galleryState.index + 1) + ' of ' + images.length;
+    }
+
+    var thumbs = document.querySelectorAll('#galleryThumbs .gallery-lightbox__thumb');
+    thumbs.forEach(function (thumb, i) {
+      thumb.classList.toggle('is-active', i === galleryState.index);
+    });
+  }
+
+  function stepGallery(delta) {
+    showGalleryImage(galleryState.index + delta);
+  }
+
+  function ensureGallery() {
+    if (document.getElementById('propertyGallery')) return;
+
+    var shell = document.createElement('div');
+    shell.id = 'propertyGallery';
+    shell.className = 'gallery-lightbox';
+    shell.setAttribute('role', 'dialog');
+    shell.setAttribute('aria-modal', 'true');
+    shell.setAttribute('aria-label', 'Property photos');
+    shell.innerHTML = [
+      '<button type="button" class="gallery-lightbox__close" id="galleryCloseBtn" data-gallery="close" aria-label="Close gallery">&times;</button>',
+      '<button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--prev" data-gallery="prev" aria-label="Previous photo">',
+      '  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5l-7 7 7 7"/></svg>',
+      '</button>',
+      '<figure class="gallery-lightbox__stage">',
+      '  <img id="galleryStageImg" src="" alt="">',
+      '  <figcaption class="gallery-lightbox__caption" id="galleryCounter"></figcaption>',
+      '</figure>',
+      '<button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--next" data-gallery="next" aria-label="Next photo">',
+      '  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg>',
+      '</button>',
+      '<div class="gallery-lightbox__thumbs" id="galleryThumbs"></div>'
+    ].join('');
+
+    document.body.appendChild(shell);
+
+    shell.addEventListener('click', function (e) {
+      var control = e.target && e.target.closest ? e.target.closest('[data-gallery]') : null;
+      if (control) {
+        var action = control.getAttribute('data-gallery');
+        if (action === 'close') closeGallery();
+        else if (action === 'prev') stepGallery(-1);
+        else if (action === 'next') stepGallery(1);
+        else if (action === 'pick') showGalleryImage(Number(control.getAttribute('data-index')));
+        return;
+      }
+      // Clicks on the shell itself — i.e. the dark backdrop — dismiss it.
+      if (e.target === shell) closeGallery();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!shell.classList.contains('is-open')) return;
+      if (e.key === 'Escape') closeGallery();
+      else if (e.key === 'ArrowRight') stepGallery(1);
+      else if (e.key === 'ArrowLeft') stepGallery(-1);
+    });
+  }
+
+  /**
+   * Opens the full-screen gallery for a listing's photos.
+   *
+   * @param {string[]} images cover-first list from window.propertyGallery
+   * @param {number} [startIndex] which photo to show first
+   */
+  window.openPropertyGallery = function (images, startIndex) {
+    var list = (images || []).filter(function (src) { return typeof src === 'string' && src; });
+    if (!list.length) return;
+
+    ensureGallery();
+
+    galleryState.images = list;
+    galleryState.opener = document.activeElement;
+
+    var shell = document.getElementById('propertyGallery');
+    var thumbs = document.getElementById('galleryThumbs');
+
+    thumbs.innerHTML = list.map(function (src, i) {
+      return [
+        '<button type="button" class="gallery-lightbox__thumb" data-gallery="pick" data-index="' + i + '">',
+        '  <img src="' + src.replace(/"/g, '&quot;') + '" alt="Photo ' + (i + 1) + '">',
+        '</button>'
+      ].join('');
+    }).join('');
+
+    // One photo is not a gallery — hide the strip and the arrows rather than
+    // presenting controls that do nothing.
+    thumbs.hidden = list.length < 2;
+    shell.querySelectorAll('.gallery-lightbox__nav').forEach(function (nav) {
+      nav.hidden = list.length < 2;
+    });
+
+    shell.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    showGalleryImage(Number(startIndex) || 0);
+
+    var closeBtn = document.getElementById('galleryCloseBtn');
+    if (closeBtn) closeBtn.focus();
+  };
+
   // Run enhancements on DOM ready
   var wantsChrome = document.body.getAttribute('data-portal-chrome') !== 'off';
 
   function initAll() {
-    if (wantsChrome) initPlatformBar();
     if (wantsChrome) initAdminBadge();
     if (wantsChrome) initFloatingWhatsApp();
     initAuthNav();
+    initLogoutControls();
     initSaveButtons();
     initDynamicSearch();
     initInspectionModal();

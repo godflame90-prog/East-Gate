@@ -1,6 +1,9 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import multer from 'multer';
 import dotenv from 'dotenv';
 import { prisma } from './db';
 import { demoLoginEnabled } from './config';
@@ -651,6 +654,145 @@ async function loadDealerProfile(req: AuthenticatedRequest, res: Response, next:
   }
 }
 
+/* ============================================================
+   PROPERTY IMAGE UPLOADS
+   ============================================================ */
+
+// Dealer galleries are stored on disk and served by express.static above,
+// which already publishes the project root — so the public URL of a stored
+// file is just /uploads/properties/<name>. The folder is created at boot so a
+// permissions problem lands in the server log instead of on a dealer's first
+// submission.
+const PROPERTY_IMAGE_DIR = path.join(__dirname, '..', 'uploads', 'properties');
+fs.mkdirSync(PROPERTY_IMAGE_DIR, { recursive: true });
+
+// The accepted types double as the extension map: the filename suffix is
+// derived from the detected type, never from the client-supplied name, so a
+// crafted originalname cannot write an .html or .js file into the web root.
+const PROPERTY_IMAGE_TYPES: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/avif': '.avif',
+  'image/gif': '.gif'
+};
+
+const MIN_PROPERTY_IMAGES = 5;
+const MAX_PROPERTY_IMAGES = 12;
+const MAX_PROPERTY_IMAGE_BYTES = 8 * 1024 * 1024;
+const DEFAULT_PROPERTY_IMAGE =
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
+
+const propertyImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, callback) => callback(null, PROPERTY_IMAGE_DIR),
+    filename: (_req, file, callback) => {
+      callback(null, `${Date.now()}-${crypto.randomUUID()}${PROPERTY_IMAGE_TYPES[file.mimetype]}`);
+    }
+  }),
+  limits: { fileSize: MAX_PROPERTY_IMAGE_BYTES, files: MAX_PROPERTY_IMAGES },
+  fileFilter: (_req, file, callback) => {
+    if (PROPERTY_IMAGE_TYPES[file.mimetype]) {
+      callback(null, true);
+      return;
+    }
+    callback(badRequest(`"${file.originalname}" is not a supported image. Use JPG, PNG, WEBP, AVIF or GIF.`));
+  }
+});
+
+/**
+ * Multer reports every failure — oversized file, wrong type, too many files —
+ * through its own callback rather than by throwing, so it has to be wrapped.
+ * Left alone, one of those would reach Express's default error handler and
+ * drop the connection instead of answering the dealer with JSON.
+ */
+function receivePropertyImages(req: Request, res: Response, next: NextFunction): void {
+  propertyImageUpload.array('images', MAX_PROPERTY_IMAGES)(req, res, (error: unknown) => {
+    if (error) {
+      let status = 500;
+      let message = 'Image upload failed. Please try again.';
+
+      if (error instanceof ApiError) {
+        status = error.status;
+        message = error.message;
+      } else if (error instanceof multer.MulterError) {
+        status = 400;
+        message =
+          error.code === 'LIMIT_FILE_SIZE'
+            ? 'Each image must be 8MB or smaller.'
+            : error.code === 'LIMIT_FILE_COUNT'
+              ? `A listing can carry at most ${MAX_PROPERTY_IMAGES} images.`
+              : 'Image upload failed. Please try again.';
+      }
+
+      res.status(status).json({ success: false, error: message });
+      return;
+    }
+
+    next();
+  });
+}
+
+// POST /api/uploads/property-images — multipart upload of a listing's photos.
+//
+// Deliberately a two-step flow: the dealer posts the files here, gets public
+// URLs back, then submits the listing as ordinary JSON carrying those URLs.
+// That keeps POST /api/dealer/properties parsable as JSON, lets the form be
+// edited and resubmitted without re-uploading, and means a rejected listing
+// never costs the dealer their photos.
+app.post(
+  '/api/uploads/property-images',
+  requireAuth,
+  requireRole('DEALER', 'ADMIN'),
+  receivePropertyImages,
+  (req: Request, res: Response) => {
+    const files = (req.files as Express.Multer.File[] | undefined) || [];
+
+    if (!files.length) {
+      res.status(400).json({ success: false, error: 'Attach at least one image.' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        urls: files.map((file) => `/uploads/properties/${file.filename}`),
+        count: files.length
+      }
+    });
+  }
+);
+
+/**
+ * Normalises the gallery field of a listing submission into a clean list of
+ * public URLs.
+ *
+ * Only paths we served ourselves (/uploads/...) or real http(s) URLs are kept,
+ * so a caller cannot smuggle `javascript:` or a data: URI into an <img src> on
+ * the public catalogue. Duplicates are dropped, the cap matches the upload
+ * limit, and `cover` (the dealer's chosen main image) always comes first.
+ */
+function normaliseGallery(cover: unknown, gallery: unknown): string[] {
+  const accepted = typeof cover === 'string' && cover.trim() ? [cover] : [];
+  if (Array.isArray(gallery)) accepted.push(...gallery);
+
+  const seen = new Set<string>();
+  const urls: string[] = [];
+
+  for (const raw of accepted) {
+    if (typeof raw !== 'string') continue;
+    const url = raw.trim();
+    if (!url || url.length > 2048 || seen.has(url)) continue;
+    if (!url.startsWith('/uploads/') && !/^https?:\/\/\S+$/i.test(url)) continue;
+
+    seen.add(url);
+    urls.push(url);
+    if (urls.length >= MAX_PROPERTY_IMAGES) break;
+  }
+
+  return urls;
+}
+
 // POST /api/dealer/properties — Dealer submits property (PENDING_REVIEW)
 app.post('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), loadDealerProfile, async (req: Request, res: Response) => {
   try {
@@ -669,8 +811,13 @@ app.post('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), 
       titleDocument,
       description,
       features,
-      mainImage
+      mainImage,
+      galleryImages
     } = req.body || {};
+
+    // Cover first, then the rest; capped at MAX_PROPERTY_IMAGES and filtered
+    // to URLs this server is willing to render.
+    const gallery = normaliseGallery(mainImage, galleryImages);
 
     const clean = {
       title: typeof title === 'string' ? title.trim() : '',
@@ -684,6 +831,11 @@ app.post('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), 
     if (!Number.isFinite(clean.price) || clean.price <= 0) errors.push('A price greater than zero is required.');
     if (clean.state.length < 2) errors.push('A state is required.');
     if (clean.location.length < 2) errors.push('A location is required.');
+    // Buyers judge a listing by its photos, so the catalogue is held to a
+    // floor of MIN_PROPERTY_IMAGES rather than accepting a one-photo listing.
+    if (gallery.length < MIN_PROPERTY_IMAGES) {
+      errors.push(`A listing needs at least ${MIN_PROPERTY_IMAGES} images (received ${gallery.length}).`);
+    }
 
     // Purpose and category must resolve to real enum members. Passing a bad
     // value straight to Postgres would fail the whole insert with a 500 and
@@ -726,7 +878,8 @@ app.post('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), 
         titleDocument: titleDocument || TitleDocumentType.C_OF_O,
         description: description || 'Property submitted by dealer.',
         features: features || [],
-        mainImage: mainImage || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        mainImage: gallery[0] || DEFAULT_PROPERTY_IMAGE,
+        galleryImages: gallery,
         status: ItemStatus.PENDING_REVIEW // MANDATORY: Awaiting Admin Approval
       }
     });

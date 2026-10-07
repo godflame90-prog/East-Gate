@@ -15,7 +15,10 @@
 <link rel="stylesheet" href="css/portals.css">
 
 <style>
-.admin-badge {
+/* Scoped to this page: portals.css owns the name .admin-badge for the fixed
+   bottom-left console shortcut, and sharing it pulled this role pill out of
+   the sidebar and parked it over the nav — swallowing clicks. */
+.role-badge {
   background: rgba(231, 76, 60, 0.2);
   color: #e74c3c;
   border: 1px solid rgba(231, 76, 60, 0.4);
@@ -57,7 +60,7 @@
       <div class="dealer-avatar" style="width:40px;height:40px;font-size:0.9rem;background:#e74c3c;color:#fff;">AD</div>
       <div class="portal-user-info">
         <h4>Administration</h4>
-        <span class="admin-badge">Super Admin</span>
+        <span class="role-badge">Super Admin</span>
       </div>
     </div>
 

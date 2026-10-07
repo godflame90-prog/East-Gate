@@ -18,7 +18,11 @@
 <style>
 .land-hero {
   padding: 130px 0 50px;
-  background: var(--obsidian);
+  background-color: var(--obsidian);
+  background-image: linear-gradient(100deg, rgba(11, 11, 11, .94) 0%, rgba(11, 11, 11, .86) 55%, rgba(11, 11, 11, .74) 100%),
+    url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
   color: var(--ivory);
 }
 .guide-box {
@@ -76,12 +80,12 @@
       <a href="land.html" class="is-active">Land</a>
       <a href="services.html">Services</a>
       <a href="marketplace.html">Marketplace</a>
+      <a href="contact.html">Contact Us</a>
       <a href="dealers.html">Dealers & Pros</a>
     </nav>
 
     <div class="nav__actions">
-      <a href="contact.html">Contact Us</a>
-        <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -89,6 +93,21 @@
     </div>
   </div>
 </header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="properties.html">Properties</a>
+    <a href="land.html">Land</a>
+    <a href="services.html">Services</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="dealers.html">Dealers &amp; Pros</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="dealer-dashboard.html#add" class="btn btn--gold">List Property</a>
+  </div>
+</div>
 
 <main id="top">
 
@@ -185,6 +204,7 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>
@@ -216,10 +236,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     return isLand && p.status === 'APPROVED';
   }).map(function (p) {
     var docKey = String(p.titleDocument == null ? '' : p.titleDocument).trim().toUpperCase().replace(/[\s-]+/g, '_');
+    var cover = p.mainImage || p.image || '';
     return {
       id: p.id,
       title: p.title || '',
-      image: p.mainImage || p.image || '',
+      image: cover,
+      // Cover-first photo list for the lightbox — same helper properties.html uses.
+      gallery: window.propertyGallery ? window.propertyGallery(p, cover) : [],
       titleDoc: TITLE_DOC_LABELS[docKey] || p.titleDocument || p.titleDoc || '',
       landSize: p.landSize || '',
       location: p.location || '',
@@ -232,12 +255,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     return;
   }
 
+  var galleryById = {};
   container.innerHTML = lands.map(function (p) {
+    galleryById[p.id] = p.gallery;
+    var photoCount = p.gallery.length;
     return [
       '<article class="prop-card">',
-      '  <div class="prop-card__media" style="aspect-ratio:16/9;">',
+      '  <div class="prop-card__media' + (photoCount > 1 ? ' has-gallery' : '') + '" data-property="' + p.id + '" style="aspect-ratio:16/9;">',
       '    <img src="' + p.image + '" alt="' + p.title + '" loading="lazy">',
       '    <span class="prop-card__badge">Land Plot</span>',
+      photoCount > 1 ? '    <span class="prop-card__count">' + photoCount + ' photos</span>' : '',
       '  </div>',
       '  <div class="prop-card__body">',
       '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
@@ -258,6 +285,16 @@ document.addEventListener('DOMContentLoaded', async function () {
       '</article>'
     ].join('');
   }).join('');
+
+  // Clicking a card's photo block opens its gallery (same lightbox as properties.html).
+  Array.prototype.forEach.call(container.querySelectorAll('.prop-card__media.has-gallery'), function (media) {
+    media.addEventListener('click', function () {
+      var images = galleryById[media.getAttribute('data-property')];
+      if (images && images.length && window.openPropertyGallery) {
+        window.openPropertyGallery(images, 0);
+      }
+    });
+  });
 });
 </script>
 

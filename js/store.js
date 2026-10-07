@@ -795,6 +795,12 @@
 
     // DEALER ACTIONS (Submitted items default to PENDING_REVIEW)
     dealerSubmitListing: function (listing) {
+      // Same shape the API writes: cover image first, then the gallery. The
+      // offline store only ever receives URLs (file uploads need the server),
+      // so this stays small enough for localStorage.
+      var gallery = Array.isArray(listing.galleryImages) ? listing.galleryImages.slice(0, 12) : [];
+      var cover = listing.mainImage || listing.image || gallery[0];
+
       var newListing = {
         id: 'prop_' + Date.now(),
         title: listing.title,
@@ -811,7 +817,9 @@
         landSize: listing.landSize || '500 sqm',
         titleDoc: listing.titleDoc || 'Certificate of Occupancy',
         verifiedTitle: false,
-        image: listing.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        image: cover || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        mainImage: cover || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        galleryImages: gallery,
         dealerId: db.currentUser.id,
         dealerName: db.currentUser.name,
         dealerVerified: false,

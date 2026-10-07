@@ -11,6 +11,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/portals.css">
+  <style>
+    /* This page sits on the light ivory body, so the global white nav ink is
+       swapped for black here; scrolled state gets a light bar to match. */
+    .nav .brand__name{color:var(--obsidian)}
+    .nav__links a,
+    .nav__signin{color:rgba(17,17,17,.78)}
+    .nav__links a:hover,
+    .nav__links a.is-active{color:var(--obsidian)}
+    .nav__burger span{background:var(--obsidian)}
+    .nav.is-scrolled{
+      background:rgba(237,233,222,.86);
+      border-bottom-color:var(--line-dark-soft);
+    }
+    /* The mobile menu overlay is dark — flip the ink back to white over it. */
+    .nav__burger.is-open span{background:var(--ivory)}
+    .nav:has(+ .menu.is-open) .brand__name,
+    .nav:has(+ .menu.is-open) .nav__signin{color:var(--ivory)}
+  </style>
 </head>
 <body>
 

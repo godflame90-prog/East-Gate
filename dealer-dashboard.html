@@ -34,6 +34,76 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+
+/* Photo picker on the add-listing tab */
+.upload-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 26px 20px;
+  border: 1px dashed rgba(198, 161, 91, 0.5);
+  border-radius: var(--r-sm);
+  background: rgba(198, 161, 91, 0.06);
+  color: var(--ivory-62);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease), color 0.3s var(--ease);
+}
+.upload-drop:hover,
+.upload-drop.is-dragover {
+  border-color: var(--gold);
+  background: rgba(198, 161, 91, 0.14);
+  color: var(--ivory);
+}
+.upload-drop__title { font-size: 0.85rem; color: var(--ivory); }
+.upload-drop__hint { font-size: 0.72rem; }
+#propImages { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.upload-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.upload-thumb {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--line-light);
+  background: rgba(255, 255, 255, 0.05);
+}
+.upload-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.upload-thumb__cover {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 2px 0;
+  font-size: 0.53rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  text-align: center;
+  background: rgba(11, 11, 11, 0.82);
+  color: var(--gold);
+}
+.upload-thumb__remove {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 18px; height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(11, 11, 11, 0.85);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.upload-thumb__remove:hover { background: #c0392b; }
+
+.upload-count { font-size: 0.75rem; margin-top: 10px; color: var(--ivory-62); }
+.upload-count.is-ok { color: #2ecc71; }
+.upload-count.is-error { color: #e74c3c; }
 </style>
 </head>
 
@@ -424,10 +494,31 @@
             <label class="form-label">Architectural Description &amp; Features</label>
             <textarea class="form-textarea" id="propDesc" rows="4" placeholder="Detail the structural highlights, finishing, power supply, security beacons, and legal title warranties..."></textarea>
           </div>
+
+          <!-- PHOTO GALLERY -->
+          <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label" for="propImages">Property Photos <span style="color:var(--gold);">— minimum 5</span></label>
+            <p style="font-size:0.75rem;color:var(--ivory-62);line-height:1.6;margin:-2px 0 12px;">
+              Add between 5 and 12 photos. The <strong style="color:var(--ivory);">first photo becomes the cover</strong>
+              shown on the public catalogue, and clicking it opens the full gallery. JPG, PNG, WEBP or GIF, up to 8MB each.
+            </p>
+
+            <label class="upload-drop" id="propDrop" for="propImages">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              <span class="upload-drop__title">Choose photos from your device</span>
+              <span class="upload-drop__hint">or drag and drop them here</span>
+            </label>
+            <input type="file" id="propImages" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" multiple>
+
+            <textarea class="form-textarea" id="propImageUrls" rows="2" style="margin-top:12px;" placeholder="…or paste hosted image links, one per line (https://…/photo.jpg)"></textarea>
+
+            <div class="upload-preview" id="propImagePreviews" hidden></div>
+            <p class="upload-count" id="propImageCount">0 of 5 photos — add 5 more</p>
+          </div>
         </div>
 
         <div style="margin-top:24px;display:flex;justify-content:flex-end;gap:12px;">
-          <button type="submit" class="btn btn--gold">Submit for Admin Review</button>
+          <button type="submit" class="btn btn--gold" id="propSubmitBtn">Submit for Admin Review</button>
         </div>
       </form>
     </div>
@@ -736,10 +827,218 @@ document.addEventListener('DOMContentLoaded', function () {
     }).join('');
   }
 
+  // ---- Property photo gallery (add-listing tab) -------------------------
+  // A listing carries 5–12 photos, supplied either as files from the device or
+  // as pasted links to images hosted elsewhere. Files are uploaded to
+  // /api/uploads/property-images when the form is submitted and come back as
+  // public URLs; both kinds then travel with the listing as galleryImages, in
+  // the order shown here, so the first tile is always the cover.
+  var MIN_PHOTOS = 5;
+  var MAX_PHOTOS = 12;
+
+  var photoInput = document.getElementById('propImages');
+  var photoDrop = document.getElementById('propDrop');
+  var photoUrls = document.getElementById('propImageUrls');
+  var photoPreviews = document.getElementById('propImagePreviews');
+  var photoCount = document.getElementById('propImageCount');
+  var pickedPhotos = [];
+  var pickedPhotoUrls = []; // object URLs, index-aligned with pickedPhotos
+
+  function pastedPhotoUrls() {
+    if (!photoUrls) return [];
+    return (photoUrls.value || '')
+      .split(/[\r\n]+/)
+      .map(function (line) { return line.trim(); })
+      .filter(function (line) { return /^https?:\/\/\S+$/i.test(line); })
+      .slice(0, MAX_PHOTOS);
+  }
+
+  function clearPickedPhotos() {
+    pickedPhotoUrls.forEach(function (url) { URL.revokeObjectURL(url); });
+    pickedPhotos = [];
+    pickedPhotoUrls = [];
+    if (photoInput) photoInput.value = '';
+    if (photoUrls) photoUrls.value = '';
+  }
+
+  function syncPickedPhotos() {
+    pickedPhotoUrls.forEach(function (url) { URL.revokeObjectURL(url); });
+    pickedPhotos = photoInput && photoInput.files ? Array.prototype.slice.call(photoInput.files) : [];
+    pickedPhotoUrls = pickedPhotos.map(function (file) { return URL.createObjectURL(file); });
+    renderPhotoPreviews();
+  }
+
+  function removePickedPhoto(index) {
+    URL.revokeObjectURL(pickedPhotoUrls[index]);
+    pickedPhotos.splice(index, 1);
+    pickedPhotoUrls.splice(index, 1);
+
+    // Rewrite the input so its FileList matches what is left — otherwise the
+    // next change event would resurrect the photo just removed.
+    if (photoInput && window.DataTransfer) {
+      var transfer = new DataTransfer();
+      pickedPhotos.forEach(function (file) { transfer.items.add(file); });
+      photoInput.files = transfer.files;
+    }
+    renderPhotoPreviews();
+  }
+
+  function removePastedUrl(index) {
+    var matched = -1;
+    var kept = (photoUrls.value || '').split(/\r?\n/).filter(function (line) {
+      if (!/^https?:\/\/\S+$/i.test(line.trim())) return true;
+      matched += 1;
+      return matched !== index;
+    });
+    photoUrls.value = kept.join('\n');
+    renderPhotoPreviews();
+  }
+
+  function renderPhotoPreviews() {
+    if (!photoPreviews || !photoCount) return;
+
+    var links = pastedPhotoUrls();
+    var total = pickedPhotos.length + links.length;
+
+    photoCount.className = 'upload-count' + (total >= MIN_PHOTOS ? ' is-ok' : '');
+    photoCount.textContent = total >= MIN_PHOTOS
+      ? total + ' of ' + MAX_PHOTOS + ' photos — ready to submit'
+      : total + ' of ' + MIN_PHOTOS + ' photos — add ' + (MIN_PHOTOS - total) + ' more';
+
+    if (!total) {
+      photoPreviews.hidden = true;
+      photoPreviews.innerHTML = '';
+      return;
+    }
+
+    var fileTiles = pickedPhotos.map(function (file, index) {
+      return [
+        '<div class="upload-thumb">',
+        '  <img src="' + pickedPhotoUrls[index] + '" alt="">',
+        index === 0 ? '  <span class="upload-thumb__cover">Cover</span>' : '',
+        '  <button type="button" class="upload-thumb__remove" data-kind="file" data-index="' + index + '" aria-label="Remove photo">&times;</button>',
+        '</div>'
+      ].join('');
+    });
+
+    var linkTiles = links.map(function (url, index) {
+      return [
+        '<div class="upload-thumb">',
+        '  <img src="' + url.replace(/"/g, '&quot;') + '" alt="">',
+        fileTiles.length === 0 && index === 0 ? '  <span class="upload-thumb__cover">Cover</span>' : '',
+        '  <button type="button" class="upload-thumb__remove" data-kind="link" data-index="' + index + '" aria-label="Remove photo">&times;</button>',
+        '</div>'
+      ].join('');
+    });
+
+    photoPreviews.hidden = false;
+    photoPreviews.innerHTML = fileTiles.concat(linkTiles).join('');
+  }
+
+  if (photoInput) {
+    photoInput.addEventListener('change', function () {
+      syncPickedPhotos();
+      if (pickedPhotos.length > MAX_PHOTOS) {
+        window.showEastGateToast('A listing can carry at most ' + MAX_PHOTOS + ' photos.');
+      }
+    });
+  }
+
+  if (photoUrls) photoUrls.addEventListener('input', renderPhotoPreviews);
+
+  if (photoPreviews) {
+    photoPreviews.addEventListener('click', function (e) {
+      var button = e.target && e.target.closest ? e.target.closest('.upload-thumb__remove') : null;
+      if (!button) return;
+      var index = Number(button.getAttribute('data-index'));
+      if (button.getAttribute('data-kind') === 'file') removePickedPhoto(index);
+      else removePastedUrl(index);
+    });
+  }
+
+  if (photoDrop && photoInput && window.DataTransfer) {
+    ['dragenter', 'dragover'].forEach(function (name) {
+      photoDrop.addEventListener(name, function (e) {
+        e.preventDefault();
+        photoDrop.classList.add('is-dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (name) {
+      photoDrop.addEventListener(name, function (e) {
+        e.preventDefault();
+        photoDrop.classList.remove('is-dragover');
+      });
+    });
+    photoDrop.addEventListener('drop', function (e) {
+      var dropped = e.dataTransfer && e.dataTransfer.files
+        ? Array.prototype.slice.call(e.dataTransfer.files)
+        : [];
+      if (!dropped.length) return;
+
+      var transfer = new DataTransfer();
+      pickedPhotos.concat(dropped).slice(0, MAX_PHOTOS).forEach(function (file) {
+        transfer.items.add(file);
+      });
+      photoInput.files = transfer.files;
+      syncPickedPhotos();
+    });
+  }
+
+  /**
+   * Shrinks a photo before upload. Phone cameras hand over 4–10MB frames, and
+   * a listing carries up to twelve of them; re-encoded to a longest edge of
+   * 1920px they land around 200–400KB with no visible loss at card size.
+   *
+   * Anything already small, animated, or that the browser cannot decode is
+   * passed through untouched — losing a photo beats "improving" it.
+   */
+  function compressPhoto(file) {
+    return new Promise(function (resolve) {
+      if (!file || file.type === 'image/gif' || file.size <= 1500000) {
+        resolve(file);
+        return;
+      }
+
+      var objectUrl = URL.createObjectURL(file);
+      var image = new Image();
+
+      image.onload = function () {
+        var edge = Math.max(image.width, image.height);
+        var scale = Math.min(1, 1920 / edge);
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+
+        var context = canvas.getContext('2d');
+        if (!context) {
+          URL.revokeObjectURL(objectUrl);
+          resolve(file);
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(objectUrl);
+
+        canvas.toBlob(function (blob) {
+          if (!blob || blob.size >= file.size) {
+            resolve(file);
+            return;
+          }
+          resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.85);
+      };
+
+      image.onerror = function () {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+      image.src = objectUrl;
+    });
+  }
+
   // Handle Add Listing Form Submission
   var listingForm = document.getElementById('dealerListingForm');
   if (listingForm) {
-    listingForm.addEventListener('submit', function (e) {
+    listingForm.addEventListener('submit', async function (e) {
       e.preventDefault();
       var title = document.getElementById('propTitle').value;
       var listingType = document.getElementById('propListingType').value;
@@ -753,34 +1052,100 @@ document.addEventListener('DOMContentLoaded', function () {
       var landSize = document.getElementById('propLandSize').value;
       var desc = document.getElementById('propDesc').value;
 
-      if (window.EastGateAPI && window.EastGateAPI.dealerSubmitListing) {
-        window.EastGateAPI.dealerSubmitListing({
-          title: title,
-          listingType: listingType,
-          category: category,
-          price: Number(price),
-          location: location,
-          state: state,
-          titleDoc: titleDoc,
-          beds: Number(beds) || 0,
-          baths: Number(baths) || 0,
-          landSize: landSize,
-          description: desc
-        }).then(function (res) {
-          if (res && res.success) {
-            listingForm.reset();
-            window.showEastGateToast('Listing submitted! Status: PENDING_REVIEW by East Gate Admin.');
-            document.querySelector('#dealerTabs button[data-tab="listings"]').click();
-            renderDealerData();
-          } else {
-            throw new Error(res && res.error ? res.error : 'Submission failed');
-          }
-        }).catch(function (err) {
-          window.showEastGateToast(err.message || 'Failed to submit listing');
-        });
+      var links = pastedPhotoUrls();
+      var photoTotal = pickedPhotos.length + links.length;
+
+      if (photoTotal < MIN_PHOTOS) {
+        if (photoCount) photoCount.className = 'upload-count is-error';
+        window.showEastGateToast('Add at least ' + MIN_PHOTOS + ' photos — you have ' + photoTotal + '.');
         return;
       }
+
+      var submitBtn = document.getElementById('propSubmitBtn');
+      var idleLabel = submitBtn ? submitBtn.textContent : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving photos…';
+      }
+
+      function release() {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = idleLabel;
+        }
+      }
+
+      function accepted() {
+        listingForm.reset();
+        clearPickedPhotos();
+        renderPhotoPreviews();
+        window.showEastGateToast('Listing submitted! Status: PENDING_REVIEW by East Gate Admin.');
+        document.querySelector('#dealerTabs button[data-tab="listings"]').click();
+        renderDealerData();
+      }
+
+      // Files are uploaded first, ahead of the listing itself: if the upload
+      // fails nothing is half-created, and the dealer keeps their selection.
+      var gallery = [];
+      if (pickedPhotos.length) {
+        if (!window.EastGateAPI || !window.EastGateAPI.uploadPropertyImages) {
+          release();
+          window.showEastGateToast('Photo upload is unavailable — paste hosted image links instead.');
+          return;
+        }
+
+        var prepared = await Promise.all(pickedPhotos.map(compressPhoto));
+        var upload = await window.EastGateAPI.uploadPropertyImages(prepared);
+
+        if (!upload.success) {
+          release();
+          window.showEastGateToast(upload.error || 'Could not upload the photos.');
+          return;
+        }
+        gallery = upload.urls || [];
+      }
+
+      gallery = gallery.concat(links).slice(0, MAX_PHOTOS);
+
+      var payload = {
+        title: title,
+        listingType: listingType,
+        category: category,
+        price: Number(price),
+        location: location,
+        state: state,
+        titleDoc: titleDoc,
+        beds: Number(beds) || 0,
+        baths: Number(baths) || 0,
+        landSize: landSize,
+        description: desc,
+        mainImage: gallery[0] || '',
+        galleryImages: gallery
+      };
+
+      if (window.EastGateAPI && window.EastGateAPI.dealerSubmitListing) {
+        submitBtn.textContent = 'Submitting…';
+        try {
+          var res = await window.EastGateAPI.dealerSubmitListing(payload);
+          if (res && res.success) {
+            accepted();
+          } else {
+            window.showEastGateToast(res && res.error ? res.error : 'Submission failed');
+          }
+        } catch (err) {
+          window.showEastGateToast(err && err.message ? err.message : 'Failed to submit listing');
+        } finally {
+          release();
+        }
+        return;
+      }
+
       if (window.EastGateDB) {
+        // MANDATORY ADMIN APPROVAL RULE: Status will be PENDING_REVIEW
+        window.EastGateDB.dealerSubmitListing(payload);
+        accepted();
+        release();
+      }
     });
   }
 
@@ -815,6 +1180,18 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       if (window.EastGateDB) {
+        window.EastGateDB.dealerSubmitProduct({
+          name: name,
+          category: category,
+          price: price,
+          specs: specs
+        });
+
+        productForm.reset();
+        window.showEastGateToast('Product submitted! Awaiting Admin compliance approval before appearing in Marketplace.');
+        document.querySelector('#dealerTabs button[data-tab="products"]').click();
+        renderDealerData();
+      }
     });
   }
 

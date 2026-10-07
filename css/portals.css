@@ -2,123 +2,6 @@
    EAST GATE PLATFORM — PORTALS, BADGES & INTERACTIVE ENGINE
    ============================================================ */
 
-/* ---------- 01. PLATFORM DEMO SWITCHER BAR ---------- */
-.platform-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 38px;
-  background: #000;
-  color: var(--ivory);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  border-bottom: 1px solid rgba(198,161,91,0.25);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-
-.platform-bar__left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.platform-bar__tag {
-  background: var(--gold);
-  color: var(--obsidian);
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 2px;
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.platform-bar__nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.platform-bar__nav a {
-  color: rgba(245,242,234,0.7);
-  transition: color 0.3s var(--ease);
-}
-
-.platform-bar__nav a:hover,
-.platform-bar__nav a.is-current {
-  color: var(--gold);
-  font-weight: 500;
-}
-
-.platform-bar__right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.platform-bar__account {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.platform-bar__who {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--ivory);
-}
-
-.platform-bar__role {
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gold);
-  padding: 2px 7px;
-  border: 1px solid rgba(198, 161, 91, 0.35);
-  border-radius: 2px;
-}
-
-.platform-bar__signout {
-  background: none;
-  border: 1px solid rgba(245, 242, 234, 0.16);
-  border-radius: 4px;
-  color: rgba(245, 242, 234, 0.72);
-  font-family: inherit;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 7px 12px;
-  cursor: pointer;
-  transition: color 0.35s var(--ease), border-color 0.35s var(--ease);
-}
-
-.platform-bar__signout:hover:not(:disabled) {
-  color: var(--gold);
-  border-color: rgba(198, 161, 91, 0.45);
-}
-
-.platform-bar__signout:disabled {
-  opacity: 0.5;
-  cursor: progress;
-}
-
-/* Adjust page padding when platform bar is active */
-body.has-platform-bar {
-  padding-top: 38px;
-}
-
-body.has-platform-bar .nav {
-  top: 38px;
-}
-
 /* ---------- 02. FLOATING WHATSAPP CTA ---------- */
 .floating-whatsapp {
   position: fixed;
@@ -327,7 +210,7 @@ body.has-platform-bar .nav {
 
 /* ---------- 06. PORTAL INTERFACE LAYOUT ---------- */
 .portal-wrap {
-  min-height: calc(100vh - 38px);
+  min-height: 100vh;
   background: #0B0B0B;
   color: var(--ivory);
   display: flex;
@@ -341,6 +224,35 @@ body.has-platform-bar .nav {
   flex: none;
   display: flex;
   flex-direction: column;
+}
+
+/* Log out — appended to the sidebar footer by initLogoutControls() */
+.portal-logout {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--r-sm, 6px);
+  color: rgba(245,242,234,0.7);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color .3s var(--ease, ease), color .3s var(--ease, ease);
+}
+
+.portal-logout:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.portal-logout:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 .portal-brand {
@@ -656,13 +568,6 @@ body.has-platform-bar .nav {
   }
   .portal-main {
     padding: 24px;
-  }
-  .platform-bar {
-    font-size: 0.65rem;
-    padding: 0 12px;
-  }
-  .platform-bar__nav {
-    display: none;
   }
 }
 

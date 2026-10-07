@@ -18,7 +18,11 @@
 <style>
 .catalog-head {
   padding: 120px 0 40px;
-  background: var(--obsidian);
+  background-color: var(--obsidian);
+  background-image: linear-gradient(100deg, rgba(11, 11, 11, .94) 0%, rgba(11, 11, 11, .86) 55%, rgba(11, 11, 11, .74) 100%),
+    url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
   color: var(--ivory);
   border-bottom: 1px solid var(--line-light-soft);
 }
@@ -93,12 +97,12 @@
       <a href="land.html">Land</a>
       <a href="services.html">Services</a>
       <a href="marketplace.html">Marketplace</a>
+      <a href="contact.html">Contact Us</a>
       <a href="dealers.html">Dealers & Pros</a>
     </nav>
 
     <div class="nav__actions">
-      <a href="contact.html">Contact Us</a>
-        <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -113,11 +117,11 @@
     <a href="land.html">Land</a>
     <a href="services.html">Services</a>
     <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
     <a href="dealers.html">Dealers & Pros</a>
   </nav>
   <div class="menu__foot">
-    <a href="contact.html">Contact Us</a>
-        <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="login.html" class="nav__signin">Sign In</a>
     <a href="dealer-dashboard.html#add" class="btn btn--gold">List Property</a>
   </div>
 </div>
@@ -272,6 +276,7 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>
@@ -364,6 +369,9 @@ document.addEventListener('DOMContentLoaded', function () {
       cars: raw.parkingSpaces != null ? raw.parkingSpaces : (raw.cars || 0),
       titleDoc: docLabel,
       image: raw.mainImage || raw.image || '',
+      // Cover-first photo list for the lightbox; built by the shared helper so
+      // the card and the gallery always agree on which photo opens first.
+      gallery: window.propertyGallery ? window.propertyGallery(raw, raw.mainImage || raw.image || '') : [],
       dealerName: (raw.dealer && raw.dealer.businessName) || raw.dealerName || '',
       listingType: raw.listingType || '',
       status: raw.status || '',
@@ -468,13 +476,17 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    var galleryById = {};
     container.innerHTML = filtered.map(function (p) {
       var isSaved = window.EastGateDB.isPropertySaved(p.id);
+      var photoCount = p.gallery.length;
+      galleryById[p.id] = p.gallery;
       return [
         '<article class="prop-card">',
-        '  <div class="prop-card__media">',
+        '  <div class="prop-card__media' + (photoCount > 1 ? ' has-gallery' : '') + '" data-property="' + p.id + '">',
         '    <img src="' + p.image + '" alt="' + p.title + '" loading="lazy">',
         '    <span class="prop-card__badge">' + p.category + '</span>',
+        photoCount > 1 ? '    <span class="prop-card__count">' + photoCount + ' photos</span>' : '',
         '    <button class="prop-card__save ' + (isSaved ? 'is-saved' : '') + '" data-id="' + p.id + '" aria-label="Save property" style="' + (isSaved ? 'background:#C6A15B;color:#111;' : '') + '">',
         '      <svg width="16" height="16" viewBox="0 0 24 24" fill="' + (isSaved ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.5"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/></svg>',
         '    </button>',
@@ -508,6 +520,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Rebind save buttons
     if (window.initSaveButtons) window.initSaveButtons();
+
+    // Clicking a card's photo block opens its gallery. Delegated per render
+    // rather than inline onclick, and the save button keeps its own handler.
+    Array.prototype.forEach.call(container.querySelectorAll('.prop-card__media.has-gallery'), function (media) {
+      media.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.prop-card__save')) return;
+        var images = galleryById[media.getAttribute('data-property')];
+        if (images && images.length && window.openPropertyGallery) {
+          window.openPropertyGallery(images, 0);
+        }
+      });
+    });
   }
 
   renderListings();

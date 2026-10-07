@@ -18,7 +18,11 @@
 <style>
 .services-head {
   padding: 120px 0 40px;
-  background: var(--obsidian);
+  background-color: var(--obsidian);
+  background-image: linear-gradient(100deg, rgba(11, 11, 11, .94) 0%, rgba(11, 11, 11, .86) 55%, rgba(11, 11, 11, .74) 100%),
+    url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
   color: var(--ivory);
   border-bottom: 1px solid var(--line-light-soft);
 }
@@ -82,12 +86,12 @@
       <a href="land.html">Land</a>
       <a href="services.html" class="is-active">Services</a>
       <a href="marketplace.html">Marketplace</a>
+      <a href="contact.html">Contact Us</a>
       <a href="dealers.html">Dealers & Pros</a>
     </nav>
 
     <div class="nav__actions">
-      <a href="contact.html">Contact Us</a>
-        <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="login.html" class="nav__signin">Sign In</a>
       <a href="dealer-dashboard.html#services" class="btn btn--gold btn--sm">Offer Services</a>
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span>
@@ -95,6 +99,21 @@
     </div>
   </div>
 </header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="properties.html">Properties</a>
+    <a href="land.html">Land</a>
+    <a href="services.html">Services</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="dealers.html">Dealers &amp; Pros</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="dealer-dashboard.html#services" class="btn btn--gold">Offer Services</a>
+  </div>
+</div>
 
 <main id="top">
 
@@ -169,6 +188,7 @@
 </footer>
 
 <script src="js/store.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/api.js"></script>
 <script src="js/main.js"></script>
 <script>

@@ -44,6 +44,50 @@
     return token !== '' && token !== 'ALL';
   }
 
+  /**
+   * JSON POST for the dealer submission endpoints.
+   *
+   * apiFetch cannot be used here: it collapses "the server said no" and "the
+   * server did not answer" into one null, and the portal needs them apart —
+   * a 400 carries the message that has to reach the dealer ("a listing needs
+   * at least 5 images"), while only a genuinely unreachable server should fall
+   * back to the local store.
+   *
+   * Returns one envelope in every case, because the callers read `success`:
+   *   { success: true,  data }        — accepted
+   *   { success: false, error }       — rejected, `error` is the server's reason
+   *   { offline: true }               — no answer at all
+   */
+  async function submitJson(endpoint, payload) {
+    var headers = { 'Content-Type': 'application/json' };
+    if (window.EastGateAuth && window.EastGateAuth.getToken()) {
+      headers['Authorization'] = 'Bearer ' + window.EastGateAuth.getToken();
+    }
+
+    var res;
+    try {
+      res = await fetch(API_BASE + endpoint, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      return { offline: true };
+    }
+
+    var body = {};
+    try {
+      body = await res.json();
+    } catch (err) {
+      body = {};
+    }
+
+    if (!res.ok) {
+      return { success: false, error: body.error || 'Submission failed (HTTP ' + res.status + ').' };
+    }
+    return { success: true, data: body.data };
+  }
+
   window.EastGateAPI = {
     // 0. METADATA
     // The purpose vocabulary, straight from the enum so the UI cannot drift out
@@ -162,42 +206,81 @@
 
     // 3. DEALER SUBMISSIONS (MANDATORY PENDING_REVIEW)
     dealerSubmitListing: async function (listing) {
-      var res = await apiFetch('/api/dealer/properties', {
-        method: 'POST',
-        body: JSON.stringify(listing)
-      });
-      if (res && res.success) return res.data;
+      var result = await submitJson('/api/dealer/properties', listing);
+      if (!result.offline) return result;
 
+      // No server: keep the dealer's work in the local store rather than
+      // dropping the form on the floor.
       if (window.EastGateDB) {
-        return window.EastGateDB.dealerSubmitListing(listing);
+        return { success: true, data: window.EastGateDB.dealerSubmitListing(listing), offline: true };
       }
-      return null;
+      return { success: false, error: 'Cannot reach the East Gate server.' };
     },
 
     dealerSubmitProduct: async function (product) {
-      var res = await apiFetch('/api/dealer/products', {
-        method: 'POST',
-        body: JSON.stringify(product)
-      });
-      if (res && res.success) return res.data;
+      var result = await submitJson('/api/dealer/products', product);
+      if (!result.offline) return result;
 
       if (window.EastGateDB) {
-        return window.EastGateDB.dealerSubmitProduct(product);
+        return { success: true, data: window.EastGateDB.dealerSubmitProduct(product), offline: true };
       }
-      return null;
+      return { success: false, error: 'Cannot reach the East Gate server.' };
     },
 
     dealerSubmitService: async function (service) {
-      var res = await apiFetch('/api/dealer/services', {
-        method: 'POST',
-        body: JSON.stringify(service)
-      });
-      if (res && res.success) return res.data;
+      var result = await submitJson('/api/dealer/services', service);
+      if (!result.offline) return result;
 
       if (window.EastGateDB) {
-        return window.EastGateDB.dealerSubmitService(service);
+        return { success: true, data: window.EastGateDB.dealerSubmitService(service), offline: true };
       }
-      return null;
+      return { success: false, error: 'Cannot reach the East Gate server.' };
+    },
+
+    /**
+     * Uploads a listing's photos and returns their public URLs.
+     *
+     * Multipart, so it deliberately does not go through apiFetch — that helper
+     * forces Content-Type: application/json, and setting it by hand here would
+     * break the boundary the browser is about to write. Never set that header
+     * on a FormData request.
+     */
+    uploadPropertyImages: async function (files) {
+      if (!files || !files.length) return { success: false, error: 'Attach at least one image.' };
+
+      var form = new FormData();
+      for (var i = 0; i < files.length; i++) {
+        form.append('images', files[i], files[i].name || 'photo-' + (i + 1) + '.jpg');
+      }
+
+      var headers = {};
+      if (window.EastGateAuth && window.EastGateAuth.getToken()) {
+        headers['Authorization'] = 'Bearer ' + window.EastGateAuth.getToken();
+      }
+
+      var res;
+      try {
+        res = await fetch(API_BASE + '/api/uploads/property-images', {
+          method: 'POST',
+          headers: headers,
+          body: form
+        });
+      } catch (err) {
+        return { success: false, error: 'Cannot reach the East Gate server to upload images.' };
+      }
+
+      var body = {};
+      try {
+        body = await res.json();
+      } catch (err) {
+        body = {};
+      }
+
+      if (!res.ok || !body.success) {
+        return { success: false, error: body.error || 'Upload failed (HTTP ' + res.status + ').' };
+      }
+
+      return { success: true, urls: (body.data && body.data.urls) || [] };
     },
 
     // 4. ADMIN CONTROL FORTRESS & DIRECT PRODUCT CREATION

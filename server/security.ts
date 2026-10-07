@@ -93,7 +93,11 @@ function buildCsp(directives: string[]): string {
     // Inline style attributes are used pervasively for one-off layout tweaks.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https://images.unsplash.com",
+    // 'self' is the dealer-uploaded gallery (uploads/), data: and blob: cover
+    // inline previews, and unsplash the seeded catalogue. `https:` is here
+    // because dealers may paste a link to a photo on their own host — without
+    // it the browser would silently show a broken image for every such listing.
+    "img-src 'self' data: blob: https: https://images.unsplash.com",
     // Bearer tokens live in localStorage, so this is what stops an injected
     // script from POSTing them to an attacker's host.
     ...directives,
@@ -106,10 +110,14 @@ function buildCsp(directives: string[]): string {
   ].join('; ');
 }
 
-export function securityHeaders(req: Request, res: Response, next: NextFunction): void {  const connect = ["connect-src 'self'"];
-  for (const origin of allowedOrigins()) connect.push(origin);
+export function securityHeaders(req: Request, res: Response, next: NextFunction): void {
+  // buildCsp() joins directives with '; ', so every source for one directive has
+  // to travel in a single array entry. Pushing each origin as its own entry made
+  // Chrome read "http://localhost:3000" as a directive name — a parse error on
+  // every page load, and the origins silently dropped from the policy.
+  const connectSrc = ["connect-src 'self'", ...allowedOrigins()].join(' ');
 
-  res.setHeader('Content-Security-Policy', buildCsp(connect));
+  res.setHeader('Content-Security-Policy', buildCsp([connectSrc]));
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

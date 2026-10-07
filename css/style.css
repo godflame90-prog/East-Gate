@@ -359,6 +359,21 @@ h1,h2,h3,h4{
 }
 .nav__signin:hover{color:var(--gold)}
 
+/* Log out — injected beside the sign-in link by initLogoutControls() */
+.nav__signout{
+  background:none;
+  border:0;
+  padding:0;
+  font:inherit;
+  font-size:.79rem;
+  color:rgba(245,242,234,.78);
+  letter-spacing:.05em;
+  cursor:pointer;
+  transition:color .45s var(--ease);
+}
+.nav__signout:hover{color:var(--gold)}
+.nav__signout:disabled{opacity:.6;cursor:progress}
+
 /* Burger */
 .nav__burger{
   display:none;
@@ -1361,6 +1376,7 @@ body.is-loaded .search{opacity:1;transform:none}
 @media (max-width:1024px){
   .nav__links{display:none}
   .nav__actions .nav__signin{display:none}
+  .nav__actions .nav__signout{display:none}
   .nav__burger{display:block}
 
   .prop-grid{grid-template-columns:repeat(2,1fr);gap:24px}
@@ -1609,4 +1625,125 @@ body.is-loaded .search{opacity:1;transform:none}
   .hero__eyebrow,.hero h1,.hero__sub,.hero__meta,.search{opacity:1 !important;transform:none !important}
   .hero__media img{transform:none !important}
   .eco__stem,.eco__branch,.eco-card::before{transform:none !important}
+}
+
+/* ============================================================
+   20 — PROPERTY GALLERY LIGHTBOX
+   Shared by properties.html and land.html: opened from a card's
+   photo block by window.openPropertyGallery() in js/main.js.
+   ============================================================ */
+.gallery-lightbox{
+  position:fixed;
+  inset:0;
+  z-index:400;
+  display:none;
+  background:rgba(6,6,6,.96);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  padding:70px 76px 132px;
+}
+.gallery-lightbox.is-open{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gallery-lightbox__stage{
+  margin:0;
+  width:100%;
+  max-width:min(1100px,100%);
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+}
+.gallery-lightbox__stage img{
+  max-width:100%;
+  max-height:calc(100vh - 250px);
+  object-fit:contain;
+  border-radius:var(--r-sm);
+  background:#0b0b0b;
+}
+.gallery-lightbox__caption{
+  font-size:.72rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:rgba(245,242,234,.7);
+}
+.gallery-lightbox__close,
+.gallery-lightbox__nav{
+  position:absolute;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:var(--ivory);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
+}
+.gallery-lightbox__close:hover,
+.gallery-lightbox__nav:hover{background:var(--gold);border-color:var(--gold);color:#111}
+.gallery-lightbox__close{
+  top:18px;right:18px;
+  width:42px;height:42px;
+  border-radius:50%;
+  font-size:1.4rem;
+  line-height:1;
+}
+.gallery-lightbox__nav{
+  top:50%;
+  transform:translateY(-50%);
+  width:48px;height:48px;
+  border-radius:50%;
+}
+.gallery-lightbox__nav--prev{left:18px}
+.gallery-lightbox__nav--next{right:18px}
+.gallery-lightbox__thumbs{
+  position:absolute;
+  left:0;right:0;bottom:20px;
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  padding:0 16px;
+  overflow-x:auto;
+}
+.gallery-lightbox__thumb{
+  flex:none;
+  width:66px;height:50px;
+  padding:0;
+  border:2px solid transparent;
+  border-radius:4px;
+  overflow:hidden;
+  background:#111;
+  cursor:pointer;
+  opacity:.5;
+  transition:opacity .3s var(--ease), border-color .3s var(--ease);
+}
+.gallery-lightbox__thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-lightbox__thumb:hover{opacity:1}
+.gallery-lightbox__thumb.is-active{opacity:1;border-color:var(--gold)}
+
+/* Photo count pill + cursor on catalogue cards */
+.prop-card__media.has-gallery{cursor:pointer}
+.prop-card__count{
+  position:absolute;
+  left:12px;bottom:12px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(11,11,11,.78);
+  border:1px solid rgba(255,255,255,.18);
+  color:var(--ivory);
+  font-size:.62rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+
+@media (max-width:760px){
+  .gallery-lightbox{padding:64px 10px 116px}
+  .gallery-lightbox__nav{width:40px;height:40px}
+  .gallery-lightbox__nav--prev{left:6px}
+  .gallery-lightbox__nav--next{right:6px}
+  .gallery-lightbox__close{top:12px;right:12px}
+  .gallery-lightbox__stage img{max-height:calc(100vh - 210px)}
+  .gallery-lightbox__thumb{width:56px;height:42px}
 }
