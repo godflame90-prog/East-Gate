@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import multer from 'multer';
-import { demoLoginEnabled } from './config';
+import { demoLoginEnabled, isProduction } from './config';
 import { prisma } from './db';
 import { ApiError, badRequest, conflict, forbidden, handleError, notFound, unauthorized } from './errors';
 import { buildCorsOptions, corsErrorHandler, securityHeaders } from './security';
@@ -2707,9 +2707,9 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`East Gate Enterprise Server running on http://localhost:${PORT}`);
-  if (!emailConfigured() && devCatchEnabled()) {
+  if (isProduction() && !emailConfigured() && devCatchEnabled()) {
     console.warn(
-      '[mailer] MAIL_DEV_CATCH is ON — outgoing mail goes to a disposable Ethereal inbox and is logged, not delivered. Set SMTP_* and unset MAIL_DEV_CATCH before production.'
+      '[mailer] MAIL_DEV_CATCH is ON in production — outgoing mail goes to a disposable Ethereal inbox and is logged, not delivered. Set SMTP_* and unset MAIL_DEV_CATCH.'
     );
   }
 });
