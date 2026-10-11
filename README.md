@@ -4,7 +4,7 @@ Enterprise real estate, construction materials, and specialist services platform
 
 ## Project Structure
 
-- Frontend: Static HTML/CSS/JS in root (`index.html`, `admin.html`, `dashboard.html`, `marketplace.html`, etc.)
+- Frontend: Static HTML/CSS/JS in root — landing (`index.html`), catalogue (`properties.html`, `land.html`, `property-detail.html`), dealers (`dealers.html`, `dealer.html`), services, marketplace, portals (`dashboard.html`, `dealer-dashboard.html`, `admin.html`), auth and legal pages, plus `robots.txt`/`sitemap.xml`.
 - Backend: Express + TypeScript + Prisma ORM in `server/`
 - Auth: `server/auth.ts` (password hashing, session tokens, route guards), `js/auth.js` (session client)
 - Database: PostgreSQL (schema in `prisma/schema.prisma`, seed in `prisma/seed.ts`)
@@ -39,9 +39,10 @@ Enterprise real estate, construction materials, and specialist services platform
    npm run db:generate
    ```
 
-4. Set up database schema:
+4. Set up the database schema. Committed migrations live in `prisma/migrations/`:
    ```bash
-   npm run db:push
+   npm run db:deploy   # apply them (CI and production)
+   # while developing, `npm run db:migrate` applies them and creates new ones
    ```
 
 5. Seed the database:
@@ -57,6 +58,31 @@ npm run dev
 ```
 
 The server serves static files from project root and runs on `http://localhost:3000` by default.
+
+### Database migrations
+
+`prisma/migrations/` holds the schema history. `0_init` is a **baseline** that
+captures the schema as it stood when migrations were introduced (the project
+previously relied on `prisma db push`).
+
+- **Fresh database** — `npm run db:deploy` creates the schema.
+- **Existing `db:push` database** — adopt it once, with no data loss:
+  ```bash
+  node node_modules/prisma/build/index.js migrate resolve --applied 0_init
+  ```
+  This marks the baseline as applied without re-running its SQL (the tables
+  already exist).
+
+Everyday commands:
+
+- `npm run db:migrate` — `prisma migrate dev`: apply pending migrations and
+  generate a new one from `schema.prisma` changes (prompts for a name).
+- `npm run db:deploy` — `prisma migrate deploy`: apply committed migrations only.
+  Run it before `npm start` in CI and production.
+- `npm run db:status` — show which migrations are pending or applied.
+
+`npm run db:push` still exists for throwaway databases, but it bypasses the
+history, so prefer `db:migrate`/`db:deploy` for anything you keep.
 
 ## Production
 
@@ -78,8 +104,17 @@ Sign-in is handled by the API server. Passwords are hashed with `scrypt`
 | `POST` | `/api/auth/logout` | Record sign-out in the audit trail |
 | `POST` | `/api/auth/validate` | Token check used by the frontend route guard |
 | `POST` | `/api/auth/register` | **Public** member sign-up; creates an active `CUSTOMER` account |
+| `POST` | `/api/auth/forgot-password` | Email a single-use password-reset link; always `200` (no account enumeration) |
+| `POST` | `/api/auth/reset-password` | Consume a reset token, set the new password, and bump `sessionVersion` |
+| `POST` | `/api/auth/verify-email` | Consume an email-verification token |
+| `POST` | `/api/auth/resend-verification` | Re-send the verification email for the signed-in user |
 | `POST` | `/api/dealer/register` | **Public** dealer sign-up; creates an `UNDER_REVIEW` account |
 | `GET` | `/api/listing-types` | The purpose vocabulary, served from the `ListingType` enum |
+| `GET` | `/api/properties` | Public catalogue; supports `q`, `state`, `category`, `listingType`, `minPrice`, `maxPrice`, `sort` |
+| `GET` | `/api/properties/:id` | Single listing; non-`APPROVED` rows visible only to an admin or the owning dealer |
+| `GET` | `/api/dealers/:id` | Dealer profile with its approved listings and services |
+| `POST` | `/api/enquiries` | **Public** listing enquiry; persisted and routed to the owning dealer |
+| `GET` | `/sitemap.xml` | Dynamic sitemap: static pages plus up to 5000 approved listings |
 | `POST` | `/api/dealer/properties` | Dealer submits a listing; `listingType` is validated against the enum |
 | `POST` | `/api/dealer/services` | Dealer submits a service offering (`PENDING_REVIEW`) |
 | `GET` | `/api/dealer/services/list` | The signed-in dealer's own service submissions |
@@ -89,6 +124,8 @@ Sign-in is handled by the API server. Passwords are hashed with `scrypt`
 | `POST` | `/api/admin/approve` | Publish a pending item (`entityType`: property/product/service) |
 | `POST` | `/api/admin/reject` | Reject a pending item with a reason |
 | `POST` | `/api/admin/verify-dealer` | Verify a dealer by `dealerId` and award the Verified badge; clears every credential they have on file |
+| `GET` | `/api/admin/enquiries` | Listing-enquiry inbox |
+| `PATCH` | `/api/admin/enquiries/:id` | Mark a listing enquiry read or unread |
 
 Tokens are HMAC-SHA256 signed and expire after 12 hours, or 30 days when
 "Remember me" is used. The frontend keeps them in `sessionStorage`
@@ -132,8 +169,9 @@ every field, enforces unique email/phone/CAC, rate-limits per IP, hashes the
 password with scrypt, and creates the account as `UNDER_REVIEW` with
 `role = DEALER`. Nothing a dealer submits is publicly visible until an admin
 approves it — `GET /api/dealers` filters to `VERIFIED` profiles for exactly
-this reason. There is no email verification step yet on either flow — worth
-adding before production.
+this reason. Member sign-up sends an email-verification link (see
+[Email: password reset & verification](#email-password-reset--verification));
+dealer accounts are gated by admin review instead.
 
 Both screens share `css/auth.css`, so the sign-in and sign-up pages cannot
 drift apart visually.
@@ -217,12 +255,10 @@ Search hands the choice to `properties.html?purpose=…`, which preselects the
 filter. A `?purpose=` value the dropdown does not offer is ignored rather than
 silently emptying the results.
 
-> **Known gap:** the public catalogue still reads from the localStorage mock
-> store (`properties.html` → `EastGateDB`) rather than from `GET /api/properties`.
-> `EastGateAPI.getProperties()` exists, applies all three filters in its
-> localStorage fallback, and is correct — but nothing calls it yet. Until a page
-> does, the purpose filter works only against mock data, and the DB rows are
-> invisible on the public site. This is the next thing worth doing.
+> **Resolved:** `properties.html` and `land.html` now call
+> `EastGateAPI.getProperties()` with keyword, state, purpose, bed and sort
+> filters, and fall back to `EastGateDB` only when the API is unreachable. The
+> mock store is no longer the primary source on the public catalogue.
 
 ### The admin entry point
 
@@ -255,14 +291,11 @@ that page. The `next` parameter is validated against
 `^[a-z0-9._-]+\.html(\?[^#]*)?(#[a-z0-9_-]+)?$` before it is used, so it can
 only ever point at a local page — no open redirect via `?next=`.
 
-> **Before production:** the admin entry point is no longer advertised, but the
-> super-admin password is still defined in `prisma/seed.ts` — that is where the
-> account is created, so it has to live somewhere. It has been removed from this
-> README and from the sign-in demo panel, but anyone with read access to the
-> repository still has it. It is also only eight characters long. Rotate it, add
-> email verification, and move the seeded credential into an environment variable
-> before this faces real users. See
-> [Demo credentials](#demo-credentials) below.
+> **Before production:** the admin entry point is no longer advertised. The
+> super-admin password is read from the `ADMIN_SEED_PASSWORD` environment
+> variable and is never committed or printed — see
+> [Demo accounts](#demo-accounts). Rotate it off the default value before this
+> faces real users.
 
 ### Testing note
 
@@ -272,6 +305,7 @@ only ever point at a local page — no open redirect via `?next=`.
 node node_modules/typescript/bin/tsc --noEmit
 node node_modules/tsx/dist/cli.mjs prisma/seed.ts
 node node_modules/tsx/dist/cli.mjs server/index.ts
+node node_modules/prisma/build/index.js migrate deploy
 node node_modules/prisma/build/index.js db push --skip-generate
 ```
 
@@ -282,6 +316,16 @@ at runtime rather than at build time. `tsconfig.check.json` covers both:
 
 ```bash
 node node_modules/typescript/bin/tsc --project tsconfig.check.json
+```
+
+`npm run typecheck` runs both of the above in one shot. There is also a
+read-only smoke test that exercises pages and API against a **running** server
+(start `npm run dev` first):
+
+```bash
+npm run smoke
+# or target another environment:
+SMOKE_BASE_URL=https://www.eastgate.ng npm run smoke
 ```
 
 ### Demo accounts
@@ -299,23 +343,61 @@ The three non-admin passwords are also one-click shortcuts in the **Demo
 access** dropdown on `login.html`, so they are deliberately public and safe to
 demonstrate with.
 
-The **super-admin password is not listed in this README**. It is defined in
-`prisma/seed.ts`, which is where the account is actually created — read it from
-there. It was removed from the demo panel for the same reason it is absent here:
-a one-click button to the most privileged account on the platform is not
-something to hand to a visitor.
+The **super-admin password is not listed in this README**. It is read from the
+`ADMIN_SEED_PASSWORD` environment variable when the account is seeded, so it
+never enters version control; if the variable is unset and the account does not
+exist yet, the seed refuses to create it and says so. It was also removed from
+the demo panel for the same reason it is absent here: a one-click button to the
+most privileged account on the platform is not something to hand to a visitor.
 
-> Moving it out of `seed.ts` entirely means reading it from an environment
-> variable (e.g. `ADMIN_SEED_PASSWORD`) so it never enters version control.
-> That is a small change to `prisma/seed.ts` and is the right next step before
-> this is deployed anywhere.
+## Public pages
+
+Beyond the landing page and catalogue, the public site includes:
+
+| Page | Purpose |
+| --- | --- |
+| `properties.html` | Catalogue with keyword, state, purpose, bed and title filters; deep links via `?q=`, `?state=`, `?purpose=`, `?sort=` |
+| `land.html` | Land plots with the same filter bar plus a beacon-inspection flow |
+| `property-detail.html` | Full listing: gallery, specs, keyless map embed, dealer card, enquiry form, similar listings, `RealEstateListing` JSON-LD |
+| `dealer.html` | Public dealer profile: badges, rating, services, contact card, approved listings, `RealEstateAgent` JSON-LD |
+| `dealers.html` | Verified dealer directory; cards link to `dealer.html?id=…` |
+| `privacy.html`, `terms.html` | NDPA-2023-aligned legal pages (template copy — have counsel review before launch) |
+| `404.html` | Static not-found page |
+| `forgot-password.html`, `reset-password.html`, `verify-email.html` | Auth recovery flows |
+| `robots.txt`, `sitemap.xml` | SEO; the static sitemap is a fallback for the dynamic `/sitemap.xml` route |
+
+### Pricing policy
+
+Prices are **not** shown upfront. Catalogue and detail cards show a **Request
+for Quote** call-to-action (a pre-filled WhatsApp link) instead of a price, and
+the catalogue has no price-range filter. Real prices remain visible only where
+staff need them: `dealer.html`, `admin.html` and `dealer-dashboard.html`.
+
+### Email: password reset & verification
+
+`server/mailer.ts` wraps `nodemailer`. Two delivery modes:
+
+- **SMTP** — set `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`,
+  `SMTP_PASS` and `MAIL_FROM`. Takes precedence when present.
+- **Dev catcher** — with `MAIL_DEV_CATCH=true` and no SMTP configured, mail is
+  delivered to a throwaway Ethereal inbox and a preview URL is logged for each
+  message (no credentials needed).
+
+`APP_BASE_URL` builds the reset/verify links (and the canonical, OG and sitemap
+URLs). Point it at your public origin in production, or at
+`http://localhost:3000` for local testing so the emailed links resolve.
+Reset/verify tokens are stored hashed (SHA-256), single-use, and expire.
 
 ## Features
 
 - Public listings filtered to APPROVED items only
 - Dealer submissions require admin approval (PENDING_REVIEW)
+- Property detail pages, public dealer profiles, and a richer catalogue search
+- Persisted listing enquiries, routed to the owning dealer and to an admin inbox
+- Password reset and email-verification flows
 - Admin control panel for approvals, rejections, verification, and audit logging
 - 4-dimensional verification badges for dealers
 - Inspection booking system
 - Listing-purpose filtering (buy / short let / long let / lease / land banking /
   distress sale / joint venture) across the catalogue and the moderation queue
+- SEO: per-page metadata, JSON-LD, `robots.txt`, and a dynamic `/sitemap.xml`

@@ -9,8 +9,12 @@
     "build": "tsc",
     "typecheck": "tsc --project tsconfig.check.json && node scripts/check-js.mjs",
     "check:js": "node scripts/check-js.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
     "db:seed": "tsx prisma/seed.ts"
   },
   "keywords": [],

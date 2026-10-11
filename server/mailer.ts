@@ -46,7 +46,7 @@ export function mailFrom(): string {
  * and no credentials. Enabled by MAIL_DEV_CATCH, else it stays off so an offline
  * machine is never slowed by a network attempt.
  */
-function devCatchEnabled(): boolean {
+export function devCatchEnabled(): boolean {
   const value = env('MAIL_DEV_CATCH').toLowerCase();
   return value === 'true' || value === '1' || value === 'yes';
 }

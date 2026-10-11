@@ -38,7 +38,7 @@ import {
   verifyPassword,
   verifySessionToken
 } from './auth';
-import { emailConfigured, inspectionBookedEmail, passwordResetEmail, sendMail, verificationEmail } from './mailer';
+import { devCatchEnabled, emailConfigured, inspectionBookedEmail, passwordResetEmail, sendMail, verificationEmail } from './mailer';
 
 dotenv.config();
 
@@ -2710,6 +2710,11 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`East Gate Enterprise Server running on http://localhost:${PORT}`);
+  if (!emailConfigured() && devCatchEnabled()) {
+    console.warn(
+      '[mailer] MAIL_DEV_CATCH is ON — outgoing mail goes to a disposable Ethereal inbox and is logged, not delivered. Set SMTP_* and unset MAIL_DEV_CATCH before production.'
+    );
+  }
 });
 
 // Housekeeping: drop revocation rows for tokens that have expired. Hourly is far
