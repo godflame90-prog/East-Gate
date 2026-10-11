@@ -4,9 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import multer from 'multer';
-import dotenv from 'dotenv';
-import { prisma } from './db';
 import { demoLoginEnabled } from './config';
+import { prisma } from './db';
 import { ApiError, badRequest, conflict, forbidden, handleError, notFound, unauthorized } from './errors';
 import { buildCorsOptions, corsErrorHandler, securityHeaders } from './security';
 import {
@@ -39,8 +38,6 @@ import {
   verifySessionToken
 } from './auth';
 import { devCatchEnabled, emailConfigured, inspectionBookedEmail, passwordResetEmail, sendMail, verificationEmail } from './mailer';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

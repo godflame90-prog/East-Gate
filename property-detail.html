@@ -30,13 +30,33 @@
 <link rel="stylesheet" href="css/portals.css">
 
 <style>
-.detail-head { padding: 120px 0 0; }
+.detail-hero {
+  padding: 120px 0 44px;
+  background-color: var(--obsidian);
+  background-image: linear-gradient(100deg, rgba(11, 11, 11, .94) 0%, rgba(11, 11, 11, .86) 55%, rgba(11, 11, 11, .74) 100%),
+    url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  color: var(--ivory);
+  border-bottom: 1px solid var(--line-light-soft);
+}
+.detail-hero .eyebrow { color: var(--gold); margin-bottom: 16px; }
+/* This page's top is the dark hero, so keep the bar solid here too — it never
+   flips to a bare transparent state the way the plain ivory pages do. */
+.nav,
+.nav.is-scrolled {
+  background: rgba(11, 11, 11, .82);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom-color: var(--line-light-soft);
+}
+.detail-head { padding: 0; }
 .detail-breadcrumb {
   display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-  font-size: 0.78rem; color: var(--ink-60); margin-bottom: 26px;
+  font-size: 0.78rem; color: var(--ivory-62);
 }
-.detail-breadcrumb a { color: var(--ink-60); border-bottom: 1px solid transparent; }
-.detail-breadcrumb a:hover { color: var(--gold-ink); border-color: var(--gold-ink); }
+.detail-breadcrumb a { color: var(--ivory-62); border-bottom: 1px solid transparent; }
+.detail-breadcrumb a:hover { color: var(--gold); border-color: var(--gold); }
 .detail-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
@@ -148,16 +168,21 @@
 </div>
 
 <main id="top">
-  <section class="section" style="padding-top:0;padding-bottom:0;">
-    <div class="container detail-head">
+  <section class="detail-hero">
+    <div class="container">
+      <p class="eyebrow">Verified Property</p>
       <nav class="detail-breadcrumb" aria-label="Breadcrumb">
         <a href="index.html">Home</a>
         <span>/</span>
         <a href="properties.html">Properties</a>
         <span>/</span>
-        <span id="crumbTitle" style="color:var(--ink-45);">Listing</span>
+        <span id="crumbTitle">Listing</span>
       </nav>
+    </div>
+  </section>
 
+  <section class="section" style="padding-top:56px;padding-bottom:0;">
+    <div class="container detail-head">
       <div id="detailRoot">
         <div class="detail-skeleton">Loading verified listing…</div>
       </div>
