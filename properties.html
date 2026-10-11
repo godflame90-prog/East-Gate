@@ -7,6 +7,30 @@
   <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Browse verified houses, luxury apartments, and duplexes across Aba, Owerri, Port Harcourt, Lagos, and Abuja.">
 
+<link rel="canonical" href="https://www.eastgate.ng/properties.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="East Gate Real-Estate">
+<meta property="og:title" content="Properties — East Gate Real-Estate | Verified Listings">
+<meta property="og:description" content="Browse verified houses, luxury apartments, and duplexes across Aba, Owerri, Port Harcourt, Lagos, and Abuja.">
+<meta property="og:url" content="https://www.eastgate.ng/properties.html">
+<meta property="og:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+<meta property="og:locale" content="en_NG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Properties — East Gate Real-Estate">
+<meta name="twitter:description" content="Verified houses, apartments, and duplexes across Nigeria.">
+<meta name="twitter:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+<meta name="theme-color" content="#0B0B0B">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.eastgate.ng/" },
+    { "@type": "ListItem", "position": 2, "name": "Properties", "item": "https://www.eastgate.ng/properties.html" }
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
@@ -198,6 +222,24 @@
             <option value="FCDA">FCDA Allocation</option>
           </select>
         </div>
+
+        <div class="form-group" style="margin:0;grid-column:1 / -1;">
+          <label class="form-label" for="filterKeyword">Keyword search</label>
+          <input type="search" class="form-input" id="filterKeyword" placeholder="e.g. duplex, Lekki, gated estate — search title, location, description"
+            maxlength="80" autocomplete="off">
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" for="filterSort">Sort by</label>
+          <select class="form-select" id="filterSort">
+            <option value="newest">Newest first</option>
+            <option value="beds_desc">Most bedrooms</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;align-self:end;">
+          <button type="button" id="filterReset" class="btn btn--ghost btn--sm" style="width:100%;border:1px solid var(--line-light-soft);">Reset filters</button>
+        </div>
       </div>
     </div>
   </section>
@@ -212,6 +254,24 @@
 
       <div class="prop-grid" id="propertiesContainer">
         <!-- Rendered dynamically from EastGateDB -->
+      </div>
+    </div>
+  </section>
+
+  <!-- COVERAGE MAP -->
+  <section class="catalog-results" style="padding-top:0;">
+    <div class="container">
+      <div class="catalog-meta">
+        <h3 style="font-size:1.3rem;font-weight:500;color:#111;">Where these listings are</h3>
+        <span class="trust-badge trust-badge--verified">Same-origin Google Maps embed — no API key</span>
+      </div>
+      <div style="position:relative;border:1px solid var(--line-light-soft);border-radius:var(--r-md);overflow:hidden;">
+        <iframe
+          id="coverageMap"
+          title="Map of East Gate listings"
+          src="https://www.google.com/maps?q=Nigeria&output=embed"
+          width="100%" height="420" style="border:0;display:block;filter:grayscale(0.15);"
+          loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
     </div>
   </section>
@@ -259,8 +319,8 @@
         <h4>Support</h4>
         <ul>
           <li><a href="https://wa.me/2348108990239" target="_blank">WhatsApp Hotline</a></li>
-          <li><a href="#">Verification Guide</a></li>
-          <li><a href="#">Report a Listing</a></li>
+          <li><a href="dealers.html#verification">Verification Guide</a></li>
+          <li><a href="contact.html">Report a Listing</a></li>
         </ul>
       </div>
     </div>
@@ -268,8 +328,8 @@
     <div class="footer__bottom">
       <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
       <div class="footer__legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
       </div>
     </div>
   </div>
@@ -308,6 +368,17 @@ document.addEventListener('DOMContentLoaded', function () {
   var filterPurpose = document.getElementById('filterPurpose');
   var filterBeds = document.getElementById('filterBeds');
   var filterTitle = document.getElementById('filterTitle');
+  var filterKeyword = document.getElementById('filterKeyword');
+  var filterSort = document.getElementById('filterSort');
+  var filterReset = document.getElementById('filterReset');
+
+  // Keyword typing fires per keystroke; wait for a short pause so we do not hit
+  // the API on every character.
+  var keywordTimer = null;
+  function onKeywordInput() {
+    if (keywordTimer) clearTimeout(keywordTimer);
+    keywordTimer = setTimeout(renderListings, 300);
+  }
 
   // Case/format-tolerant compare. The mock store stores Title-Case listing types
   // ('Buy') while the URL, the API and the enum use SCREAMING_SNAKE ('BUY').
@@ -364,6 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
       category: CATEGORY_LABELS[categoryKey] || raw.category || '',
       state: raw.state || '',
       location: raw.location || '',
+      description: raw.description || '',
       beds: raw.bedrooms != null ? raw.bedrooms : (raw.beds || 0),
       baths: raw.bathrooms != null ? raw.bathrooms : (raw.baths || 0),
       cars: raw.parkingSpaces != null ? raw.parkingSpaces : (raw.cars || 0),
@@ -372,9 +444,13 @@ document.addEventListener('DOMContentLoaded', function () {
       // Cover-first photo list for the lightbox; built by the shared helper so
       // the card and the gallery always agree on which photo opens first.
       gallery: window.propertyGallery ? window.propertyGallery(raw, raw.mainImage || raw.image || '') : [],
+      dealerId: raw.dealerId || '',
       dealerName: (raw.dealer && raw.dealer.businessName) || raw.dealerName || '',
       listingType: raw.listingType || '',
       status: raw.status || '',
+      // Prisma serialises Decimal as a string; the mock stores a number. Coerce
+      // once here so price sorting and range filtering share one numeric field.
+      price: Number(raw.price != null ? raw.price : 0),
       isFeatured: raw.isFeatured === true || raw.featured === true
     };
   }
@@ -404,6 +480,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // Deep links into a pre-filtered view. These power the site-search JSON-LD
+  // (?q=) and allow shareable filtered URLs.
+  var paramQ = urlParams.get('q') || urlParams.get('keyword');
+  if (paramQ && filterKeyword) filterKeyword.value = paramQ.slice(0, 80);
+
+  var paramState = urlParams.get('state') || urlParams.get('location');
+  if (paramState) {
+    for (var s = 0; s < filterLoc.options.length; s++) {
+      if (purposeKey(filterLoc.options[s].value) === purposeKey(paramState)) {
+        filterLoc.value = filterLoc.options[s].value;
+        break;
+      }
+    }
+  }
+
+  var paramSort = urlParams.get('sort');
+  if (paramSort) {
+    for (var srt = 0; srt < filterSort.options.length; srt++) {
+      if (filterSort.options[srt].value === paramSort) {
+        filterSort.value = paramSort;
+        break;
+      }
+    }
+  }
+
   // Refresh the purpose options from the enum so the labels cannot drift from
   // the database. Any failure leaves the static markup above in place.
   if (window.EastGateAPI && window.EastGateAPI.getListingTypes) {
@@ -421,9 +522,48 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  [filterLoc, filterPurpose, filterBeds, filterTitle].forEach(function (el) {
+  [filterLoc, filterPurpose, filterBeds, filterTitle, filterSort].forEach(function (el) {
     if (el) el.addEventListener('change', renderListings);
   });
+  if (filterKeyword) filterKeyword.addEventListener('input', onKeywordInput);
+
+  if (filterReset) {
+    filterReset.addEventListener('click', function () {
+      activeCat = 'ALL';
+      categoryPills.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-cat') === 'ALL'); });
+      filterLoc.value = 'ALL';
+      filterPurpose.value = 'ALL';
+      filterBeds.value = 'ALL';
+      filterTitle.value = 'ALL';
+      filterKeyword.value = '';
+      filterSort.value = 'newest';
+      updateCoverageMap();
+      renderListings();
+    });
+  }
+
+  // Coverage map follows the location filter. The value is a state name, so map
+  // it to a fuller place name for a more useful centre; "ALL" falls back to the
+  // whole country.
+  var MAP_QUERIES = {
+    Abia: 'Aba, Abia State, Nigeria',
+    Imo: 'Owerri, Imo State, Nigeria',
+    Rivers: 'Port Harcourt, Rivers State, Nigeria',
+    Lagos: 'Victoria Island, Lagos, Nigeria',
+    Abuja: 'Guzape, Abuja, Nigeria',
+    Enugu: 'Independence Layout, Enugu, Nigeria'
+  };
+
+  function updateCoverageMap() {
+    var map = document.getElementById('coverageMap');
+    if (!map) return;
+    var where = MAP_QUERIES[filterLoc.value] || 'Nigeria';
+    // output=embed is the keyless embed endpoint; encoding keeps the query safe.
+    map.src = 'https://www.google.com/maps?q=' + encodeURIComponent(where) + '&output=embed';
+  }
+
+  if (filterLoc) filterLoc.addEventListener('change', updateCoverageMap);
+  updateCoverageMap();
 
   async function renderListings() {
     // The API client carries its own localStorage fallback, so the direct store
@@ -442,19 +582,40 @@ document.addEventListener('DOMContentLoaded', function () {
     var query = {
       category: forwardCategory,
       state: filterLoc.value !== 'ALL' ? filterLoc.value : null,
-      listingType: filterPurpose.value !== 'ALL' ? filterPurpose.value : null
+      listingType: filterPurpose.value !== 'ALL' ? filterPurpose.value : null,
+      q: filterKeyword && filterKeyword.value.trim() ? filterKeyword.value.trim() : null,
+      sort: filterSort ? filterSort.value : 'newest'
     };
 
     var raw = window.EastGateAPI
       ? await window.EastGateAPI.getProperties(query)
       : (window.EastGateDB ? window.EastGateDB.get().properties : []);
 
+    // Mirror the signed-in customer's server-side bookmarks into the local store
+    // first, so the heart icons render in their saved state.
+    if (window.EastGateAPI && window.EastGateAPI.getSavedProperties && window.EastGateDB) {
+      var savedProps = await window.EastGateAPI.getSavedProperties();
+      window.EastGateDB.hydrateSaved((savedProps || []).map(function (s) { return s.id; }));
+    }
+
     var allProps = (raw || []).map(normProperty);
+
+    // Keyword and sort are handled server-side, but keyword is re-applied here so
+    // the LUXURY pill (which has no server equivalent) and an offline fallback
+    // still produce a coherent result.
+    var keyword = filterKeyword && filterKeyword.value.trim() ? filterKeyword.value.trim().toLowerCase() : '';
 
     // MANDATORY ADMIN APPROVAL RULE: ONLY SHOW APPROVED PROPERTIES TO USERS
     var filtered = allProps.filter(function (p) {
       if (p.status !== 'APPROVED') return false; // Dealer pending submissions are hidden!
       if (p.categoryKey === 'LAND') return false; // Land lives on land.html
+
+      if (keyword) {
+        var haystack = [p.title, p.location, p.description, p.dealerName]
+          .map(function (v) { return String(v == null ? '' : v).toLowerCase(); })
+          .join(' ');
+        if (haystack.indexOf(keyword) === -1) return false;
+      }
 
       if (serverCategory === 'LUXURY') return isLuxury(p);
       if (activeCat !== 'ALL' && p.categoryKey !== purposeKey(activeCat)) return false;
@@ -467,6 +628,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (filterTitle.value !== 'ALL' && !matchesTitleFilter(p, filterTitle.value)) return false;
 
       return true;
+    });
+
+    var sortKey = filterSort ? filterSort.value : 'newest';
+    filtered.sort(function (a, b) {
+      switch (sortKey) {
+        case 'beds_desc': return b.beds - a.beds;
+        default: return String(b.id).localeCompare(String(a.id));
+      }
     });
 
     countEl.textContent = 'Showing ' + filtered.length + ' verified properties';
@@ -496,10 +665,12 @@ document.addEventListener('DOMContentLoaded', function () {
         '      <span class="trust-badge trust-badge--verified" style="font-size:0.6rem;">' + p.titleDoc + ' ✓</span>',
         '      <span style="font-size:0.7rem;color:var(--ink-60);">' + p.dealerName + '</span>',
         '    </div>',
-        '    <h3 class="prop-card__title">' + p.title + '</h3>',
+        '    <h3 class="prop-card__title"><a href="property-detail.html?id=' + encodeURIComponent(p.id) + '" style="color:inherit;">' + p.title + '</a></h3>',
         '    <p class="prop-card__loc">',
-        '      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>',
-        '      ' + p.location,
+        '      <a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.location + ', Nigeria') + '" target="_blank" rel="noopener" title="View on map" style="color:inherit;display:inline-flex;align-items:center;gap:6px;">',
+        '        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+        '        ' + p.location,
+        '      </a>',
         '    </p>',
         '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
         '    <ul class="prop-card__specs">',
@@ -508,7 +679,8 @@ document.addEventListener('DOMContentLoaded', function () {
         '      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15.5 5.7 10h12.6L20 15.5"/><path d="M3 15.5h18V19H3z"/><circle cx="7" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg> ' + p.cars + ' Cars</li>',
         '    </ul>',
         '    <div style="margin-top:20px;display:flex;gap:8px;">',
-        '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>',
+        '      <a href="property-detail.html?id=' + encodeURIComponent(p.id) + '" class="btn btn--ghost btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;border:1px solid rgba(0,0,0,0.15);text-align:center;">View Details</a>',
+        '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\', \'' + p.dealerId + '\')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>',
         '      <a href="https://wa.me/2348108990239?text=Hello%20East%20Gate%2C%20inquiring%20about%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp Dealer">',
         '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
         '      </a>',

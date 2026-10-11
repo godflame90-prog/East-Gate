@@ -55,11 +55,6 @@
         Saved Properties
         <span class="portal-nav__count" id="badgeSaved">0</span>
       </button>
-      <button data-tab="messages">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Messages
-        <span class="portal-nav__count">2</span>
-      </button>
       <button data-tab="settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
@@ -81,7 +76,20 @@
           <h1>Welcome back, Jay Nwosu</h1>
           <p>Track your verified property viewings, saved homes, and dealer communications.</p>
         </div>
-        <button type="button" onclick="openInspectionModal('89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'Modern 4 Bedroom Villa')" class="btn btn--gold btn--sm">Schedule Inspection</button>
+        <button type="button" onclick="openInspectionModal('89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'Modern 4 Bedroom Villa', 'ee050f69-b910-435c-898f-00f298708968')" class="btn btn--gold btn--sm">Schedule Inspection</button>
+      </div>
+
+      <!-- EMAIL VERIFICATION BANNER (hidden unless we know the account is unverified) -->
+      <div id="verifyBanner" class="auth-alert" style="display:none;max-width:680px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 5h18v14H3z" />
+          <path d="m3 6 9 7 9-7" />
+        </svg>
+        <div>
+          <span id="verifyBannerText">Your email address is not verified yet.</span>
+          <button type="button" id="verifyBannerBtn" class="btn btn--ghost btn--sm" style="margin-top:8px;">Resend verification link</button>
+        </div>
       </div>
 
       <!-- KPI METRICS -->
@@ -139,7 +147,7 @@
           <h1>My Inspection Appointments</h1>
           <p>Physical walkthroughs scheduled with certified dealers and property representatives.</p>
         </div>
-        <button type="button" onclick="openInspectionModal()" class="btn btn--gold btn--sm">Book New Inspection</button>
+        <a href="properties.html" class="btn btn--gold btn--sm">Find a Property to Inspect</a>
       </div>
 
       <div class="table-wrap">
@@ -152,6 +160,7 @@
               <th>Scheduled Time</th>
               <th>Status</th>
               <th>Notes / Requirements</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="allInspectionRows">
@@ -173,40 +182,6 @@
 
       <div class="prop-grid" id="savedGrid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));">
         <!-- Dynamically populated -->
-      </div>
-    </div>
-
-    <!-- TAB 4: MESSAGES -->
-    <div id="tab-messages" class="tab-pane" style="display:none;">
-      <div class="portal-header">
-        <div>
-          <h1>Dealer Inquiries &amp; Messages</h1>
-          <p>Encrypted messaging threads with verified realtors and developers.</p>
-        </div>
-      </div>
-
-      <div style="background:#141414;border:1px solid var(--line-light-soft);border-radius:var(--r-md);padding:32px;">
-        <div style="border-bottom:1px solid var(--line-light-soft);padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;">
-          <div>
-            <h4 style="font-size:1.05rem;color:var(--ivory);">John Properties Ltd</h4>
-            <span style="font-size:0.75rem;color:var(--gold);">Regarding: Modern 4 Bedroom Villa (Aba)</span>
-          </div>
-          <span class="trust-badge trust-badge--verified">Dealer Verified ✓</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;">
-          <div style="background:rgba(255,255,255,0.05);padding:14px 18px;border-radius:var(--r-sm);max-width:70%;">
-            <p style="font-size:0.82rem;color:var(--ivory);">Hello Jay, we have received your inspection request for Oct 14th at 2:00 PM. Our lead surveyor Engr. Chinedu will meet you at the site with the complete original C of O file for your inspection.</p>
-            <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);margin-top:6px;display:block;">Today at 10:14 AM</span>
-          </div>
-          <div style="background:rgba(198,161,91,0.15);border:1px solid rgba(198,161,91,0.3);padding:14px 18px;border-radius:var(--r-sm);max-width:70%;margin-left:auto;">
-            <p style="font-size:0.82rem;color:var(--ivory);">Thank you. I will come with my independent structural engineer as discussed.</p>
-            <span style="font-size:0.65rem;color:var(--gold);margin-top:6px;display:block;">Today at 10:25 AM</span>
-          </div>
-        </div>
-        <div style="display:flex;gap:12px;">
-          <input type="text" class="form-input" placeholder="Type your reply to John Properties Ltd..." id="replyInput">
-          <button type="button" onclick="if(document.getElementById('replyInput').value){window.showEastGateToast('Message sent to John Properties Ltd');document.getElementById('replyInput').value='';}" class="btn btn--gold" style="padding:10px 20px;">Send</button>
-        </div>
       </div>
     </div>
 
@@ -277,6 +252,34 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
+  // A live appointment can still move; a closed one cannot.
+  function rescheduleCell(i) {
+    if (i.status === 'COMPLETED' || i.status === 'CANCELLED') {
+      return '<span style="font-size:0.72rem;color:var(--ivory-62);">Closed</span>';
+    }
+    return '<button type="button" class="btn-action" data-id="' + i.id + '" data-date="' + i.date + '" data-time="' + i.time + '" onclick="window.openCustomerReschedule(this)">Reschedule</button>';
+  }
+
+  function pillClass(status) {
+    if (status === 'CONFIRMED' || status === 'COMPLETED') return 'approved';
+    if (status === 'CANCELLED') return 'rejected';
+    return 'pending';
+  }
+
+  // Saved listings come straight from the API (server SavedListing rows, or the
+  // local mirror offline). Normalise the API property shape onto the fields the
+  // wishlist card renders.
+  function normSavedProperty(p) {
+    return {
+      id: p.id,
+      title: p.title || '',
+      location: p.location || '',
+      image: p.mainImage || p.image || '',
+      category: p.category || 'Property',
+      dealerId: p.dealerId || ''
+    };
+  }
+
   async function renderCustomerData() {
     var db = window.EastGateDB ? window.EastGateDB.get() : { users: [], properties: [] };
 
@@ -290,16 +293,19 @@ document.addEventListener('DOMContentLoaded', function () {
       : (db.inspections || []);
     var userInspections = (rawInspections || []).map(normInspection);
 
-    // Saved listings have no server endpoint — the heart button is local-only
-    // state, so it stays on the mock store and is looked up by mock id.
-    var savedIds = userId
-      ? []
-      : ((db.users.find(function (u) { return u.id === 'usr_jay'; }) || {}).saved || []);
+    // Bookmarks are a real server resource (SavedListing). Pull them from the
+    // API and mirror the ids locally so the heart buttons agree.
+    var savedProps = window.EastGateAPI && window.EastGateAPI.getSavedProperties
+      ? (await window.EastGateAPI.getSavedProperties()).map(normSavedProperty)
+      : [];
+    if (window.EastGateDB && window.EastGateDB.hydrateSaved) {
+      window.EastGateDB.hydrateSaved(savedProps.map(function (p) { return p.id; }));
+    }
 
     // KPI Badges
     document.getElementById('badgeInspections').textContent = userInspections.length;
-    document.getElementById('badgeSaved').textContent = savedIds.length;
-    document.getElementById('kpiSaved').textContent = savedIds.length;
+    document.getElementById('badgeSaved').textContent = savedProps.length;
+    document.getElementById('kpiSaved').textContent = savedProps.length;
     document.getElementById('kpiInspections').textContent = userInspections.length;
 
     // Overview Table
@@ -310,8 +316,8 @@ document.addEventListener('DOMContentLoaded', function () {
         '  <td><strong>' + i.propertyTitle + '</strong><br><span style="font-size:0.7rem;color:var(--ivory-62);">' + i.propertyLocation + '</span></td>',
         '  <td>' + i.dealerName + '</td>',
         '  <td>' + i.date + '<br><span style="font-size:0.7rem;color:var(--gold);">' + i.time + '</span></td>',
-        '  <td><span class="status-pill status-pill--' + (i.status === 'CONFIRMED' ? 'approved' : 'pending') + '">' + i.status + '</span></td>',
-        '  <td><a href="https://wa.me/2348108990239?text=Regarding%20inspection%20' + i.id + '" target="_blank" class="btn-action btn-action--approve">Chat Dealer</a></td>',
+        '  <td><span class="status-pill status-pill--' + pillClass(i.status) + '">' + i.status + '</span></td>',
+        '  <td style="white-space:nowrap;"><a href="https://wa.me/2348108990239?text=Regarding%20inspection%20' + i.id + '" target="_blank" class="btn-action btn-action--approve">Chat Dealer</a> ' + rescheduleCell(i) + '</td>',
         '</tr>'
       ].join('');
     }).join('');
@@ -325,20 +331,21 @@ document.addEventListener('DOMContentLoaded', function () {
         '  <td><strong>' + i.propertyTitle + '</strong><br>' + i.propertyLocation + '</td>',
         '  <td>' + i.dealerName + '</td>',
         '  <td>' + i.date + ' at ' + i.time + '</td>',
-        '  <td><span class="status-pill status-pill--' + (i.status === 'CONFIRMED' ? 'approved' : 'pending') + '">' + i.status + '</span></td>',
+        '  <td><span class="status-pill status-pill--' + pillClass(i.status) + '">' + i.status + '</span></td>',
         '  <td style="font-size:0.75rem;color:var(--ivory-62);">' + (i.notes || 'Standard physical walkthrough') + '</td>',
+        '  <td style="white-space:nowrap;">' + rescheduleCell(i) + '</td>',
         '</tr>'
       ].join('');
     }).join('');
 
     // Saved Grid
     var savedGrid = document.getElementById('savedGrid');
-    var savedProps = db.properties.filter(function (p) { return savedIds.indexOf(p.id) > -1; });
 
     if (savedProps.length === 0) {
       savedGrid.innerHTML = '<p style="color:var(--ivory-62);padding:20px;">You have no saved properties yet. Browse properties and click the heart icon to save.</p>';
     } else {
       savedGrid.innerHTML = savedProps.map(function (p) {
+        var titleArg = p.title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         return [
           '<article class="prop-card" style="background:#141414;color:var(--ivory);">',
           '  <div class="prop-card__media">',
@@ -350,8 +357,8 @@ document.addEventListener('DOMContentLoaded', function () {
           '    <p class="prop-card__loc">' + p.location + '</p>',
           '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
           '    <div style="margin-top:16px;display:flex;gap:8px;">',
-          '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Inspection</button>',
-          '      <button type="button" onclick="window.EastGateDB.toggleSaveProperty(\'' + p.id + '\');renderCustomerData();" class="btn btn--ghost btn--sm" style="color:#e74c3c;border:1px solid rgba(231,76,60,0.3);">Remove</button>',
+          '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + titleArg + '\', \'' + (p.dealerId || '') + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Inspection</button>',
+          '      <button type="button" onclick="window.removeSavedProperty(\'' + p.id + '\')" class="btn btn--ghost btn--sm" style="color:#e74c3c;border:1px solid rgba(231,76,60,0.3);">Remove</button>',
           '    </div>',
           '  </div>',
           '</article>'
@@ -360,10 +367,129 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // Removes a bookmark server-side, keeps the local mirror in step, then repaints.
+  window.removeSavedProperty = async function (propertyId) {
+    if (window.EastGateAPI) await window.EastGateAPI.unsaveProperty(propertyId);
+    if (window.EastGateDB) window.EastGateDB.toggleSaveProperty(propertyId);
+    renderCustomerData();
+  };
+
+  // Customer reschedule: reuse the row's current slot, send the new one, repaint.
+  // The server forces status to RESCHEDULED so an admin re-confirms the slot.
+  window.openCustomerReschedule = function (btn) {
+    var modal = document.getElementById('rescheduleModal');
+    if (!modal) return;
+    document.getElementById('rescheduleId').value = btn.getAttribute('data-id') || '';
+    document.getElementById('rescheduleRef').textContent = btn.getAttribute('data-id') || '';
+    var dateInput = document.getElementById('rescheduleDate');
+    dateInput.value = btn.getAttribute('data-date') || '';
+    dateInput.min = new Date().toISOString().split('T')[0];
+    document.getElementById('rescheduleReason').value = '';
+    var current = btn.getAttribute('data-time') || '';
+    var timeSelect = document.getElementById('rescheduleTime');
+    if (current) timeSelect.value = current;
+    modal.classList.add('is-open');
+  };
+
+  window.closeRescheduleModal = function () {
+    var modal = document.getElementById('rescheduleModal');
+    if (modal) modal.classList.remove('is-open');
+  };
+
+  window.submitReschedule = async function () {
+    var id = document.getElementById('rescheduleId').value;
+    var date = document.getElementById('rescheduleDate').value;
+    var timeSlot = document.getElementById('rescheduleTime').value;
+    var notes = document.getElementById('rescheduleReason').value.trim();
+
+    if (!id || !date || !timeSlot) {
+      window.showEastGateToast('Pick a new date and time slot first.');
+      return;
+    }
+
+    var res = await window.EastGateAPI.rescheduleInspection(id, { date: date, timeSlot: timeSlot, notes: notes });
+    if (res && res.success) {
+      window.closeRescheduleModal();
+      window.showEastGateToast('Reschedule requested for ' + date + '. Awaiting admin confirmation.');
+      renderCustomerData();
+    } else {
+      window.showEastGateToast((res && res.error) || 'Could not reschedule. Please try again.');
+    }
+  };
+
   window.renderCustomerData = renderCustomerData;
   renderCustomerData();
+
+  // Show the verification banner only for a signed-in account whose address is
+  // still unverified. Silent on the demo/static pages (no session, or /me down).
+  var banner = document.getElementById('verifyBanner');
+  var bannerBtn = document.getElementById('verifyBannerBtn');
+  var bannerText = document.getElementById('verifyBannerText');
+
+  function maybeShowVerifyBanner() {
+    if (!banner || !window.EastGateAuth || !window.EastGateAuth.isAuthenticated()) return;
+
+    fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + window.EastGateAuth.getToken() }
+    })
+      .then(function (res) { return res.json().catch(function () { return {}; }); })
+      .then(function (body) {
+        if (body.success && body.data && body.data.emailVerified === false) {
+          bannerText.textContent = 'Please verify ' + body.data.email + ' to activate full account features.';
+          banner.style.display = 'flex';
+        }
+      })
+      .catch(function () { /* server offline — stay hidden */ });
+  }
+
+  if (bannerBtn) {
+    bannerBtn.addEventListener('click', function () {
+      bannerBtn.disabled = true;
+      bannerBtn.textContent = 'Sending…';
+      window.EastGateAPI.resendVerification().then(function (result) {
+        bannerBtn.disabled = true;
+        bannerBtn.textContent = result.success ? 'Link sent — check your inbox' : 'Try again';
+        bannerBtn.disabled = !result.success;
+      }).catch(function () {
+        bannerBtn.disabled = false;
+        bannerBtn.textContent = 'Try again';
+      });
+    });
+  }
+
+  maybeShowVerifyBanner();
 });
 </script>
+
+<!-- Customer reschedule dialog. The row supplies the current id + slot; saving
+     sends a RESCHEDULED request that the admin then re-confirms. -->
+<div class="modal-backdrop" id="rescheduleModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-box__head">
+      <h3 class="modal-box__title">Reschedule Inspection</h3>
+      <button type="button" class="modal-box__close" onclick="window.closeRescheduleModal()" aria-label="Close">&times;</button>
+    </div>
+    <input type="hidden" id="rescheduleId">
+    <p style="font-size:0.78rem;color:var(--ivory-62);margin-bottom:18px;">Reference <code id="rescheduleRef"></code></p>
+    <div class="form-group">
+      <label class="form-label" for="rescheduleDate">New Date</label>
+      <input type="date" class="form-input" id="rescheduleDate" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="rescheduleTime">New Time Slot</label>
+      <select class="form-select" id="rescheduleTime">
+        <option>10:00 AM – 11:30 AM</option>
+        <option>02:00 PM – 03:30 PM</option>
+        <option>04:30 PM – 06:00 PM</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="rescheduleReason">Reason (optional)</label>
+      <textarea class="form-textarea" id="rescheduleReason" rows="2" placeholder="e.g., I have a conflict that day and would like to move it."></textarea>
+    </div>
+    <button type="button" class="btn btn--gold" style="width:100%;margin-top:8px;" onclick="window.submitReschedule()">Request New Slot</button>
+  </div>
+</div>
 
 </body>
 </html>

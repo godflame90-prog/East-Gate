@@ -16,13 +16,20 @@ import {
   recordFailedAttempt,
   throttleKey as throttleKeyFor
 } from './throttle';
-import { ItemStatus, ListingType, PropertyCategory, Role, TitleDocumentType, VerificationStatus } from '@prisma/client';
+import { InspectionStatus, ItemStatus, ListingType, PropertyCategory, Role, TitleDocumentType, VerificationStatus } from '@prisma/client';
 import {
   AuthenticatedRequest,
   absentUserTimingGuard,
+  consumeAuthToken,
   createSessionToken,
+  EMAIL_VERIFICATION_TTL_MINUTES,
+  extractToken,
   hashPassword,
+  invalidateSessions,
+  issueAuthToken,
   landingPageFor,
+  PASSWORD_RESET_TTL_MINUTES,
+  pruneAuthTokens,
   pruneRevokedSessions,
   requireAuth,
   requireRole,
@@ -31,6 +38,7 @@ import {
   verifyPassword,
   verifySessionToken
 } from './auth';
+import { emailConfigured, inspectionBookedEmail, passwordResetEmail, sendMail, verificationEmail } from './mailer';
 
 dotenv.config();
 
@@ -41,9 +49,72 @@ const PORT = process.env.PORT || 3000;
 // preflight carries them, and both run before express.static so the HTML pages
 // are covered too — not just the API.
 app.use(securityHeaders);
-app.use(cors(buildCorsOptions()));
+// Options are rebuilt per request so the request's own origin (localhost, a LAN
+// IP, a public hostname) can be recognised as same-origin and never rejected.
+app.use((req, res, next) => cors(buildCorsOptions(req))(req, res, next));
 app.use(corsErrorHandler);
 app.use(express.json());
+
+/**
+ * Dynamic sitemap. Registered ahead of express.static so it wins over the
+ * static sitemap.xml, which is kept only as the fallback when the database is
+ * unreachable. Listing pages are query-parameter URLs, so this is the only way
+ * crawlers discover individual approved properties.
+ */
+app.get('/sitemap.xml', async (req: Request, res: Response) => {
+  const base = appBaseUrl(req);
+  const staticPages = [
+    ['/', 'weekly', '1.0'],
+    ['/properties.html', 'daily', '0.9'],
+    ['/land.html', 'daily', '0.9'],
+    ['/dealers.html', 'weekly', '0.8'],
+    ['/services.html', 'weekly', '0.7'],
+    ['/marketplace.html', 'weekly', '0.7'],
+    ['/contact.html', 'monthly', '0.5'],
+    ['/privacy.html', 'yearly', '0.3'],
+    ['/terms.html', 'yearly', '0.3']
+  ];
+
+  // If the database is down, fall back to the hand-maintained static file so the
+  // endpoint never returns an error to a crawler.
+  const staticFallback = () => {
+    try {
+      res.type('application/xml').send(fs.readFileSync(path.join(__dirname, '..', 'sitemap.xml'), 'utf8'));
+    } catch {
+      res.status(404).end();
+    }
+  };
+
+  try {
+    const rows = await prisma.property.findMany({
+      where: { status: ItemStatus.APPROVED, deletedAt: null },
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+      take: 5000
+    });
+
+    const escapeXml = (value: string) =>
+      value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const urls = staticPages.map(
+      ([loc, changefreq, priority]) =>
+        `  <url>\n    <loc>${escapeXml(base + loc)}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`
+    );
+
+    for (const row of rows) {
+      urls.push(
+        `  <url>\n    <loc>${escapeXml(`${base}/property-detail.html?id=${row.id}`)}</loc>\n    <lastmod>${row.updatedAt.toISOString().slice(0, 10)}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`
+      );
+    }
+
+    res
+      .type('application/xml')
+      .send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`);
+  } catch (error) {
+    console.error('[sitemap] falling back to static file', error);
+    staticFallback();
+  }
+});
 
 // Serve static frontend files (HTML, CSS, JS, Assets)
 app.use(express.static(path.join(__dirname, '..')));
@@ -56,6 +127,36 @@ app.use(express.static(path.join(__dirname, '..')));
 // Map — see server/throttle.ts for why that distinction mattered.
 function throttleKey(req: Request): string {
   return throttleKeyFor(req.ip || req.socket.remoteAddress);
+}
+
+/**
+ * Absolute base URL for links that go inside an email (verification, password
+ * reset). Prefers APP_BASE_URL so deployments behind a proxy generate the right
+ * host; otherwise reconstructs it from the request, which covers localhost and
+ * the LAN demo.
+ */
+function appBaseUrl(req: Request): string {
+  const configured = (process.env.APP_BASE_URL || '').trim();
+  if (configured) return configured.replace(/\/+$/, '');
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+/**
+ * Builds and sends mail without ever failing the caller's request. A fresh
+ * verification link needs to reach the user, but a broken SMTP relay must not
+ * turn a successful registration into a 500 — so this resolves regardless.
+ */
+async function trySendMail(
+  to: string,
+  template: { subject: string; text: string; html: string },
+  context: string
+): Promise<void> {
+  try {
+    await sendMail({ to, subject: template.subject, text: template.text, html: template.html });
+  } catch (error) {
+    // sendMail already swallows its own errors; this is belt-and-braces.
+    console.error(`[mail] ${context} to ${to} failed`, error);
+  }
 }
 
 /**
@@ -137,7 +238,8 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
-        role: user.role
+        role: user.role,
+        sessionVersion: user.sessionVersion
       },
       Boolean(rememberMe)
     );
@@ -188,7 +290,21 @@ app.get('/api/auth/me', requireAuth, async (req: AuthenticatedRequest, res: Resp
         role: true,
         avatarUrl: true,
         isActive: true,
-        dealerProfile: { select: { businessName: true, status: true } }
+        emailVerified: true,
+        dealerProfile: {
+          select: {
+            businessName: true,
+            category: true,
+            state: true,
+            city: true,
+            cacNumber: true,
+            status: true,
+            badgeIdentity: true,
+            badgeCac: true,
+            badgePhone: true,
+            badgeTitleDocs: true
+          }
+        }
       }
     });
 
@@ -259,6 +375,159 @@ app.post('/api/auth/validate', (req: Request, res: Response) => {  const token =
   });
 });
 
+// POST /api/auth/forgot-password — Start a password reset.
+//
+// The response is deliberately identical whether or not the address exists:
+// confirming "no such account" here would turn this endpoint into an account
+// enumeration oracle. The throttle still applies so the endpoint cannot be used
+// to spray reset mail at a victim.
+app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
+  const key = `forgot:${throttleKey(req)}`;
+  const genericReply = {
+    success: true,
+    message: 'If an account exists for that email, a password reset link is on its way.'
+  };
+
+  try {
+    if (await isThrottled(key)) {
+      res.status(429).json({ success: false, error: 'Too many requests. Please try again in 15 minutes.' });
+      return;
+    }
+
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
+      return;
+    }
+
+    await recordFailedAttempt(key);
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, fullName: true, isActive: true, deletedAt: true }
+    });
+
+    if (user && user.isActive && !user.deletedAt) {
+      const raw = await issueAuthToken(user.id, 'PASSWORD_RESET', PASSWORD_RESET_TTL_MINUTES);
+      const url = `${appBaseUrl(req)}/reset-password.html?token=${encodeURIComponent(raw)}`;
+      await trySendMail(email, passwordResetEmail(user.fullName, url), 'password reset');
+    }
+
+    res.json(genericReply);
+  } catch (error: any) {
+    handleError(res, error, 'POST /api/auth/forgot-password');
+  }
+});
+
+// POST /api/auth/reset-password — Complete a password reset with a mailed token.
+app.post('/api/auth/reset-password', async (req: Request, res: Response) => {
+  try {
+    const token = typeof req.body?.token === 'string' ? req.body.token.trim() : '';
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+
+    if (!token) throw badRequest('This reset link is missing its token.');
+    if (!password) throw badRequest('Please choose a new password.');
+
+    const userId = await consumeAuthToken(token, 'PASSWORD_RESET');
+    if (!userId) {
+      throw badRequest('This reset link is invalid or has expired. Please request a new one.');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, isActive: true, deletedAt: true, passwordHash: true }
+    });
+
+    if (!user || !user.isActive || user.deletedAt) {
+      throw badRequest('This reset link is no longer usable. Please request a new one.');
+    }
+
+    const problems = validatePasswordStrength(password, user.email);
+    if (problems.length) {
+      res.status(400).json({ success: false, error: problems[0], errors: problems });
+      return;
+    }
+
+    if (await verifyPassword(password, user.passwordHash)) {
+      throw badRequest('Your new password must be different from the old one.');
+    }
+
+    const passwordHash = await hashPassword(password);
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+
+    // Retire every session that was authorised against the old password.
+    await invalidateSessions(user.id);
+
+    await prisma.auditLog.create({
+      data: {
+        adminId: user.id,
+        action: 'PASSWORD_RESET',
+        targetEntity: 'User',
+        targetId: user.id,
+        targetName: user.email,
+        details: 'Password reset via emailed link.',
+        ipAddress: throttleKey(req)
+      }
+    });
+
+    res.json({ success: true, message: 'Your password has been updated. You can now sign in.' });
+  } catch (error: any) {
+    handleError(res, error, 'POST /api/auth/reset-password');
+  }
+});
+
+// POST /api/auth/verify-email — Confirm an address from the mailed link.
+app.post('/api/auth/verify-email', async (req: Request, res: Response) => {
+  try {
+    const token = typeof req.body?.token === 'string' ? req.body.token.trim() : '';
+    if (!token) throw badRequest('This verification link is missing its token.');
+
+    const userId = await consumeAuthToken(token, 'EMAIL_VERIFICATION');
+    if (!userId) {
+      throw badRequest('This verification link is invalid or has expired. You can request a new one from your dashboard.');
+    }
+
+    await prisma.user.update({ where: { id: userId }, data: { emailVerified: true } });
+    res.json({ success: true, message: 'Your email address is verified. Thank you.' });
+  } catch (error: any) {
+    handleError(res, error, 'POST /api/auth/verify-email');
+  }
+});
+
+// POST /api/auth/resend-verification — Re-issue the verification email.
+app.post('/api/auth/resend-verification', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const key = `resend-verify:${throttleKey(req)}`;
+
+  try {
+    if (await isThrottled(key)) {
+      res.status(429).json({ success: false, error: 'Too many requests. Please try again in 15 minutes.' });
+      return;
+    }
+
+    const session = req.session!;
+    const user = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { id: true, email: true, fullName: true, emailVerified: true }
+    });
+
+    if (!user) throw notFound('Account not found.');
+    if (user.emailVerified) {
+      res.json({ success: true, message: 'This email address is already verified.' });
+      return;
+    }
+
+    await recordFailedAttempt(key);
+
+    const raw = await issueAuthToken(user.id, 'EMAIL_VERIFICATION', EMAIL_VERIFICATION_TTL_MINUTES);
+    const url = `${appBaseUrl(req)}/verify-email.html?token=${encodeURIComponent(raw)}`;
+    await trySendMail(user.email, verificationEmail(user.fullName, url), 'email verification');
+
+    res.json({ success: true, message: 'A fresh verification link has been sent.' });
+  } catch (error: any) {
+    handleError(res, error, 'POST /api/auth/resend-verification');
+  }
+});
+
 // GET /api/auth/demo-accounts — Credentials for the one-click demo panel.
 //
 // These used to sit in login.html as data-password attributes, which meant every
@@ -320,6 +589,36 @@ function parseEnumValue<T extends Record<string, string>>(value: unknown, allowe
   const key = value.trim().toUpperCase().replace(/[\s-]+/g, '_');
   if (!key) return null;
   return allowed[key as keyof T] ?? null;
+}
+
+// The dealer portal's Title Document <select> has always posted the human label
+// ("Certificate of Occupancy (C of O)"), never the enum member. Prisma rejects
+// the unknown label, the insert throws, and handleError turns that into a 500 —
+// so the listing is never created and the admin queue never sees it. Translate
+// the label here so both the old markup and the enum-valued one both land.
+const TITLE_DOCUMENT_ALIASES: Record<string, TitleDocumentType> = {
+  CERTIFICATE_OF_OCCUPANCY: TitleDocumentType.C_OF_O,
+  CERTIFICATE_OF_OCCUPANCY_C_OF_O: TitleDocumentType.C_OF_O,
+  C_OF_O: TitleDocumentType.C_OF_O,
+  GOVERNOR_S_CONSENT: TitleDocumentType.GOVERNORS_CONSENT,
+  GOVERNORS_CONSENT: TitleDocumentType.GOVERNORS_CONSENT,
+  FEDERAL_C_OF_O: TitleDocumentType.FEDERAL_C_OF_O,
+  REGISTERED_SURVEY_DEED: TitleDocumentType.REGISTERED_SURVEY_DEED,
+  REGISTERED_SURVEY_DEED_OF_CONVEYANCE: TitleDocumentType.REGISTERED_SURVEY_DEED,
+  FCDA_ALLOCATION: TitleDocumentType.FCDA_ALLOCATION,
+  GOVERNMENT_GAZETTE: TitleDocumentType.GOVERNMENT_GAZETTE,
+  OTHER: TitleDocumentType.OTHER
+};
+
+// Resolves a title document either as an enum member ('C_OF_O') or as the label
+// the dealer form sends, or null when neither matches.
+function parseTitleDocument(value: unknown): TitleDocumentType | null {
+  const direct = parseEnumValue(value, TitleDocumentType);
+  if (direct) return direct;
+  if (typeof value !== 'string') return null;
+  const key = value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!key) return null;
+  return TITLE_DOCUMENT_ALIASES[key] ?? null;
 }
 
 // POST /api/contact — Public contact-form submissions from contact.html.
@@ -401,6 +700,108 @@ app.post('/api/contact', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/enquiries — a visitor enquires about one specific listing.
+//
+// Public by design (a buyer is not required to open an account first), so it
+// carries the same guardrails as the contact form: per-IP throttle, a honeypot,
+// hard field caps, and a propertyId that must resolve to a real, currently
+// approved listing. Storing the row against the property is the point — that is
+// what makes the enquiry routable and countable per listing.
+app.post('/api/enquiries', async (req: Request, res: Response) => {
+  const key = `listing-enquiry:${throttleKey(req)}`;
+
+  try {
+    if (await isThrottled(key)) {
+      res.status(429).json({
+        success: false,
+        error: 'Too many enquiries sent. Please try again in 15 minutes.'
+      });
+      return;
+    }
+
+    const { propertyId, name, email, phone, message, website } = req.body || {};
+
+    if (typeof website === 'string' && website.trim() !== '') {
+      res.status(201).json({ success: true, message: 'Enquiry received. We will be in touch shortly.' });
+      return;
+    }
+
+    const clean = {
+      propertyId: typeof propertyId === 'string' ? propertyId.trim() : '',
+      name: typeof name === 'string' ? name.trim() : '',
+      email: typeof email === 'string' ? email.trim().toLowerCase() : '',
+      phone: typeof phone === 'string' ? phone.trim() : '',
+      message: typeof message === 'string' ? message.trim() : ''
+    };
+
+    const errors: string[] = [];
+    if (!clean.propertyId) errors.push('A property is required.');
+    if (clean.name.length < 2) errors.push('Your name is required.');
+    if (clean.name.length > 120) errors.push('Name is too long.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.email)) errors.push('A valid email address is required.');
+    if (clean.email.length > 200) errors.push('Email address is too long.');
+    if (clean.phone && !/^\+?[\d\s()-]{7,20}$/.test(clean.phone)) errors.push('Please enter a valid phone number.');
+    if (clean.message.length < 10) errors.push('Please add a short message.');
+    if (clean.message.length > 4000) errors.push('Message is too long (4000 characters max).');
+
+    if (errors.length) {
+      await recordFailedAttempt(key);
+      res.status(400).json({ success: false, error: errors[0], errors });
+      return;
+    }
+
+    const property = await prisma.property.findFirst({
+      where: { id: clean.propertyId, status: ItemStatus.APPROVED, deletedAt: null },
+      select: { id: true, dealerId: true, title: true, dealer: { select: { user: { select: { email: true } } } } }
+    });
+
+    if (!property) {
+      throw notFound('That property is no longer available for enquiry.');
+    }
+
+    // Record the enquiry against the listing's own dealer, never a client-supplied
+    // id, and attach the sender's account only when one is actually signed in.
+    const token = extractToken(req);
+    const session = token ? verifySessionToken(token) : null;
+
+    const saved = await prisma.listingEnquiry.create({
+      data: {
+        propertyId: property.id,
+        dealerId: property.dealerId,
+        userId: session ? session.sub : null,
+        name: clean.name,
+        email: clean.email,
+        phone: clean.phone || null,
+        message: clean.message
+      }
+    });
+
+    await clearAttempts(key);
+
+    // Alert the dealer that owns the listing (best-effort).
+    const dealerEmail = property.dealer?.user?.email;
+    if (dealerEmail) {
+      await trySendMail(
+        dealerEmail,
+        {
+          subject: `New enquiry about "${property.title}"`,
+          text: `${clean.name} (${clean.email}${clean.phone ? ', ' + clean.phone : ''}) asked about "${property.title}":\n\n${clean.message}`,
+          html: `<p><strong>${clean.name}</strong> (${clean.email}${clean.phone ? ', ' + clean.phone : ''}) asked about <strong>${property.title}</strong>:</p><blockquote>${clean.message}</blockquote>`
+        },
+        'listing enquiry (dealer)'
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Enquiry received. An East Gate agent will be in touch shortly.',
+      data: { id: saved.id, createdAt: saved.createdAt }
+    });
+  } catch (error: any) {
+    handleError(res, error, 'POST /api/enquiries');
+  }
+});
+
 // GET /api/listing-types — lets the frontend build the purpose dropdown from
 // the server instead of hardcoding a list that can drift from the enum.
 app.get('/api/listing-types', (_req: Request, res: Response) => {
@@ -414,7 +815,7 @@ app.get('/api/listing-types', (_req: Request, res: Response) => {
 // GET /api/properties — Only returns APPROVED properties
 app.get('/api/properties', async (req: Request, res: Response) => {
   try {
-    const { category, state, listingType } = req.query;
+    const { category, state, listingType, q, minPrice, maxPrice, sort } = req.query;
 
     const whereClause: any = {
       status: ItemStatus.APPROVED, // MANDATORY: Pending items hidden from public
@@ -441,6 +842,49 @@ app.get('/api/properties', async (req: Request, res: Response) => {
       whereClause.listingType = parsedListingType;
     }
 
+    // Keyword search across the fields a buyer would actually type: the title,
+    // the location, the description, and the dealer's business name. Capped in
+    // length so a huge term cannot be pushed into the query.
+    const keyword = typeof q === 'string' ? q.trim() : '';
+    if (keyword) {
+      if (keyword.length > 80) {
+        res.status(400).json({ success: false, error: 'Search terms must be 80 characters or fewer.' });
+        return;
+      }
+      whereClause.OR = [
+        { title: { contains: keyword, mode: 'insensitive' } },
+        { location: { contains: keyword, mode: 'insensitive' } },
+        { description: { contains: keyword, mode: 'insensitive' } },
+        { dealer: { is: { businessName: { contains: keyword, mode: 'insensitive' } } } }
+      ];
+    }
+
+    // Price range. Only apply bounds that were actually supplied and are finite;
+    // an unparseable bound is ignored rather than 400-ing the whole catalogue.
+    const priceFilter: any = {};
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+    if (typeof minPrice === 'string' && minPrice !== '' && Number.isFinite(min) && min >= 0) {
+      priceFilter.gte = min;
+    }
+    if (typeof maxPrice === 'string' && maxPrice !== '' && Number.isFinite(max) && max >= 0) {
+      priceFilter.lte = max;
+    }
+    if (Object.keys(priceFilter).length) {
+      whereClause.price = priceFilter;
+    }
+
+    // Sort. Unknown values fall through to newest-first so a bad query string
+    // can never reorder or error the public list.
+    const SORTS: Record<string, any> = {
+      newest: { createdAt: 'desc' },
+      oldest: { createdAt: 'asc' },
+      price_asc: { price: 'asc' },
+      price_desc: { price: 'desc' },
+      beds_desc: { bedrooms: 'desc' }
+    };
+    const orderBy = SORTS[typeof sort === 'string' ? sort : 'newest'] || SORTS.newest;
+
     const properties = await prisma.property.findMany({
       where: whereClause,
       include: {
@@ -454,7 +898,7 @@ app.get('/api/properties', async (req: Request, res: Response) => {
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy
     });
 
     res.json({ success: true, count: properties.length, data: properties });
@@ -463,21 +907,67 @@ app.get('/api/properties', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/properties/:id
+// GET /api/properties/:id — a single listing, for the public detail page.
+//
+// This route is unauthenticated, so it must not become a back door around the
+// moderation queue: a PENDING_REVIEW or rejected listing is only handed back to
+// an admin or to the dealer who owns it. Everyone else gets the same 404 a
+// missing row produces, so the endpoint cannot be used to probe for unlisted
+// inventory.
 app.get('/api/properties/:id', async (req: Request, res: Response) => {
   try {
     const property = await prisma.property.findUnique({
       where: { id: String(req.params.id) },
-      include: { dealer: true }
+      include: {
+        dealer: {
+          select: {
+            id: true,
+            businessName: true,
+            category: true,
+            bio: true,
+            state: true,
+            city: true,
+            officeAddress: true,
+            status: true,
+            ratingAverage: true,
+            reviewCount: true,
+            badgeIdentity: true,
+            badgeCac: true,
+            badgePhone: true,
+            badgeTitleDocs: true,
+            user: { select: { email: true, phone: true } },
+            _count: { select: { listings: true } }
+          }
+        }
+      }
     });
 
-    if (!property) {
-      return res.status(404).json({ success: false, error: 'Property not found' });
+    if (!property || property.deletedAt) {
+      throw notFound('Property not found');
+    }
+
+    if (property.status !== ItemStatus.APPROVED) {
+      const token = extractToken(req);
+      const session = token ? verifySessionToken(token) : null;
+      const isAdmin = !!session && (session.role === 'ADMIN' || session.role === 'SUPER_ADMIN');
+
+      let isOwner = false;
+      if (session && !isAdmin) {
+        const dealer = await prisma.dealerProfile.findFirst({
+          where: { userId: session.sub },
+          select: { id: true }
+        });
+        isOwner = !!dealer && dealer.id === property.dealerId;
+      }
+
+      if (!isAdmin && !isOwner) {
+        throw notFound('Property not found');
+      }
     }
 
     res.json({ success: true, data: property });
   } catch (error: any) {
-    handleError(res, error, "GET /api/properties/:id");
+    handleError(res, error, 'GET /api/properties/:id');
   }
 });
 
@@ -557,6 +1047,44 @@ app.get('/api/dealers', async (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/dealers/:id — a single dealer profile with their live catalogue.
+//
+// Public, but only for dealers the directory would itself show: a VERIFIED
+// dealer, or one that already has at least one approved listing. An UNDER_REVIEW
+// agency with nothing live is not exposed, so this cannot be used to enumerate
+// applications.
+app.get('/api/dealers/:id', async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id || '');
+    if (!id) throw badRequest('A dealer id is required.');
+
+    const dealer = await prisma.dealerProfile.findUnique({
+      where: { id },
+      include: {
+        user: { select: { email: true, phone: true, fullName: true } },
+        listings: {
+          where: { status: ItemStatus.APPROVED, deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          take: 24
+        },
+        services: { where: { status: ItemStatus.APPROVED }, take: 12 },
+        _count: { select: { listings: true } }
+      }
+    });
+
+    if (!dealer) throw notFound('That dealer could not be found.');
+
+    const isVerified = dealer.status === VerificationStatus.VERIFIED;
+    if (!isVerified && dealer.listings.length === 0) {
+      throw notFound('That dealer could not be found.');
+    }
+
+    res.json({ success: true, data: dealer });
+  } catch (error: any) {
+    handleError(res, error, 'GET /api/dealers/:id');
+  }
+});
+
 /* ============================================================
    2. CUSTOMER & INSPECTION ENDPOINTS
    ============================================================ */
@@ -582,9 +1110,31 @@ app.post('/api/inspections', requireAuth, async (req: AuthenticatedRequest, res:
       },
       include: {
         property: { select: { title: true, location: true } },
-        dealer: { select: { businessName: true } }
+        dealer: { select: { businessName: true, user: { select: { email: true } } } }
       }
     });
+
+    // Confirm the booking to the customer and alert the dealer. Best-effort: the
+    // appointment is already persisted, so a mail failure must not fail the call.
+    const title = inspection.property?.title || 'the property';
+    const when = inspection.date.toISOString().slice(0, 10);
+    await trySendMail(
+      session.email,
+      inspectionBookedEmail(session.name, title, when, timeSlot),
+      'inspection confirmation (customer)'
+    );
+    const dealerEmail = inspection.dealer?.user?.email;
+    if (dealerEmail) {
+      await trySendMail(
+        dealerEmail,
+        {
+          subject: 'New inspection request',
+          text: `A customer requested an inspection of "${title}" on ${when} (${timeSlot}). Open your dashboard to confirm.`,
+          html: `<p>A customer requested an inspection of <strong>${title}</strong> on ${when} (${timeSlot}).</p>`
+        },
+        'inspection notice (dealer)'
+      );
+    }
 
     res.json({ success: true, message: 'Inspection booked successfully', data: inspection });
   } catch (error: any) {
@@ -616,6 +1166,128 @@ app.get('/api/user/inspections/:userId', requireAuth, async (req: AuthenticatedR
     res.json({ success: true, data: inspections });
   } catch (error: any) {
     handleError(res, error, "GET /api/user/inspections/:userId");
+  }
+});
+
+// PATCH /api/user/inspections/:id/reschedule — a customer moves their OWN
+// appointment to a new slot. It lands back in RESCHEDULED so an admin re-confirms
+// against the dealer's availability; a customer can never set a terminal status
+// (CONFIRMED/COMPLETED/CANCELLED) through this route.
+app.patch('/api/user/inspections/:id/reschedule', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const session = req.session!;
+    const { date, timeSlot, notes } = req.body;
+
+    if (!date || !timeSlot) {
+      throw badRequest('A new date and time slot are required to reschedule.');
+    }
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) {
+      throw badRequest('Invalid date supplied for reschedule.');
+    }
+    if (typeof timeSlot !== 'string' || !timeSlot.trim()) {
+      throw badRequest('Invalid time slot supplied for reschedule.');
+    }
+
+    const existing = await prisma.inspection.findUnique({ where: { id: String(req.params.id) } });
+    if (!existing) {
+      throw notFound('Inspection not found.');
+    }
+    if (existing.userId !== session.sub) {
+      throw forbidden('You can only reschedule your own inspections.');
+    }
+    if (existing.status === 'COMPLETED' || existing.status === 'CANCELLED') {
+      throw badRequest('This appointment is closed and can no longer be rescheduled.');
+    }
+
+    // Keep the original instructions; append the reschedule reason so the admin
+    // and dealer still see what the customer asked for originally.
+    const reason = notes !== undefined ? String(notes).trim() : '';
+    const mergedNotes = reason
+      ? (existing.clientNotes ? existing.clientNotes + '\nReschedule reason: ' + reason : 'Reschedule reason: ' + reason)
+      : undefined;
+
+    const inspection = await prisma.inspection.update({
+      where: { id: existing.id },
+      data: {
+        date: parsed,
+        timeSlot: timeSlot.trim(),
+        status: InspectionStatus.RESCHEDULED,
+        ...(mergedNotes !== undefined ? { clientNotes: mergedNotes } : {})
+      },
+      include: {
+        property: { select: { id: true, title: true, location: true } },
+        dealer: { select: { id: true, businessName: true } }
+      }
+    });
+
+    res.json({ success: true, message: 'Inspection rescheduled — awaiting confirmation.', data: inspection });
+  } catch (error: any) {
+    handleError(res, error, 'PATCH /api/user/inspections/:id/reschedule');
+  }
+});
+
+/* ============================================================
+   2b. SAVED LISTINGS (CUSTOMER WISHLIST)
+   ============================================================ */
+
+// GET /api/user/saved — the signed-in customer's bookmarked properties.
+app.get('/api/user/saved', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const session = req.session!;
+
+    const saved = await prisma.savedListing.findMany({
+      where: { userId: session.sub },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        property: {
+          include: { dealer: { select: { businessName: true } } }
+        }
+      }
+    });
+
+    res.json({ success: true, count: saved.length, data: saved });
+  } catch (error: any) {
+    handleError(res, error, 'GET /api/user/saved');
+  }
+});
+
+// POST /api/user/saved — bookmark a property for the signed-in customer.
+app.post('/api/user/saved', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const session = req.session!;
+    const propertyId = typeof req.body?.propertyId === 'string' ? req.body.propertyId : '';
+    if (!propertyId) throw badRequest('A propertyId is required.');
+
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { id: true }
+    });
+    if (!property) throw notFound('That property does not exist.');
+
+    // @@unique([userId, propertyId]) makes this idempotent: saving twice is a no-op.
+    const saved = await prisma.savedListing.upsert({
+      where: { userId_propertyId: { userId: session.sub, propertyId } },
+      update: {},
+      create: { userId: session.sub, propertyId }
+    });
+
+    res.json({ success: true, data: saved });
+  } catch (error: any) {
+    handleError(res, error, 'POST /api/user/saved');
+  }
+});
+
+// DELETE /api/user/saved/:propertyId — remove a bookmark.
+app.delete('/api/user/saved/:propertyId', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const session = req.session!;
+    const propertyId = String(req.params.propertyId);
+
+    await prisma.savedListing.deleteMany({ where: { userId: session.sub, propertyId } });
+    res.json({ success: true });
+  } catch (error: any) {
+    handleError(res, error, 'DELETE /api/user/saved/:propertyId');
   }
 });
 
@@ -854,6 +1526,15 @@ app.post('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), 
       else errors.push(`"${String(category)}" is not a valid property category.`);
     }
 
+    // Same guard for the title document: an unrecognised value is a 400 the
+    // dealer can act on, not a Prisma 500 that silently kills the submission.
+    let titleDocumentType: TitleDocumentType = TitleDocumentType.C_OF_O;
+    if (titleDocument) {
+      const parsed = parseTitleDocument(titleDocument);
+      if (parsed) titleDocumentType = parsed;
+      else errors.push(`"${String(titleDocument)}" is not a recognised title document.`);
+    }
+
     if (errors.length) {
       res.status(400).json({ success: false, error: errors[0], errors });
       return;
@@ -875,7 +1556,7 @@ app.post('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), 
         bathrooms: Number(bathrooms || 0),
         parkingSpaces: Number(parkingSpaces || 0),
         landSize,
-        titleDocument: titleDocument || TitleDocumentType.C_OF_O,
+        titleDocument: titleDocumentType,
         description: description || 'Property submitted by dealer.',
         features: features || [],
         mainImage: gallery[0] || DEFAULT_PROPERTY_IMAGE,
@@ -979,6 +1660,59 @@ app.get('/api/dealer/services/list', requireAuth, requireRole('DEALER', 'ADMIN')
   }
 });
 
+// GET /api/dealer/properties — the signed-in dealer's own listings. The public
+// catalogue only yields APPROVED rows, so a portal that read it would hide every
+// pending submission; this returns all of them with their moderation state.
+app.get('/api/dealer/properties', requireAuth, requireRole('DEALER', 'ADMIN'), loadDealerProfile, async (req: Request, res: Response) => {
+  try {
+    const properties = await prisma.property.findMany({
+      where: {
+        dealerId: (req as any).dealer.id,
+        deletedAt: null
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, count: properties.length, data: properties });
+  } catch (error: any) {
+    handleError(res, error, "GET /api/dealer/properties");
+  }
+});
+
+// GET /api/dealer/products — the signed-in dealer's marketplace goods.
+app.get('/api/dealer/products', requireAuth, requireRole('DEALER', 'ADMIN'), loadDealerProfile, async (req: Request, res: Response) => {
+  try {
+    const products = await prisma.marketplaceProduct.findMany({
+      where: { dealerId: (req as any).dealer.id },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, count: products.length, data: products });
+  } catch (error: any) {
+    handleError(res, error, "GET /api/dealer/products");
+  }
+});
+
+// GET /api/dealer/inspections — viewing requests against this dealer's
+// listings, with the client's contact details so the desk can call or WhatsApp
+// them straight from the row.
+app.get('/api/dealer/inspections', requireAuth, requireRole('DEALER', 'ADMIN'), loadDealerProfile, async (req: Request, res: Response) => {
+  try {
+    const inspections = await prisma.inspection.findMany({
+      where: { dealerId: (req as any).dealer.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        property: { select: { id: true, title: true } },
+        user: { select: { id: true, fullName: true, phone: true, email: true } }
+      }
+    });
+
+    res.json({ success: true, count: inspections.length, data: inspections });
+  } catch (error: any) {
+    handleError(res, error, "GET /api/dealer/inspections");
+  }
+});
+
 // POST /api/auth/register — Public sign-up for a regular East Gate member.
 // Creates an active CUSTOMER account. Unlike a dealer, a member is usable
 // immediately, so there is no review gate.
@@ -1052,6 +1786,16 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
         ipAddress: throttleKey(req)
       }
     });
+
+    // Send the verification link. Issued after the account exists; a mail
+    // failure must not undo a successful registration, so it is fire-and-forget.
+    try {
+      const raw = await issueAuthToken(user.id, 'EMAIL_VERIFICATION', EMAIL_VERIFICATION_TTL_MINUTES);
+      const url = `${appBaseUrl(req)}/verify-email.html?token=${encodeURIComponent(raw)}`;
+      await trySendMail(clean.email, verificationEmail(clean.fullName, url), 'email verification');
+    } catch (mailError) {
+      console.error('[register] could not issue/send verification email', mailError);
+    }
 
     res.status(201).json({
       success: true,
@@ -1193,6 +1937,15 @@ app.post('/api/dealer/register', async (req: Request, res: Response) => {
       }
     });
 
+    // Verification link for the new dealer account (best-effort).
+    try {
+      const raw = await issueAuthToken(user.id, 'EMAIL_VERIFICATION', EMAIL_VERIFICATION_TTL_MINUTES);
+      const url = `${appBaseUrl(req)}/verify-email.html?token=${encodeURIComponent(raw)}`;
+      await trySendMail(clean.email, verificationEmail(clean.fullName, url), 'email verification');
+    } catch (mailError) {
+      console.error('[dealer-register] could not issue/send verification email', mailError);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Registration received. Your account is under review — you can sign in now.',
@@ -1237,6 +1990,21 @@ app.get('/api/admin/queue', requireAuth, requireRole('ADMIN'), async (_req: Requ
       include: { dealer: { select: { businessName: true } } }
     });
 
+    // The DEALER is the unit of review, not the file. Registration writes a
+    // DealerProfile and no documents at all, so a queue built only from
+    // VerificationDoc would never surface a fresh sign-up — the account would sit
+    // at UNDER_REVIEW with no button anywhere in the console that could move it.
+    // These rows are what the workbench renders; `verifications` stays for
+    // documents filed against a dealer who is not themselves pending.
+    const pendingDealers = await prisma.dealerProfile.findMany({
+      where: { status: VerificationStatus.UNDER_REVIEW },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        user: { select: { fullName: true, email: true, phone: true } },
+        verifications: { orderBy: { submittedAt: 'asc' } }
+      }
+    });
+
     const verifiedDealerCount = await prisma.dealerProfile.count({
       where: { status: VerificationStatus.VERIFIED }
     });
@@ -1248,11 +2016,205 @@ app.get('/api/admin/queue', requireAuth, requireRole('ADMIN'), async (_req: Requ
         products: pendingProducts,
         services: pendingServices,
         verifications: pendingVerifications,
+        pendingDealers: pendingDealers.map((dealer) => ({
+          id: dealer.id,
+          businessName: dealer.businessName,
+          fullName: dealer.user.fullName,
+          email: dealer.user.email,
+          phone: dealer.user.phone,
+          category: dealer.category,
+          cacNumber: dealer.cacNumber,
+          state: dealer.state,
+          city: dealer.city,
+          status: dealer.status,
+          createdAt: dealer.createdAt.toISOString(),
+          documents: dealer.verifications.map((doc) => ({
+            id: doc.id,
+            documentType: doc.documentType,
+            documentName: doc.documentName,
+            documentUrl: doc.documentUrl,
+            status: doc.status,
+            submittedAt: doc.submittedAt.toISOString()
+          }))
+        })),
         verifiedDealerCount
       }
     });
   } catch (error: any) {
     handleError(res, error, "GET /api/admin/queue");
+  }
+});
+
+// GET /api/admin/approved — everything already cleared for public display.
+//
+// The queue answers "what still needs a decision"; this answers "what is live,
+// who put it there, and who signed it off". The console groups these rows under
+// the person who did the listing, so every item carries both names rather than
+// only an id: `submittedBy` is the human (the dealer account's full name, with
+// the agency as `submittedByBusiness`), `approvedBy` is whoever published it.
+//
+// ?mine=1 narrows the list to the calls this administrator personally made.
+// Every item is still returned in the unfiltered shape so the toggle can show
+// both counts without a second round trip.
+app.get('/api/admin/approved', requireAuth, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const session = req.session!;
+    const mineOnly = String(req.query.mine || '') === '1';
+
+    const dealerInclude = {
+      select: {
+        id: true,
+        businessName: true,
+        user: { select: { fullName: true } }
+      }
+    } as const;
+
+    const [properties, products, services, decisions] = await Promise.all([
+      prisma.property.findMany({
+        where: { status: ItemStatus.APPROVED, deletedAt: null },
+        include: { dealer: dealerInclude },
+        orderBy: { updatedAt: 'desc' }
+      }),
+      prisma.marketplaceProduct.findMany({
+        where: { status: ItemStatus.APPROVED },
+        include: { dealer: dealerInclude },
+        orderBy: { updatedAt: 'desc' }
+      }),
+      prisma.serviceOffering.findMany({
+        where: { status: ItemStatus.APPROVED },
+        include: { dealer: dealerInclude },
+        orderBy: { updatedAt: 'desc' }
+      }),
+      // One entry per published item: who put it live and when. APPROVE_* is a
+      // moderation sign-off; ADMIN_CREATE_PRODUCT is an official product going
+      // live the instant it is written, which is a publication by the same
+      // person even though no queue step preceded it. Ordered newest-first, so
+      // the first row seen for a targetId is the current one.
+      prisma.auditLog.findMany({
+        where: {
+          action: {
+            in: ['APPROVE_PROPERTY', 'APPROVE_PRODUCT', 'APPROVE_SERVICE', 'ADMIN_CREATE_PRODUCT']
+          }
+        },
+        orderBy: { timestamp: 'desc' },
+        select: {
+          adminId: true,
+          action: true,
+          targetId: true,
+          timestamp: true,
+          admin: { select: { fullName: true } }
+        }
+      })
+    ]);
+
+    const signedOff = new Map<string, { adminId: string; adminName: string; at: Date }>();
+    for (const entry of decisions) {
+      if (signedOff.has(entry.targetId)) continue;
+      signedOff.set(entry.targetId, {
+        adminId: entry.adminId,
+        adminName: entry.admin.fullName,
+        at: entry.timestamp
+      });
+    }
+
+    type Submitter = { key: string; person: string; business: string };
+
+    // A dealer's listing belongs to a person, not an agency: the console shows
+    // the account holder's name with the business underneath. Products created
+    // straight from this page have no dealer at all and are attributed to the
+    // platform itself.
+    const submitterOf = (dealer: { id: string; businessName: string; user?: { fullName: string } | null } | null): Submitter =>
+      dealer
+        ? {
+            key: dealer.id,
+            person: dealer.user?.fullName || dealer.businessName,
+            business: dealer.businessName
+          }
+        : { key: 'east-gate-official', person: 'East Gate Official', business: 'Published by an administrator' };
+
+    const items: any[] = [];
+
+    for (const property of properties) {
+      const submitter = submitterOf(property.dealer);
+      const signOff = signedOff.get(property.id);
+      items.push({
+        id: property.id,
+        type: 'PROPERTY',
+        name: property.title,
+        category: String(property.category),
+        detail: String(property.titleDocument),
+        location: property.location,
+        price: String(property.price),
+        currency: property.currency,
+        submitterKey: submitter.key,
+        submittedBy: submitter.person,
+        submittedByBusiness: submitter.business,
+        approvedBy: signOff ? signOff.adminName : null,
+        approvedById: signOff ? signOff.adminId : null,
+        approvedAt: (signOff ? signOff.at : property.updatedAt).toISOString()
+      });
+    }
+
+    for (const product of products) {
+      const submitter = submitterOf(product.dealer);
+      const signOff = signedOff.get(product.id);
+      items.push({
+        id: product.id,
+        type: 'PRODUCT',
+        name: product.name,
+        category: String(product.category),
+        detail: product.specifications,
+        location: '',
+        price: String(product.price),
+        currency: 'NGN',
+        submitterKey: submitter.key,
+        submittedBy: submitter.person,
+        submittedByBusiness: submitter.business,
+        approvedBy: signOff ? signOff.adminName : null,
+        approvedById: signOff ? signOff.adminId : null,
+        approvedAt: (signOff ? signOff.at : product.updatedAt).toISOString()
+      });
+    }
+
+    for (const service of services) {
+      const submitter = submitterOf(service.dealer);
+      const signOff = signedOff.get(service.id);
+      items.push({
+        id: service.id,
+        type: 'SERVICE',
+        name: service.title,
+        category: String(service.category),
+        detail: service.coverageState,
+        location: service.coverageState,
+        price: '',
+        currency: '',
+        submitterKey: submitter.key,
+        submittedBy: submitter.person,
+        submittedByBusiness: submitter.business,
+        approvedBy: signOff ? signOff.adminName : null,
+        approvedById: signOff ? signOff.adminId : null,
+        approvedAt: (signOff ? signOff.at : service.updatedAt).toISOString()
+      });
+    }
+
+    // Newest publication first, so the group at the top of the console is the
+    // one that went live most recently.
+    items.sort((a, b) => (a.approvedAt < b.approvedAt ? 1 : a.approvedAt > b.approvedAt ? -1 : 0));
+
+    const mineCount = items.filter((item) => item.approvedById === session.sub).length;
+    const visible = mineOnly ? items.filter((item) => item.approvedById === session.sub) : items;
+
+    res.json({
+      success: true,
+      data: {
+        items: visible,
+        total: items.length,
+        mineCount,
+        scope: mineOnly ? 'mine' : 'all'
+      }
+    });
+  } catch (error: any) {
+    handleError(res, error, "GET /api/admin/approved");
   }
 });
 
@@ -1402,24 +2364,62 @@ app.post('/api/admin/reject', requireAuth, requireRole('ADMIN'), async (req: Aut
   }
 });
 
-// POST /api/admin/verify-dealer — Verify CAC/Identity doc and award badge
+// POST /api/admin/verify-dealer — Verify a dealer and award their badges.
+//
+// The decision is about the AGENCY, so `dealerId` is the primary key here and
+// that is what the workbench sends. A `docId` is still accepted for older
+// callers and simply resolves to the dealer who filed it.
+//
+// Every credential that dealer has outstanding is cleared in the same call.
+// Leaving two of their files at UNDER_REVIEW after awarding the Verified badge
+// would put the console in a state where the row says "verified" while the
+// queue still says "awaiting review".
 app.post('/api/admin/verify-dealer', requireAuth, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const session = req.session!;
-    const { docId } = req.body;
+    const { dealerId, docId } = req.body || {};
 
-    const doc = await prisma.verificationDoc.update({
-      where: { id: docId },
-      data: { status: VerificationStatus.VERIFIED, reviewedAt: new Date() },
-      include: { dealer: true }
-    });
+    let targetId = typeof dealerId === 'string' ? dealerId.trim() : '';
+    if (!targetId && typeof docId === 'string' && docId.trim()) {
+      const source = await prisma.verificationDoc.findUnique({
+        where: { id: docId.trim() },
+        select: { dealerId: true }
+      });
+      if (!source) throw notFound('That credential document no longer exists.');
+      targetId = source.dealerId;
+    }
+    if (!targetId) throw badRequest('A dealer id is required.');
 
-    await prisma.dealerProfile.update({
-      where: { id: doc.dealerId },
+    const dealer = await prisma.dealerProfile.findUnique({ where: { id: targetId } });
+    if (!dealer) throw notFound('That dealer does not exist.');
+
+    const cleared = await prisma.verificationDoc.updateMany({
+      where: { dealerId: dealer.id, status: VerificationStatus.UNDER_REVIEW },
       data: {
         status: VerificationStatus.VERIFIED,
-        badgeCac: true,
-        badgeTitleDocs: true
+        reviewedAt: new Date(),
+        reviewedBy: session.sub
+      }
+    });
+
+    // The title-deeds badge is earned by having filed a title document, not by
+    // being approved — a dealer who submitted only a CAC certificate should not
+    // leave with all four dimensions lit.
+    const filed = await prisma.verificationDoc.findMany({
+      where: { dealerId: dealer.id },
+      select: { documentType: true }
+    });
+    const hasTitleDocs = dealer.badgeTitleDocs ||
+      filed.some((doc) => /TITLE|DEED|CONVEYANCE|SURVEY/i.test(doc.documentType));
+
+    await prisma.dealerProfile.update({
+      where: { id: dealer.id },
+      data: {
+        status: VerificationStatus.VERIFIED,
+        badgeIdentity: true,
+        badgePhone: true,
+        badgeCac: dealer.badgeCac || Boolean(dealer.cacNumber),
+        badgeTitleDocs: hasTitleDocs
       }
     });
 
@@ -1428,13 +2428,19 @@ app.post('/api/admin/verify-dealer', requireAuth, requireRole('ADMIN'), async (r
         adminId: session.sub,
         action: 'VERIFY_DEALER_CREDENTIALS',
         targetEntity: 'DealerProfile',
-        targetId: doc.dealerId,
-        targetName: doc.dealer.businessName,
-        details: `Verified ${doc.documentName} and awarded East Gate Verified status.`
+        targetId: dealer.id,
+        targetName: dealer.businessName,
+        details: cleared.count
+          ? `Verified ${cleared.count} outstanding credential document(s) and awarded East Gate Verified status.`
+          : 'Awarded East Gate Verified status.'
       }
     });
 
-    res.json({ success: true, message: 'Dealer credentials verified and badge awarded.' });
+    res.json({
+      success: true,
+      message: `${dealer.businessName} is verified — badge awarded.`,
+      data: { dealerId: dealer.id, documentsCleared: cleared.count }
+    });
   } catch (error: any) {
     handleError(res, error, "POST /api/admin/verify-dealer");
   }
@@ -1490,6 +2496,47 @@ app.delete('/api/admin/contact-messages/:id', requireAuth, requireRole('ADMIN'),
     res.json({ success: true, message: 'Message deleted.' });
   } catch (error: any) {
     handleError(res, error, 'DELETE /api/admin/contact-messages/:id');
+  }
+});
+
+// GET /api/admin/enquiries — per-listing enquiry inbox. Carries the listing and
+// dealer behind each message so the desk can triage by property.
+app.get('/api/admin/enquiries', requireAuth, requireRole('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const enquiries = await prisma.listingEnquiry.findMany({
+      orderBy: [{ readAt: { sort: 'asc', nulls: 'first' } }, { createdAt: 'desc' }],
+      take: 500,
+      include: {
+        property: { select: { id: true, title: true, location: true, state: true } },
+        dealer: { select: { id: true, businessName: true } }
+      }
+    });
+
+    res.json({
+      success: true,
+      count: enquiries.length,
+      unreadCount: enquiries.filter((m) => !m.readAt).length,
+      data: enquiries
+    });
+  } catch (error: any) {
+    handleError(res, error, 'GET /api/admin/enquiries');
+  }
+});
+
+// PATCH /api/admin/enquiries/:id — Mark one enquiry read (or unread).
+app.patch('/api/admin/enquiries/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id || '');
+    if (!id) throw badRequest('An enquiry id is required.');
+
+    const updated = await prisma.listingEnquiry.update({
+      where: { id },
+      data: { readAt: req.body?.read === false ? null : new Date() }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error: any) {
+    handleError(res, error, 'PATCH /api/admin/enquiries/:id');
   }
 });
 
@@ -1553,6 +2600,114 @@ app.get('/api/admin/reports', requireAuth, requireRole('ADMIN'), async (_req: Re
   }
 });
 
+// GET /api/admin/inspections — every inspection appointment across the platform,
+// with the requesting customer and the assigned dealer attached so the console can
+// render one self-contained row.
+app.get('/api/admin/inspections', requireAuth, requireRole('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const inspections = await prisma.inspection.findMany({
+      orderBy: { date: 'asc' },
+      include: {
+        property: { select: { id: true, title: true, location: true } },
+        dealer: { select: { id: true, businessName: true } },
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        cancelledBy: { select: { id: true, fullName: true, email: true } }
+      }
+    });
+
+    res.json({ success: true, count: inspections.length, data: inspections });
+  } catch (error: any) {
+    handleError(res, error, 'GET /api/admin/inspections');
+  }
+});
+
+// PATCH /api/inspections/:id/status — admin closes the loop on an appointment:
+// confirms, marks it completed after the site visit, reschedules or cancels it.
+// A reschedule carries the new date / time slot; a cancellation carries the
+// reason, which is required and recorded for documentation along with who
+// cancelled it. Admin-only for now; the assigned dealer does not get this grant.
+app.patch('/api/inspections/:id/status', requireAuth, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { status, date, timeSlot, notes } = req.body;
+    const session = req.session!;
+    const allowed = Object.values(InspectionStatus) as string[];
+
+    if (!status || !allowed.includes(status)) {
+      throw badRequest(`Status must be one of: ${allowed.join(', ')}.`);
+    }
+
+    const existing = await prisma.inspection.findUnique({ where: { id: String(req.params.id) } });
+    if (!existing) {
+      throw notFound('Inspection not found.');
+    }
+
+    const data: {
+      status: InspectionStatus;
+      date?: Date;
+      timeSlot?: string;
+      adminNotes?: string;
+      cancelledAt?: Date;
+      cancelledById?: string;
+    } = {
+      status: status as InspectionStatus
+    };
+
+    // Rescheduling rewrites the slot; a plain status change leaves it untouched.
+    if (date !== undefined) {
+      const parsed = new Date(date);
+      if (isNaN(parsed.getTime())) {
+        throw badRequest('Invalid date supplied for reschedule.');
+      }
+      data.date = parsed;
+    }
+    if (timeSlot !== undefined) {
+      if (typeof timeSlot !== 'string' || !timeSlot.trim()) {
+        throw badRequest('Invalid time slot supplied for reschedule.');
+      }
+      data.timeSlot = timeSlot.trim();
+    }
+
+    // Cancellations must be documented: a reason is mandatory and the closing
+    // admin + timestamp are stamped so the record is accountable.
+    if (status === InspectionStatus.CANCELLED) {
+      const reason = typeof notes === 'string' ? notes.trim() : '';
+      if (!reason) {
+        throw badRequest('A cancellation reason is required for documentation.');
+      }
+      data.adminNotes = reason;
+      data.cancelledAt = new Date();
+      data.cancelledById = session.sub;
+    }
+
+    const inspection = await prisma.inspection.update({
+      where: { id: existing.id },
+      data,
+      include: {
+        property: { select: { id: true, title: true, location: true } },
+        dealer: { select: { id: true, businessName: true } },
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        cancelledBy: { select: { id: true, fullName: true, email: true } }
+      }
+    });
+
+    res.json({ success: true, message: `Inspection marked ${status}.`, data: inspection });
+  } catch (error: any) {
+    handleError(res, error, 'PATCH /api/inspections/:id/status');
+  }
+});
+
+// Catch-all. Unknown API paths stay machine-readable (JSON), everything else
+// gets the branded 404 page so a dead link never lands on a bare white screen.
+// Must sit after every route and after express.static, which both fall through
+// here via next() when nothing matched.
+app.use((req, res) => {
+  if (req.path.startsWith('/api/')) {
+    res.status(404).json({ success: false, error: 'Endpoint not found.' });
+    return;
+  }
+  res.status(404).sendFile(path.join(__dirname, '..', '404.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`East Gate Enterprise Server running on http://localhost:${PORT}`);
 });
@@ -1573,5 +2728,11 @@ const pruneTimer = setInterval(() => {
       if (count > 0) console.log(`[auth] pruned ${count} stale throttle row(s)`);
     })
     .catch((error) => console.error('[auth] throttle prune failed', error));
+
+  pruneAuthTokens()
+    .then((count) => {
+      if (count > 0) console.log(`[auth] pruned ${count} spent/expired auth token(s)`);
+    })
+    .catch((error) => console.error('[auth] auth token prune failed', error));
 }, REVOCATION_PRUNE_MS);
 pruneTimer.unref?.();

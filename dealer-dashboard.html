@@ -306,8 +306,8 @@
       <div class="trust-alert">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
         <div>
-          <h4 style="font-size:0.92rem;color:var(--ivory);margin-bottom:2px;">East Gate Trust Status: Verified Partner</h4>
-          <p style="font-size:0.78rem;color:var(--ivory-62);">CAC Registration (RC-1849204) and certified survey credentials verified. Your listings receive the highest trust tier visibility.</p>
+          <h4 id="trustBannerTitle" style="font-size:0.92rem;color:var(--ivory);margin-bottom:2px;">East Gate Trust Status: Verified Partner</h4>
+          <p id="trustBannerText" style="font-size:0.78rem;color:var(--ivory-62);">CAC Registration (RC-1849204) and certified survey credentials verified. Your listings receive the highest trust tier visibility.</p>
         </div>
       </div>
 
@@ -315,7 +315,7 @@
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-card__label">Active Published Listings</div>
-          <div class="metric-card__value">4</div>
+          <div class="metric-card__value" id="kpiActiveListings">0</div>
           <div class="metric-card__hint">Approved &amp; live on platform</div>
         </div>
         <div class="metric-card">
@@ -468,21 +468,27 @@
           <div class="form-group">
             <label class="form-label">Title Document Type</label>
             <select class="form-select" id="propTitleDoc">
-              <option value="Certificate of Occupancy (C of O)">Certificate of Occupancy (C of O)</option>
-              <option value="Governor's Consent">Governor's Consent</option>
-              <option value="Federal C of O">Federal C of O</option>
-              <option value="Registered Survey &amp; Deed">Registered Survey &amp; Deed of Conveyance</option>
-              <option value="FCDA Allocation">FCDA Allocation</option>
-              <option value="Government Gazette">Government Gazette</option>
+              <!-- Values are TitleDocumentType enum members — POST /api/dealer/properties
+                   also accepts the plain labels, but the enum is what gets stored. -->
+              <option value="C_OF_O">Certificate of Occupancy (C of O)</option>
+              <option value="GOVERNORS_CONSENT">Governor's Consent</option>
+              <option value="FEDERAL_C_OF_O">Federal C of O</option>
+              <option value="REGISTERED_SURVEY_DEED">Registered Survey &amp; Deed of Conveyance</option>
+              <option value="FCDA_ALLOCATION">FCDA Allocation</option>
+              <option value="GOVERNMENT_GAZETTE">Government Gazette</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Bedrooms / Baths</label>
+            <label class="form-label">Bedrooms / Baths / Parking <span style="color:var(--gold);">— required</span></label>
             <div style="display:flex;gap:10px;">
-              <input type="number" class="form-input" id="propBeds" placeholder="Beds (e.g. 4)">
-              <input type="number" class="form-input" id="propBaths" placeholder="Baths (e.g. 5)">
+              <input type="number" class="form-input" id="propBeds" min="0" step="1" placeholder="Beds (e.g. 4)" required>
+              <input type="number" class="form-input" id="propBaths" min="0" step="1" placeholder="Baths (e.g. 5)" required>
+              <input type="number" class="form-input" id="propCars" min="0" step="1" placeholder="Cars (e.g. 2)" required>
             </div>
+            <p style="font-size:0.75rem;color:var(--ivory-62);line-height:1.6;margin:-2px 0 0;">
+              Enter <strong style="color:var(--ivory);">0</strong> where a count does not apply (parking on a land plot, say) — the public catalogue shows all three, so blanks would read as "0 Baths".
+            </p>
           </div>
 
           <div class="form-group">
@@ -560,6 +566,16 @@
         </div>
         <button type="submit" class="btn btn--gold">Submit Product for Admin Review</button>
       </form>
+
+      <h2 style="font-size:1.1rem;font-weight:500;margin:36px 0 14px;">My Marketplace Products</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock / Specs</th><th>Status</th></tr>
+        </thead>
+        <tbody id="dealerProductsTable">
+          <tr><td colspan="5" style="text-align:center;color:var(--ivory-40);padding:24px;">Loading…</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- TAB 5: SPECIALIST SERVICES -->
@@ -632,23 +648,23 @@
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-card__label">Identity Check</div>
-          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
-          <div class="metric-card__hint">NIN &amp; Director ID verified</div>
+          <div class="metric-card__value" id="verValueIdentity" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint" id="verHintIdentity">NIN &amp; Director ID verified</div>
         </div>
         <div class="metric-card">
           <div class="metric-card__label">CAC Business Entity</div>
-          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
-          <div class="metric-card__hint">RC-1849204 confirmed</div>
+          <div class="metric-card__value" id="verValueCac" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint" id="verHintCac">RC-1849204 confirmed</div>
         </div>
         <div class="metric-card">
           <div class="metric-card__label">Physical Office Audit</div>
-          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
-          <div class="metric-card__hint">On-site audit passed</div>
+          <div class="metric-card__value" id="verValueOffice" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint" id="verHintOffice">On-site audit passed</div>
         </div>
         <div class="metric-card">
           <div class="metric-card__label">Title Documentation</div>
-          <div class="metric-card__value" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
-          <div class="metric-card__hint">Legal deed warranty on file</div>
+          <div class="metric-card__value" id="verValueTitle" style="color:#2ecc71;font-size:1.4rem;">VERIFIED ✓</div>
+          <div class="metric-card__hint" id="verHintTitle">Legal deed warranty on file</div>
         </div>
       </div>
     </div>
@@ -677,6 +693,87 @@
   }
 
   window.EastGateAuth.guardPage(['DEALER', 'ADMIN']);
+})();
+</script>
+<script>
+// The portal chrome in the markup is demo-injected — the sidebar name, the "JP"
+// avatar and the Verified pill all hardcode John Properties. None of it reflects
+// the account that is actually signed in, so a freshly-registered dealer lands
+// here and is greeted by someone else's agency. Paint the real account over it.
+(function () {
+  if (window.location.hash === '#register') return;
+
+  function initialsOf(name) {
+    return String(name || '')
+      .replace(/[^A-Za-z0-9 ]/g, ' ').trim()
+      .split(/\s+/).slice(0, 2)
+      .map(function (w) { return w ? w.charAt(0).toUpperCase() : ''; })
+      .join('') || 'EG';
+  }
+
+  var nameEl = document.getElementById('dealerSidebarName');
+  var statusEl = document.getElementById('dealerSidebarStatus');
+  var avatarEl = document.querySelector('.dealer-avatar');
+
+  window.EastGateAuth.me().then(function (result) {
+    if (!result.ok || !result.user) return;
+    var user = result.user;
+    var profile = user.dealerProfile || {};
+    var businessName = profile.businessName || user.fullName || '';
+    var isVerified = profile.status === 'VERIFIED';
+
+    if (nameEl) nameEl.textContent = businessName;
+    if (statusEl) {
+      statusEl.textContent = isVerified ? '✓ Verified Dealer' : 'Account under review';
+      statusEl.style.color = isVerified ? '' : '#e67e22';
+    }
+    if (avatarEl) avatarEl.textContent = initialsOf(businessName);
+
+    // Trust banner + four verification cards, painted from the live record so a
+    // pending dealer stops seeing a stranger's "VERIFIED ✓" all over the page.
+    var banner = document.getElementById('trustBannerTitle');
+    var bannerText = document.getElementById('trustBannerText');
+    if (banner) {
+      banner.textContent = isVerified
+        ? 'East Gate Trust Status: Verified Partner'
+        : 'East Gate Trust Status: Under Review';
+    }
+    if (bannerText) {
+      var cacLabel = profile.cacNumber ? 'CAC Registration (' + profile.cacNumber + ')' : 'CAC registration';
+      bannerText.textContent = isVerified
+        ? cacLabel + ' and certified survey credentials verified. Your listings receive the highest trust tier visibility.'
+        : 'Your application is under review. Completed checks are held until every tier passes, then your listings receive the highest trust tier.';
+    }
+
+    [
+      { key: 'Identity', badge: profile.badgeIdentity, hint: 'NIN & Director ID on file' },
+      { key: 'Cac', badge: profile.badgeCac, hint: profile.cacNumber ? profile.cacNumber + ' confirmed' : 'CAC number on file' },
+      { key: 'Office', badge: profile.badgePhone, hint: 'Office & phone contact verified' },
+      { key: 'Title', badge: profile.badgeTitleDocs, hint: 'Survey / deed warranty on file' }
+    ].forEach(function (card) {
+      var el = document.getElementById('verValue' + card.key);
+      var hintEl = document.getElementById('verHint' + card.key);
+      if (!el) return;
+      var ok = isVerified && card.badge === true;
+      el.textContent = ok ? 'VERIFIED ✓' : 'PENDING';
+      el.style.color = ok ? '#2ecc71' : '#e67e22';
+      if (!ok && hintEl) hintEl.textContent = card.hint + ' — awaiting verification';
+    });
+
+    // Keep the local store persona pinned to the live account so anything that
+    // falls back to EastGateDB attributes to the right dealer, not the demo one.
+    if (window.EastGateDB && user.id) {
+      window.EastGateDB.setCurrentUser({
+        id: user.id,
+        name: businessName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      });
+    }
+  }).catch(function () {
+    /* offline — leave the demo chrome rather than failing the page */
+  });
 })();
 </script>
 <script>
@@ -751,6 +848,9 @@
             window.location.href = 'login.html?next=dealer-dashboard.html';
             return;
           }
+          if (window.showEastGateToast) {
+            window.showEastGateToast('Registration received — check your inbox to verify your email.');
+          }
           window.location.href = 'dealer-dashboard.html';
         });
       })
@@ -788,43 +888,156 @@ document.addEventListener('DOMContentLoaded', function () {
   activateTabByHash();
   window.addEventListener('hashchange', activateTabByHash);
 
-  function renderDealerData() {
-    if (!window.EastGateDB) return;
-    var db = window.EastGateDB.get();
+  function statusClass(status) {
+    return status === 'APPROVED' ? 'approved' : (status === 'PENDING_REVIEW' ? 'pending' : 'rejected');
+  }
 
-    // Inspections Desk
-    var inspectionsTable = document.getElementById('dealerInspectionsTable');
-    inspectionsTable.innerHTML = db.inspections.map(function (i) {
+  function nairaOf(price) {
+    var n = Number(price);
+    return (isFinite(n) && n > 0) ? '₦' + n.toLocaleString('en-NG') : '—';
+  }
+
+  // TitleDocumentType enum → the document name a dealer recognises.
+  var TITLE_DOC_LABELS = {
+    C_OF_O: 'C of O',
+    FEDERAL_C_OF_O: 'Federal C of O',
+    GOVERNORS_CONSENT: "Governor's Consent",
+    REGISTERED_SURVEY_DEED: 'Registered Survey Deed',
+    FCDA_ALLOCATION: 'FCDA Allocation',
+    GOVERNMENT_GAZETTE: 'Government Gazette',
+    OTHER: 'Other'
+  };
+
+  function titleDocLabel(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '—';
+    var key = raw.toUpperCase().replace(/[\s-]+/g, '_');
+    return TITLE_DOC_LABELS[key] || raw;
+  }
+
+  // Accepts the API shape (Prisma rows) and the legacy mock shape (priceDisplay
+  // / titleDoc / dealerName) so the offline fallback keeps rendering.
+  function paintDealerListings(listings) {
+    var table = document.getElementById('dealerListingsTable');
+    var counter = document.getElementById('dealerListingCount');
+    if (!table) return;
+
+    if (counter) counter.textContent = String(listings.length);
+    if (!listings.length) {
+      table.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-40);padding:24px;">No listings submitted yet. Add one from the "+ Submit Listing" tab.</td></tr>';
+      return;
+    }
+
+    // Approved count feeds the Overview "Active Published Listings" KPI card.
+    var active = listings.filter(function (p) { return p.status === 'APPROVED'; }).length;
+    var kpi = document.getElementById('kpiActiveListings');
+    if (kpi) kpi.textContent = String(active);
+
+    table.innerHTML = listings.map(function (p) {
       return [
         '<tr>',
-        '  <td><strong>' + i.userName + '</strong></td>',
-        '  <td>' + i.propertyTitle + '</td>',
-        '  <td>' + i.date + ' at ' + i.time + '</td>',
-        '  <td>' + i.userPhone + '</td>',
-        '  <td><span class="status-pill status-pill--' + (i.status === 'CONFIRMED' ? 'approved' : 'pending') + '">' + i.status + '</span></td>',
-        '  <td><a href="https://wa.me/' + i.userPhone.replace(/[^0-9]/g, '') + '" target="_blank" class="btn-action btn-action--approve">Accept &amp; WhatsApp</a></td>',
+        '  <td><strong>' + escapeText(p.title) + '</strong></td>',
+        '  <td>' + escapeText(p.category || '—') + '</td>',
+        '  <td>' + escapeText(p.location || p.state || '—') + '</td>',
+        '  <td>' + (p.priceDisplay ? escapeText(p.priceDisplay) : nairaOf(p.price)) + '</td>',
+        '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + escapeText(titleDocLabel(p.titleDocument || p.titleDoc)) + '</span></td>',
+        '  <td><span class="status-pill status-pill--' + statusClass(p.status) + '">' + escapeText(p.status || 'UNKNOWN') + '</span></td>',
         '</tr>'
       ].join('');
     }).join('');
+  }
 
-    // Dealer Listings
-    var listingsTable = document.getElementById('dealerListingsTable');
-    var myListings = db.properties; // shows all dealer items
-    document.getElementById('dealerListingCount').textContent = myListings.length;
+  function paintInspections(inspections) {
+    var table = document.getElementById('dealerInspectionsTable');
+    var kpi = document.getElementById('kpiDealerInspections');
+    if (!table) return;
 
-    listingsTable.innerHTML = myListings.map(function (p) {
-      var statusClass = p.status === 'APPROVED' ? 'approved' : (p.status === 'PENDING_REVIEW' ? 'pending' : 'rejected');
+    var pending = inspections.filter(function (i) { return i.status === 'PENDING'; }).length;
+    if (kpi) kpi.textContent = String(pending);
+
+    if (!inspections.length) {
+      table.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ivory-40);padding:24px;">No inspection requests yet.</td></tr>';
+      return;
+    }
+
+    table.innerHTML = inspections.map(function (i) {
+      var clientName = (i.user && i.user.fullName) || i.userName || 'Client';
+      var propertyTitle = (i.property && i.property.title) || i.propertyTitle || '—';
+      var phone = (i.user && i.user.phone) || i.userPhone || '';
+      var when = i.date + (i.timeSlot || i.time ? ' · ' + escapeText(i.timeSlot || i.time) : '');
+      var status = i.status || 'PENDING';
       return [
         '<tr>',
-        '  <td><strong>' + p.title + '</strong></td>',
-        '  <td>' + p.category + '</td>',
-        '  <td>' + p.location + '</td>',
-        '  <td>' + p.priceDisplay + '</td>',
-        '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + p.titleDoc + '</span></td>',
-        '  <td><span class="status-pill status-pill--' + statusClass + '">' + p.status + '</span></td>',
+        '  <td><strong>' + escapeText(clientName) + '</strong></td>',
+        '  <td>' + escapeText(propertyTitle) + '</td>',
+        '  <td>' + escapeText(when) + '</td>',
+        '  <td>' + (phone
+          ? '<a href="tel:' + escapeText(phone).replace(/\s/g, '') + '">' + escapeText(phone) + '</a>'
+          : '<span style="color:var(--ivory-62);">—</span>') + '</td>',
+        '  <td><span class="status-pill status-pill--' + (status === 'CONFIRMED' ? 'approved' : 'pending') + '">' + escapeText(status) + '</span></td>',
+        '  <td>' + (phone
+          ? '<a href="https://wa.me/' + escapeText(phone).replace(/[^0-9]/g, '') + '" target="_blank" rel="noopener noreferrer" class="btn-action btn-action--approve">Accept via WhatsApp</a>'
+          : '<span style="color:var(--ivory-62);font-size:0.75rem;">—</span>') + '</td>',
         '</tr>'
       ].join('');
     }).join('');
+  }
+
+  function paintProducts(products) {
+    var table = document.getElementById('dealerProductsTable');
+    if (!table) return;
+
+    if (!products.length) {
+      table.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ivory-40);padding:24px;">You have not submitted any products yet.</td></tr>';
+      return;
+    }
+
+    table.innerHTML = products.map(function (p) {
+      var specs = [p.stockInfo, p.specifications].filter(Boolean).join(' · ');
+      return [
+        '<tr>',
+        '  <td><strong>' + escapeText(p.name) + '</strong></td>',
+        '  <td>' + escapeText(p.category || '—') + '</td>',
+        '  <td>' + nairaOf(p.price) + '</td>',
+        '  <td style="font-size:0.78rem;color:var(--ivory-62);">' + escapeText(specs || '—') + '</td>',
+        '  <td><span class="status-pill status-pill--' + statusClass(p.status) + '">' + escapeText(p.status || 'UNKNOWN') + '</span></td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+  }
+
+  async function renderDealerData() {
+    // The API returns real rows online and falls back to the local store when
+    // it cannot be reached, so a plain call is both the live path and the
+    // offline path.
+    var inspections = [];
+    var listings = [];
+    var products = [];
+
+    var tasks = [];
+    if (window.EastGateAPI) {
+      tasks = [
+        window.EastGateAPI.getDealerInspections().catch(function () { return []; }),
+        window.EastGateAPI.getDealerProperties().catch(function () { return []; }),
+        window.EastGateAPI.getDealerProducts().catch(function () { return []; })
+      ];
+    } else if (window.EastGateDB) {
+      var db = window.EastGateDB.get();
+      listings = db.properties;
+      inspections = db.inspections;
+      products = db.marketplaceProducts;
+    }
+
+    if (tasks.length) {
+      var settled = await Promise.all(tasks);
+      inspections = settled[0] || [];
+      listings = settled[1] || [];
+      products = settled[2] || [];
+    }
+
+    paintDealerListings(listings);
+    paintInspections(inspections);
+    paintProducts(products);
   }
 
   // ---- Property photo gallery (add-listing tab) -------------------------
@@ -1049,6 +1262,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var titleDoc = document.getElementById('propTitleDoc').value;
       var beds = document.getElementById('propBeds').value;
       var baths = document.getElementById('propBaths').value;
+      var cars = document.getElementById('propCars').value;
       var landSize = document.getElementById('propLandSize').value;
       var desc = document.getElementById('propDesc').value;
 
@@ -1114,9 +1328,14 @@ document.addEventListener('DOMContentLoaded', function () {
         price: Number(price),
         location: location,
         state: state,
+        titleDocument: titleDoc,
         titleDoc: titleDoc,
+        bedrooms: Number(beds) || 0,
+        bathrooms: Number(baths) || 0,
+        parkingSpaces: Number(cars) || 0,
         beds: Number(beds) || 0,
         baths: Number(baths) || 0,
+        cars: Number(cars) || 0,
         landSize: landSize,
         description: desc,
         mainImage: gallery[0] || '',
@@ -1203,32 +1422,44 @@ document.addEventListener('DOMContentLoaded', function () {
     var counter = document.getElementById('dealerServiceCount');
     if (!table) return;
 
-    if (!window.EastGateDB) {
-      table.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ivory-40);padding:24px;">Data engine unavailable.</td></tr>';
-      return;
+    // Live rows when the API answers; the local store (filtered to this
+    // dealer's persona) when it cannot.
+    async function paintFromSource() {
+      var mine = [];
+      if (window.EastGateAPI) {
+        try {
+          mine = (await window.EastGateAPI.getDealerServices()) || [];
+        } catch (e) {
+          mine = [];
+        }
+      }
+      if ((!mine || !mine.length) && window.EastGateDB) {
+        var persona = window.EastGateDB.get().currentUser;
+        mine = window.EastGateDB.get().services.filter(function (s) {
+          return !persona || s.providerName === persona.name;
+        });
+      }
+
+      if (counter) counter.textContent = String(mine.length);
+
+      if (!mine.length) {
+        table.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ivory-40);padding:24px;">You have not submitted any services yet.</td></tr>';
+        return;
+      }
+
+      table.innerHTML = mine.map(function (s) {
+        var approved = s.status === 'APPROVED';
+        return '<tr>' +
+          '<td>' + escapeText(s.title) + '<div style="font-size:0.72rem;color:var(--ivory-40);margin-top:3px;">' + escapeText(s.description || '') + '</div></td>' +
+          '<td>' + escapeText(s.category) + '</td>' +
+          '<td>' + escapeText(s.coverageState || s.state || 'Nationwide') + '</td>' +
+          '<td><span class="trust-badge ' + (approved ? 'trust-badge--verified' : 'trust-badge--under-review') + '">' +
+            (approved ? '✓ Live' : '◷ Pending Review') + '</span></td>' +
+        '</tr>';
+      }).join('');
     }
 
-    var mine = window.EastGateDB.get().services.filter(function (s) {
-      return s.providerName === window.EastGateDB.get().currentUser.name;
-    });
-
-    if (counter) counter.textContent = String(mine.length);
-
-    if (!mine.length) {
-      table.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ivory-40);padding:24px;">You have not submitted any services yet.</td></tr>';
-      return;
-    }
-
-    table.innerHTML = mine.map(function (s) {
-      var approved = s.status === 'APPROVED';
-      return '<tr>' +
-        '<td>' + escapeText(s.title) + '<div style="font-size:0.72rem;color:var(--ivory-40);margin-top:3px;">' + escapeText(s.description || '') + '</div></td>' +
-        '<td>' + escapeText(s.category) + '</td>' +
-        '<td>' + escapeText(s.state || s.coverageState || 'Nationwide') + '</td>' +
-        '<td><span class="trust-badge ' + (approved ? 'trust-badge--verified' : 'trust-badge--under-review') + '">' +
-          (approved ? '✓ Live' : '◷ Pending Review') + '</span></td>' +
-      '</tr>';
-    }).join('');
+    paintFromSource();
   }
 
   function escapeText(value) {

@@ -24,6 +24,12 @@ export interface SessionPayload {
   role: SessionRole;
   /** Unique token id. The unit that gets revoked on logout. */
   jti: string;
+  /**
+   * Session-generation marker (see User.sessionVersion). Minted at sign-in and
+   * re-checked on every request, so changing the password can retire every other
+   * session without needing to know their token ids.
+   */
+  sv: number;
   iat: number;
   exp: number;
 }
@@ -147,7 +153,7 @@ function sign(data: string): string {
 }
 
 export function createSessionToken(
-  user: { id: string; email: string; fullName: string; role: SessionRole },
+  user: { id: string; email: string; fullName: string; role: SessionRole; sessionVersion?: number },
   rememberMe = false
 ): { token: string; expiresAt: string } {
   const ttlHours = rememberMe ? SESSION_TTL_HOURS_REMEMBER : SESSION_TTL_HOURS;
@@ -160,6 +166,7 @@ export function createSessionToken(
     name: user.fullName,
     role: user.role,
     jti: crypto.randomUUID(),
+    sv: user.sessionVersion ?? 0,
     iat: issuedAt,
     exp: expiresAt
   };
@@ -269,6 +276,54 @@ export async function pruneRevokedSessions(): Promise<number> {
 }
 
 /* ============================================================
+   SESSION GENERATION
+   A password reset has to strand the sessions that the old password could
+   already have been read from. Rather than track every outstanding token id,
+   the user carries a counter that every token embeds and every request checks;
+   bumping it makes every older token fail the check at once.
+   ============================================================ */
+
+// Memo of userId -> current version. Purely to avoid a SELECT on every request;
+// invalidateSessions() drops the entry, so a reset is felt on the next call.
+const VERSION_TTL_MS = 30_000;
+const versionCache = new Map<string, { sv: number; at: number }>();
+
+/** Increments the user's session version, retiring every token minted before now. */
+export async function invalidateSessions(userId: string): Promise<void> {
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { sessionVersion: { increment: 1 } },
+    select: { sessionVersion: true }
+  });
+  versionCache.set(userId, { sv: updated.sessionVersion, at: Date.now() });
+}
+
+/**
+ * True when the token still matches the user's current session generation and
+ * the account still exists. Tokens issued before this feature carry no `sv` and
+ * are treated as generation 0, so it rolls out without signing anyone out.
+ */
+export async function isSessionCurrent(session: SessionPayload): Promise<boolean> {
+  const cached = versionCache.get(session.sub);
+  let current: number;
+
+  if (cached && Date.now() - cached.at < VERSION_TTL_MS) {
+    current = cached.sv;
+  } else {
+    const user = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { sessionVersion: true }
+    });
+    if (!user) return false;
+    current = user.sessionVersion;
+    if (versionCache.size > 5000) versionCache.clear();
+    versionCache.set(session.sub, { sv: current, at: Date.now() });
+  }
+
+  return (session.sv ?? 0) === current;
+}
+
+/* ============================================================
    MIDDLEWARE
    ============================================================ */
 export interface AuthenticatedRequest extends Request {
@@ -291,6 +346,10 @@ export async function requireAuth(req: AuthenticatedRequest, res: Response, next
   try {
     if (await isSessionRevoked(session)) {
       res.status(401).json({ success: false, error: 'This session has been signed out.' });
+      return;
+    }
+    if (!(await isSessionCurrent(session))) {
+      res.status(401).json({ success: false, error: 'This session is no longer valid. Please sign in again.' });
       return;
     }
   } catch (error) {
@@ -319,6 +378,80 @@ export function requireRole(...roles: SessionRole[]) {
 
     next();
   };
+}
+
+/* ============================================================
+   ONE-TIME EMAIL TOKENS (verification & password reset)
+   ============================================================ */
+
+export type AuthTokenPurpose = 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+
+export const PASSWORD_RESET_TTL_MINUTES = 30;
+export const EMAIL_VERIFICATION_TTL_MINUTES = 60 * 24;
+
+function hashToken(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
+
+/**
+ * Mints a one-time token for a user and returns the raw value to embed in the
+ * email link. Only the hash is persisted.
+ *
+ * Any earlier, still-unused token of the same purpose is consumed first, so a
+ * user who clicks "resend" repeatedly cannot accumulate live links.
+ */
+export async function issueAuthToken(
+  userId: string,
+  type: AuthTokenPurpose,
+  ttlMinutes: number
+): Promise<string> {
+  const raw = crypto.randomBytes(32).toString('hex');
+
+  await prisma.authToken.updateMany({
+    where: { userId, type, usedAt: null },
+    data: { usedAt: new Date() }
+  });
+
+  await prisma.authToken.create({
+    data: {
+      userId,
+      type,
+      tokenHash: hashToken(raw),
+      expiresAt: new Date(Date.now() + ttlMinutes * 60_000)
+    }
+  });
+
+  return raw;
+}
+
+/**
+ * Validates and consumes a one-time token, returning the owning user id.
+ * Returns null for an unknown, already-used, expired or wrong-purpose token —
+ * the caller must not distinguish between those cases to the client.
+ */
+export async function consumeAuthToken(raw: string, type: AuthTokenPurpose): Promise<string | null> {
+  if (!raw || raw.length > 200) return null;
+
+  const row = await prisma.authToken.findUnique({
+    where: { tokenHash: hashToken(raw) },
+    select: { id: true, userId: true, type: true, expiresAt: true, usedAt: true }
+  });
+
+  if (!row || row.type !== type || row.usedAt || row.expiresAt.getTime() <= Date.now()) {
+    return null;
+  }
+
+  // Single-use: mark consumed before the caller acts on it.
+  await prisma.authToken.update({ where: { id: row.id }, data: { usedAt: new Date() } });
+  return row.userId;
+}
+
+/** Clears spent or expired tokens. Safe to call on a timer. */
+export async function pruneAuthTokens(): Promise<number> {
+  const result = await prisma.authToken.deleteMany({
+    where: { OR: [{ expiresAt: { lt: new Date() } }, { usedAt: { not: null } }] }
+  });
+  return result.count;
 }
 
 /* ============================================================

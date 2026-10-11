@@ -196,6 +196,11 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = 'login.html?next=dashboard.html';
             return;
           }
+          // The server also mails a verification link — remind them to click it,
+          // since emailVerified gates nothing yet beyond peace of mind.
+          if (window.showEastGateToast) {
+            window.showEastGateToast('Almost done — check your inbox to verify your email.');
+          }
           window.location.href = 'dashboard.html';
         });
       })

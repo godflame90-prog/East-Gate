@@ -83,12 +83,12 @@ Sign-in is handled by the API server. Passwords are hashed with `scrypt`
 | `POST` | `/api/dealer/properties` | Dealer submits a listing; `listingType` is validated against the enum |
 | `POST` | `/api/dealer/services` | Dealer submits a service offering (`PENDING_REVIEW`) |
 | `GET` | `/api/dealer/services/list` | The signed-in dealer's own service submissions |
-| `GET` | `/api/admin/queue` | Pending properties, products, services, verifications + verified-dealer count |
+| `GET` | `/api/admin/queue` | Pending properties, products, services, dealers + verified-dealer count |
 | `GET` | `/api/admin/reports` | Moderation queue with resolved target titles |
 | `GET` | `/api/admin/audit-logs` | The immutable audit trail |
 | `POST` | `/api/admin/approve` | Publish a pending item (`entityType`: property/product/service) |
 | `POST` | `/api/admin/reject` | Reject a pending item with a reason |
-| `POST` | `/api/admin/verify-dealer` | Verify a credential doc and award the Verified badge |
+| `POST` | `/api/admin/verify-dealer` | Verify a dealer by `dealerId` and award the Verified badge; clears every credential they have on file |
 
 Tokens are HMAC-SHA256 signed and expire after 12 hours, or 30 days when
 "Remember me" is used. The frontend keeps them in `sessionStorage`
@@ -149,6 +149,16 @@ drift apart visually.
 `admin.html` reads live data from `GET /api/admin/queue`,`/api/admin/reports` and `/api/admin/audit-logs`, and falls back to the
 `EastGateDB` mock store only when the server is unreachable. Approve, reject
 and verify all call the API and re-fetch afterwards.
+
+The **Dealer Verification Workbench** decides about *dealers*, not files: the
+queue's `pendingDealers` are `DealerProfile` rows at `UNDER_REVIEW` (a fresh
+sign-up arrives with no documents at all), with each dealer's credential files
+folded underneath them. In this sense `verifications` is now a secondary list —
+only documents lodged against a dealer who is not themselves pending stay there.
+`POST /api/admin/verify-dealer` takes a `dealerId` and clears every outstanding
+credential for that agency in one call (a `docId` is still resolved for older
+callers); the Title Documents badge is only awarded when a title/survey file is
+actually on record.
 
 Because the queue now renders text that came in through the public
 registration form, every value is HTML-escaped and URLs are scheme-checked

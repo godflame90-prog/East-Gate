@@ -7,6 +7,30 @@
   <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Commercial, estate, and residential land plots with verified beacons and clean documentation in Aba, Owerri, Port Harcourt, and Abuja.">
 
+<link rel="canonical" href="https://www.eastgate.ng/land.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="East Gate Real-Estate">
+<meta property="og:title" content="Land Marketplace — East Gate Real-Estate | Verified Plots">
+<meta property="og:description" content="Commercial, estate, and residential land plots with verified beacons and clean documentation.">
+<meta property="og:url" content="https://www.eastgate.ng/land.html">
+<meta property="og:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+<meta property="og:locale" content="en_NG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Land Marketplace — East Gate Real-Estate">
+<meta name="twitter:description" content="Verified plots for commercial, estate, and residential development.">
+<meta name="twitter:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+<meta name="theme-color" content="#0B0B0B">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.eastgate.ng/" },
+    { "@type": "ListItem", "position": 2, "name": "Land", "item": "https://www.eastgate.ng/land.html" }
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
@@ -118,7 +142,7 @@
       <p class="lede" style="margin-top:12px;">Acquire development land, estate plots, and commercial parcels with absolute documentation clarity and physical beacon inspection.</p>
 
       <!-- Nigerian Title Guide -->
-      <div class="guide-box">
+      <div class="guide-box" id="title-guide">
         <div style="display:flex;align-items:center;gap:12px;">
           <span class="trust-badge trust-badge--official">Title Transparency Guide</span>
           <span style="font-size:0.75rem;color:var(--ivory-62);">How East Gate validates legal land ownership in Nigeria</span>
@@ -152,8 +176,37 @@
           <p class="eyebrow">Available Plots</p>
           <h2>Prime Parcels Ready for Allocation</h2>
         </div>
-        <button type="button" onclick="openInspectionModal('5003022d-302a-4015-97e3-7457eb49cc55', 'Commercial Land')" class="btn btn--gold btn--sm">Request On-Site Beacon Survey</button>
+        <button type="button" onclick="openInspectionModal('5003022d-302a-4015-97e3-7457eb49cc55', '2 Plots Prime Commercial Land', 'ee050f69-b910-435c-898f-00f298708968')" class="btn btn--gold btn--sm">Request On-Site Beacon Survey</button>
       </div>
+
+      <!-- Filter controls. Mirrors the property catalogue so a visitor can
+           narrow land by keyword, state, price and order without leaving. -->
+      <div class="filter-bar" id="landFilters">
+        <div class="form-group" style="margin:0;grid-column:1 / -1;">
+          <label class="form-label" for="landKeyword">Keyword search</label>
+          <input type="search" class="form-input" id="landKeyword" placeholder="e.g. commercial, Owerri, gated estate — search title, location, description"
+            maxlength="80" autocomplete="off">
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" for="landLocation">State</label>
+          <select class="form-select" id="landLocation">
+            <option value="ALL">All States</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" for="landSort">Sort by</label>
+          <select class="form-select" id="landSort">
+            <option value="newest">Newest first</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;align-self:end;">
+          <button type="button" id="landReset" class="btn btn--ghost btn--sm" style="width:100%;border:1px solid var(--line-light-soft);">Reset filters</button>
+        </div>
+      </div>
+      <p class="catalog-count" id="landCount" style="margin-top:16px;">Showing 0 plots</p>
 
       <div class="land-grid" id="landContainer">
         <!-- Rendered dynamically from EastGateDB -->
@@ -192,7 +245,7 @@
         <h4>Support</h4>
         <ul>
           <li><a href="https://wa.me/2348108990239" target="_blank">Land Inspection Desk</a></li>
-          <li><a href="#">Beacon Verification</a></li>
+          <li><a href="land.html#title-guide">Beacon Verification</a></li>
         </ul>
       </div>
     </div>
@@ -246,55 +299,151 @@ document.addEventListener('DOMContentLoaded', async function () {
       titleDoc: TITLE_DOC_LABELS[docKey] || p.titleDocument || p.titleDoc || '',
       landSize: p.landSize || '',
       location: p.location || '',
-      description: p.description || ''
+      state: p.state || '',
+      dealerId: p.dealerId || '',
+      description: p.description || '',
+      price: Number(p.price) || 0,
+      createdAt: p.createdAt || ''
     };
   });
 
-  if (lands.length === 0) {
-    container.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:60px 20px;color:var(--ink-60);font-size:1.1rem;">No land plots are currently listed. Please check back soon.</div>';
-    return;
+  var params = new URLSearchParams(window.location.search);
+  var keywordInput = document.getElementById('landKeyword');
+  var locationSelect = document.getElementById('landLocation');
+  var sortSelect = document.getElementById('landSort');
+  var resetBtn = document.getElementById('landReset');
+  var countEl = document.getElementById('landCount');
+  var galleryById = {};
+
+  function escapeOption(value) {
+    return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  var galleryById = {};
-  container.innerHTML = lands.map(function (p) {
-    galleryById[p.id] = p.gallery;
-    var photoCount = p.gallery.length;
-    return [
-      '<article class="prop-card">',
-      '  <div class="prop-card__media' + (photoCount > 1 ? ' has-gallery' : '') + '" data-property="' + p.id + '" style="aspect-ratio:16/9;">',
-      '    <img src="' + p.image + '" alt="' + p.title + '" loading="lazy">',
-      '    <span class="prop-card__badge">Land Plot</span>',
-      photoCount > 1 ? '    <span class="prop-card__count">' + photoCount + ' photos</span>' : '',
-      '  </div>',
-      '  <div class="prop-card__body">',
-      '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
-      '      <span class="trust-badge trust-badge--verified" style="font-size:0.62rem;">' + p.titleDoc + '</span>',
-      '      <span style="font-size:0.7rem;color:var(--ink-60);">' + p.landSize + '</span>',
-      '    </div>',
-      '    <h3 class="prop-card__title">' + p.title + '</h3>',
-      '    <p class="prop-card__loc">' + p.location + '</p>',
-      '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
-      '    <p style="font-size:0.8rem;color:var(--ink-60);margin-top:10px;line-height:1.6;">' + p.description + '</p>',
-      '    <div style="margin-top:20px;display:flex;gap:8px;">',
-      '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Beacon Inspection</button>',
-      '      <a href="https://wa.me/2348108990239?text=Inquiry%20regarding%20land%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp">',
-      '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
-      '      </a>',
-      '    </div>',
-      '  </div>',
-      '</article>'
-    ].join('');
+  // State options come from the data on hand, so the dropdown never offers a
+  // state that has no plots behind it.
+  var states = [];
+  lands.forEach(function (p) {
+    if (p.state && states.indexOf(p.state) === -1) states.push(p.state);
+  });
+  states.sort();
+  locationSelect.innerHTML = '<option value="ALL">All States</option>' + states.map(function (s) {
+    return '<option value="' + escapeOption(s) + '">' + escapeOption(s) + '</option>';
   }).join('');
 
-  // Clicking a card's photo block opens its gallery (same lightbox as properties.html).
-  Array.prototype.forEach.call(container.querySelectorAll('.prop-card__media.has-gallery'), function (media) {
-    media.addEventListener('click', function () {
-      var images = galleryById[media.getAttribute('data-property')];
-      if (images && images.length && window.openPropertyGallery) {
-        window.openPropertyGallery(images, 0);
+  // Deep links: ?q=, ?state=, ?sort=.
+  var paramQ = params.get('q') || params.get('keyword');
+  if (paramQ && keywordInput) keywordInput.value = paramQ.slice(0, 80);
+
+  var paramState = params.get('state') || params.get('location');
+  if (paramState) {
+    for (var si = 0; si < locationSelect.options.length; si++) {
+      if (locationSelect.options[si].value.toLowerCase() === paramState.toLowerCase()) {
+        locationSelect.value = locationSelect.options[si].value;
+        break;
       }
+    }
+  }
+
+  var paramSort = params.get('sort');
+  if (paramSort) {
+    for (var qi = 0; qi < sortSelect.options.length; qi++) {
+      if (sortSelect.options[qi].value === paramSort) {
+        sortSelect.value = paramSort;
+        break;
+      }
+    }
+  }
+
+  function applyFilters() {
+    var kw = keywordInput.value.trim().toLowerCase();
+    var state = locationSelect.value;
+
+    var list = lands.filter(function (p) {
+      if (state && state !== 'ALL' && p.state !== state) return false;
+      if (kw) {
+        var hay = (p.title + ' ' + p.location + ' ' + p.state + ' ' + p.description + ' ' + p.titleDoc).toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
     });
+
+    list.sort(function (a, b) {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    render(list);
+  }
+
+  function render(list) {
+    countEl.textContent = 'Showing ' + list.length + ' plot' + (list.length === 1 ? '' : 's');
+
+    if (list.length === 0) {
+      container.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:60px 20px;color:var(--ink-60);font-size:1.1rem;">No plots match your filters. Try widening your search.</div>';
+      return;
+    }
+
+    container.innerHTML = list.map(function (p) {
+      galleryById[p.id] = p.gallery;
+      var photoCount = p.gallery.length;
+      return [
+        '<article class="prop-card">',
+        '  <div class="prop-card__media' + (photoCount > 1 ? ' has-gallery' : '') + '" data-property="' + p.id + '" style="aspect-ratio:16/9;">',
+        '    <img src="' + p.image + '" alt="' + p.title + '" loading="lazy">',
+        '    <span class="prop-card__badge">Land Plot</span>',
+        photoCount > 1 ? '    <span class="prop-card__count">' + photoCount + ' photos</span>' : '',
+        '  </div>',
+        '  <div class="prop-card__body">',
+        '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
+        '      <span class="trust-badge trust-badge--verified" style="font-size:0.62rem;">' + p.titleDoc + '</span>',
+        '      <span style="font-size:0.7rem;color:var(--ink-60);">' + p.landSize + '</span>',
+        '    </div>',
+        '    <h3 class="prop-card__title"><a href="property-detail.html?id=' + encodeURIComponent(p.id) + '" style="color:inherit;">' + p.title + '</a></h3>',
+        '    <p class="prop-card__loc"><a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.location + ', Nigeria') + '" target="_blank" rel="noopener" title="View on map" style="color:inherit;display:inline-flex;align-items:center;gap:6px;">' + p.location + '</a></p>',
+        '    <a href="https://wa.me/2348108990239?text=' + encodeURIComponent('Hello East Gate, I would like a quote for ' + p.title) + '" target="_blank" class="prop-card__price" style="text-decoration:none;">Request for Quote</a>',
+        '    <p style="font-size:0.8rem;color:var(--ink-60);margin-top:10px;line-height:1.6;">' + p.description + '</p>',
+        '    <div style="margin-top:20px;display:flex;gap:8px;">',
+        '      <a href="property-detail.html?id=' + encodeURIComponent(p.id) + '" class="btn btn--ghost btn--sm" style="flex:1;border:1px solid rgba(0,0,0,0.15);text-align:center;">View Details</a>',
+        '      <button type="button" onclick="openInspectionModal(\'' + p.id + '\', \'' + p.title.replace(/'/g, "\\'") + '\', \'' + p.dealerId + '\')" class="btn btn--gold btn--sm" style="flex:1;">Schedule Beacon Inspection</button>',
+        '      <a href="https://wa.me/2348108990239?text=Inquiry%20regarding%20land%20' + encodeURIComponent(p.title) + '" target="_blank" class="btn btn--ghost btn--sm" style="padding:10px 12px;border:1px solid rgba(0,0,0,0.15);" aria-label="WhatsApp">',
+        '        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.42 0-2.82-.37-4.06-1.07l-.29-.17-3.12.82.83-3.04-.19-.31a8.19 8.19 0 0 1-1.25-4.47c0-4.54 3.7-8.24 8.24-8.24z"/></svg>',
+        '      </a>',
+        '    </div>',
+        '  </div>',
+        '</article>'
+      ].join('');
+    }).join('');
+
+    // Clicking a card's photo block opens its gallery (same lightbox as properties.html).
+    Array.prototype.forEach.call(container.querySelectorAll('.prop-card__media.has-gallery'), function (media) {
+      media.addEventListener('click', function () {
+        var images = galleryById[media.getAttribute('data-property')];
+        if (images && images.length && window.openPropertyGallery) {
+          window.openPropertyGallery(images, 0);
+        }
+      });
+    });
+  }
+
+  var keywordTimer;
+  if (keywordInput) {
+    keywordInput.addEventListener('input', function () {
+      clearTimeout(keywordTimer);
+      keywordTimer = setTimeout(applyFilters, 300);
+    });
+  }
+  [locationSelect, sortSelect].forEach(function (el) {
+    if (el) el.addEventListener('change', applyFilters);
   });
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      keywordInput.value = '';
+      locationSelect.value = 'ALL';
+      sortSelect.value = 'newest';
+      applyFilters();
+    });
+  }
+
+  applyFilters();
 });
 </script>
 

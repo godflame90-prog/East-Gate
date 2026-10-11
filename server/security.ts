@@ -43,17 +43,54 @@ export interface CorsRejection extends Error {
 }
 
 /**
+ * The origin the current request was addressed to, reconstructed from the Host
+ * header so it can be compared against a browser-supplied Origin. Used to treat
+ * the site's own origin as same-origin no matter what address it is reached on
+ * (localhost, a LAN IP, a public hostname).
+ */
+function requestOrigin(req: Request): string {
+  const host = req.get('host');
+  if (!host) return '';
+  return `${forwardedProto(req) || req.protocol}://${host}`;
+}
+
+/**
+ * The scheme the client actually used, honouring X-Forwarded-Proto when the
+ * server sits behind a TLS-terminating proxy.
+ */
+function forwardedProto(req: Request): string {
+  const header = req.get('x-forwarded-proto');
+  return typeof header === 'string' ? header.split(',')[0].trim().toLowerCase() : '';
+}
+
+/**
+ * True when the request arrived over HTTPS. Plain HTTP (the dev/LAN server)
+ * must not be told to upgrade its own subresources — see securityHeaders().
+ */
+function isSecureRequest(req: Request): boolean {
+  return req.secure || forwardedProto(req) === 'https';
+}
+
+/**
  * Requests with no Origin header (curl, server-to-server, same-origin fetches)
  * are not cross-origin and pass through untouched. Only a browser-supplied
  * Origin is checked.
  */
-export function buildCorsOptions(): CorsOptions {
+export function buildCorsOptions(req?: Request): CorsOptions {
   const allowed = allowedOrigins();
 
   return {
     origin(origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowed.includes(origin.replace(/\/+$/, ''))) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, '');
+      if (allowed.includes(normalized)) return callback(null, true);
+
+      // The frontend is served by this same process, so a browser talking to it
+      // sends its own origin in the Origin header on every non-GET request
+      // (login, register, uploads, ...). The request's own origin must therefore
+      // always be accepted — otherwise the site's own pages get a 403 from the
+      // server on any host that is not in the allowlist (e.g. a LAN address).
+      if (req && normalized === requestOrigin(req)) return callback(null, true);
 
       const error: CorsRejection = new Error(`Origin not allowed by CORS: ${origin}`);
       error.corsRejected = true;
@@ -85,7 +122,7 @@ export function buildCorsOptions(): CorsOptions {
  * base-uri and frame-ancestors remove the plugin-content, base-tag-hijack and
  * clickjacking classes outright — none of which need 'unsafe-inline' to work.
  */
-function buildCsp(directives: string[]): string {
+function buildCsp(directives: string[], secure: boolean): string {
   return [
     "default-src 'self'",
     // See note above: tighten to nonces once inline scripts are templated.
@@ -106,7 +143,12 @@ function buildCsp(directives: string[]): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "frame-src 'none'",
-    'upgrade-insecure-requests'
+    // Only meaningful over HTTPS. Over plain HTTP this makes the browser
+    // rewrite every subresource and fetch to https://, which has no listener
+    // on this server — so the page loads but every script, stylesheet and API
+    // call fails. localhost is exempt from the upgrade, an address like
+    // 192.168.x.x is not, which is exactly why LAN visitors broke.
+    ...(secure ? ['upgrade-insecure-requests'] : [])
   ].join('; ');
 }
 
@@ -116,8 +158,9 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   // Chrome read "http://localhost:3000" as a directive name — a parse error on
   // every page load, and the origins silently dropped from the policy.
   const connectSrc = ["connect-src 'self'", ...allowedOrigins()].join(' ');
+  const secure = isSecureRequest(req);
 
-  res.setHeader('Content-Security-Policy', buildCsp([connectSrc]));
+  res.setHeader('Content-Security-Policy', buildCsp([connectSrc], secure));
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -126,11 +169,14 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
 
-  // The API only ever speaks JSON; nothing here should be framed or sniffed.
-  res.setHeader(
-    'Strict-Transport-Security',
-    'max-age=15552000; includeSubDomains'
-  );
+  // HSTS only makes sense over HTTPS; browsers ignore it on plain HTTP, and
+  // emitting it from the dev/LAN server would just be noise.
+  if (secure) {
+    res.setHeader(
+      'Strict-Transport-Security',
+      'max-age=15552000; includeSubDomains'
+    );
+  }
 
   if (req.path.startsWith('/api/')) {
     res.setHeader('Cache-Control', 'no-store');

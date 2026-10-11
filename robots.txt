@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Private surfaces are not for crawlers: portals, auth flows, and the API.
+Disallow: /dashboard.html
+Disallow: /dealer-dashboard.html
+Disallow: /admin.html
+Disallow: /login.html
+Disallow: /register.html
+Disallow: /forgot-password.html
+Disallow: /reset-password.html
+Disallow: /verify-email.html
+Disallow: /api/
+Disallow: /uploads/
+
+Sitemap: https://www.eastgate.ng/sitemap.xml

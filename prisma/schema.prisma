@@ -83,6 +83,11 @@ model User {
   role            Role           @default(CUSTOMER)
   avatarUrl       String?
   isActive        Boolean        @default(true)
+  emailVerified   Boolean        @default(false)
+  // Bumped whenever the password changes. Every session token carries the value
+  // it was minted with, so a reset instantly invalidates older sessions instead
+  // of leaving a stolen token alive until it expires.
+  sessionVersion  Int            @default(0)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   deletedAt       DateTime?
@@ -90,9 +95,11 @@ model User {
   dealerProfile   DealerProfile?
   savedProperties SavedListing[]
   inspections     Inspection[]   @relation("UserInspections")
+  cancelledInspections Inspection[] @relation("InspectionCancellations")
   auditActions    AuditLog[]     @relation("AdminActions")
   reportsFiled    Report[]
   revokedSessions RevokedSession[]
+  authTokens      AuthToken[]
 }
 
 // ---------------- DEALER & CREDENTIALS ----------------
@@ -125,6 +132,7 @@ model DealerProfile {
   services         ServiceOffering[]
   inspections      Inspection[]       @relation("DealerInspections")
   verifications    VerificationDoc[]
+  enquiries        ListingEnquiry[]
 }
 
 model VerificationDoc {
@@ -175,6 +183,7 @@ model Property {
 
   inspections     Inspection[]
   saves           SavedListing[]
+  enquiries       ListingEnquiry[]
 
   // The public catalogue always filters on status + deletedAt and commonly on
   // listingType/state, so index the combination the listing query actually uses.
@@ -232,6 +241,11 @@ model Inspection {
   status          InspectionStatus  @default(PENDING)
   clientNotes     String?
   dealerNotes     String?
+  // Documentation trail for admin-closed appointments (e.g. cancellations).
+  adminNotes      String?
+  cancelledAt     DateTime?
+  cancelledById   String?
+  cancelledBy     User?             @relation("InspectionCancellations", fields: [cancelledById], references: [id])
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -246,6 +260,32 @@ model SavedListing {
   createdAt       DateTime          @default(now())
 
   @@unique([userId, propertyId])
+}
+
+// ---------------- LISTING ENQUIRIES ----------------
+// A message a visitor sends about one specific listing from property-detail.html.
+// Kept separate from ContactMessage because it is tied to a Property (and the
+// dealer behind it), which is what makes it actionable for the moderation desk:
+// you can see how many buyers asked about a listing and route it to its owner.
+// The visitor does not need an account, so userId is optional and only recorded
+// when a signed-in customer happens to send one.
+model ListingEnquiry {
+  id              String            @id @default(uuid())
+  propertyId      String
+  property        Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  dealerId        String?
+  dealer          DealerProfile?    @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  userId          String?
+  name            String
+  email           String
+  phone           String?
+  message         String
+  createdAt       DateTime          @default(now())
+  readAt          DateTime?
+
+  @@index([createdAt])
+  @@index([propertyId])
+  @@index([readAt])
 }
 
 // ---------------- SECURITY AUDIT TRAIL ----------------
@@ -293,6 +333,30 @@ model RevokedSession {
 
   @@index([expiresAt])
   @@index([userId])
+}
+
+// ---------------- ONE-TIME AUTH TOKENS ----------------
+// Backs both email verification and password reset. The token that travels in
+// the email link is random and is never stored — only its hash is, so a leaked
+// database dump cannot be replayed against the API. Each row is single-use
+// (usedAt) and time-boxed (expiresAt).
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model AuthToken {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AuthTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 // ---------------- CONTACT MESSAGES ----------------

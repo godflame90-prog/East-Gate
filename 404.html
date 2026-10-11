@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page Not Found (404) — East Gate Real-Estate</title>
+<link rel="icon" type="image/png" href="images/EastGate-core.png">
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.lost-hero {
+  min-height: 78vh;
+  display: flex;
+  align-items: center;
+  padding: 140px 0 90px;
+  background-color: var(--obsidian);
+  background-image: linear-gradient(120deg, rgba(11, 11, 11, .96) 0%, rgba(11, 11, 11, .88) 55%, rgba(11, 11, 11, .78) 100%);
+  color: var(--ivory);
+  border-bottom: 1px solid var(--line-light-soft);
+}
+.lost-code {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: clamp(5rem, 16vw, 10rem);
+  line-height: .9;
+  font-weight: 500;
+  color: var(--gold, #c9a227);
+  letter-spacing: .02em;
+}
+.lost-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  margin-top: 18px;
+  line-height: 1.2;
+}
+.lost-lede {
+  margin-top: 14px;
+  max-width: 540px;
+  color: var(--ivory-62, rgba(245, 241, 232, .62));
+  line-height: 1.7;
+  font-size: .95rem;
+}
+.lost-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+.lost-links {
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line-light-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+}
+.lost-links a {
+  font-size: .78rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ivory-62, rgba(245, 241, 232, .62));
+  text-decoration: none;
+  transition: color .3s var(--ease, ease);
+}
+.lost-links a:hover { color: var(--gold, #c9a227); }
+</style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html">Properties</a>
+      <a href="land.html">Land</a>
+      <a href="services.html">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="contact.html">Contact Us</a>
+      <a href="dealers.html">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">Offer Services</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="properties.html">Properties</a>
+    <a href="land.html">Land</a>
+    <a href="services.html">Services</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="dealers.html">Dealers &amp; Pros</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="dealer-dashboard.html#add" class="btn btn--gold">Offer Services</a>
+  </div>
+</div>
+
+<main id="top">
+  <section class="lost-hero">
+    <div class="container">
+      <p class="eyebrow">Page Not Found</p>
+      <p class="lost-code" aria-hidden="true">404</p>
+      <h1 class="lost-title">This gate leads nowhere.</h1>
+      <p class="lost-lede">The page you are looking for may have been moved, renamed, or the link may be out of date. Nothing has been lost — start again from the gate, or jump straight to a section below.</p>
+
+      <div class="lost-actions">
+        <a href="index.html" class="btn btn--gold">Return Home</a>
+        <a href="properties.html" class="btn btn--ghost">Browse Properties</a>
+        <button type="button" class="btn btn--ghost" id="goBackBtn">Go Back</button>
+      </div>
+
+      <div class="lost-links">
+        <a href="properties.html">Verified Listings</a>
+        <a href="land.html">Land &amp; Plots</a>
+        <a href="services.html">Specialist Services</a>
+        <a href="marketplace.html">Materials Marketplace</a>
+        <a href="dealers.html">Dealers &amp; Pros</a>
+        <a href="dashboard.html">My Dashboard</a>
+        <a href="contact.html">Contact Support</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Find Your Place. Make It Home.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="https://wa.me/2348108990239" target="_blank">Consultation Desk</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var back = document.getElementById('goBackBtn');
+  if (!back) return;
+  // No history to return to (typed the URL / fresh tab) — send them home instead.
+  if (history.length <= 1) {
+    back.addEventListener('click', function () { window.location.href = 'index.html'; });
+    return;
+  }
+  back.addEventListener('click', function () { history.back(); });
+});
+</script>
+
+</body>
+</html>

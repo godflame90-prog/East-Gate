@@ -7,6 +7,54 @@
   <link rel="icon" type="image/png" href="images/EastGate-core.png">
 <meta name="description" content="Everything you need to find, build, furnish, and care for your home — all in one place.">
 
+<!-- Canonical + social. Update the host here if the production domain changes. -->
+<link rel="canonical" href="https://www.eastgate.ng/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="East Gate Real-Estate">
+<meta property="og:title" content="EastGate — Find Your Place. Make It Home.">
+<meta property="og:description" content="Verified properties, land, materials, and vetted professionals — everything you need to find, build, furnish, and care for your home.">
+<meta property="og:url" content="https://www.eastgate.ng/">
+<meta property="og:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+<meta property="og:locale" content="en_NG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EastGate — Find Your Place. Make It Home.">
+<meta name="twitter:description" content="Verified properties, land, materials, and vetted professionals across Nigeria.">
+<meta name="twitter:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+<meta name="theme-color" content="#0B0B0B">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.eastgate.ng/#organization",
+      "name": "East Gate Real-Estate",
+      "url": "https://www.eastgate.ng/",
+      "logo": "https://www.eastgate.ng/images/EastGate-core.png",
+      "slogan": "Find Your Place. Make It Home.",
+      "areaServed": "NG",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "hello@eastgate.ng"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.eastgate.ng/#website",
+      "url": "https://www.eastgate.ng/",
+      "name": "East Gate Real-Estate",
+      "publisher": { "@id": "https://www.eastgate.ng/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.eastgate.ng/properties.html?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
@@ -247,7 +295,7 @@
               </li>
             </ul>
             <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
-              <button type="button" onclick="openInspectionModal('89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'Modern 4 Bedroom Villa')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
+              <button type="button" onclick="openInspectionModal('89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'Modern 4 Bedroom Villa', 'ee050f69-b910-435c-898f-00f298708968')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
               <span class="trust-badge trust-badge--verified">C of O ✓</span>
             </div>
           </div>
@@ -285,7 +333,7 @@
               </li>
             </ul>
             <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
-              <button type="button" onclick="openInspectionModal('1ae3a47f-5265-42e4-bf7f-dbbdb7ef05c6', 'Contemporary 3 Bedroom Apartment')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
+              <button type="button" onclick="openInspectionModal('1ae3a47f-5265-42e4-bf7f-dbbdb7ef05c6', 'Contemporary 3 Bedroom Apartment', 'ee050f69-b910-435c-898f-00f298708968')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
               <span class="trust-badge trust-badge--verified">Gov Consent ✓</span>
             </div>
           </div>
@@ -323,7 +371,7 @@
               </li>
             </ul>
             <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
-              <button type="button" onclick="openInspectionModal('e86dffae-0a6e-4a93-b458-336366ec9536', 'Executive 5 Bedroom Detached Duplex')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
+              <button type="button" onclick="openInspectionModal('e86dffae-0a6e-4a93-b458-336366ec9536', 'Executive 5 Bedroom Detached Duplex', 'ee050f69-b910-435c-898f-00f298708968')" class="btn btn--gold btn--sm" style="flex:1;padding:10px 14px;font-size:0.68rem;">Schedule Inspection</button>
               <span class="trust-badge trust-badge--verified">C of O ✓</span>
             </div>
           </div>
@@ -739,10 +787,10 @@
       <div class="footer__col">
         <h4>Company</h4>
         <ul>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
-          <li><a href="#">Careers</a></li>
-          <li><a href="#">Partners</a></li>
+          <li><a href="index.html#ecosystem">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="contact.html">Careers</a></li>
+          <li><a href="dealers.html">Partners</a></li>
         </ul>
       </div>
 
@@ -761,8 +809,8 @@
     <div class="footer__bottom">
       <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
       <div class="footer__legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
       </div>
     </div>
 

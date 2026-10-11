@@ -590,6 +590,15 @@
 .auth-alert.is-visible { display: flex; }
 .auth-alert svg { flex: none; margin-top: 1px; color: #D66A52; }
 
+/* Success variant used by forgot/reset/verify flows. */
+.auth-alert--ok {
+  border-color: rgba(118, 178, 122, 0.4);
+  background: rgba(118, 178, 122, 0.10);
+  color: #A7CEA9;
+}
+.auth-alert--ok svg { color: #7FBE83; }
+.auth-alert--ok[hidden] { display: none; }
+
 .auth-rule {
   display: flex;
   align-items: center;

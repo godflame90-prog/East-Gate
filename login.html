@@ -195,7 +195,9 @@
 
       document.getElementById('forgotLink').addEventListener('click', function (e) {
         e.preventDefault();
-        window.showEastGateToast('Password reset is handled by East Gate support — email support@eastgate.ng');
+        var email = emailInput.value.trim();
+        // Carry whatever they already typed so the reset page is pre-filled.
+        window.location.href = email ? 'forgot-password.html?email=' + encodeURIComponent(email) : 'forgot-password.html';
       });
 
       // Pre-seeded credential shortcuts.

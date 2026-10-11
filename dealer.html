@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dealer Profile — EastGate</title>
+  <meta name="description" content="View a verified EastGate dealer or professional: credentials, trust badges, office location, and their approved listings.">
+
+  <link rel="canonical" href="https://www.eastgate.ng/dealer.html">
+  <meta property="og:type" content="profile">
+  <meta property="og:site_name" content="East Gate Real-Estate">
+  <meta property="og:title" content="Dealer Profile — EastGate">
+  <meta property="og:description" content="Credentials, trust badges and approved listings from a verified EastGate dealer.">
+  <meta property="og:url" content="https://www.eastgate.ng/dealer.html">
+  <meta property="og:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+  <meta property="og:locale" content="en_NG">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dealer Profile — EastGate">
+  <meta name="twitter:description" content="Verified EastGate dealers and professionals, with trust badges and live listings.">
+  <meta name="twitter:image" content="https://www.eastgate.ng/images/EastGate-core.png">
+  <meta name="theme-color" content="#0B0B0B">
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/portals.css">
+  <style>
+    .dealer-hero {
+      background: var(--obsidian);
+      color: var(--ivory);
+      padding: 140px 0 64px;
+    }
+    .dealer-hero__inner {
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .dealer-hero__avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 20px;
+      background: linear-gradient(140deg, rgba(198,161,91,0.9), rgba(198,161,91,0.5));
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .dealer-hero__name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 500;
+      line-height: 1.1;
+      margin: 0 0 10px;
+    }
+    .dealer-hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      align-items: center;
+      color: var(--ivory-62);
+      font-size: 0.85rem;
+    }
+    .dealer-hero__actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+    .dealer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 32px;
+    }
+    @media (max-width: 860px) {
+      .dealer-grid { grid-template-columns: 1fr; }
+    }
+    .dealer-card-panel {
+      background: #fff;
+      border: 1px solid var(--line-light-soft);
+      border-radius: var(--r-lg);
+      padding: 28px;
+    }
+    .dealer-contact-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line-light-soft);
+      font-size: 0.88rem;
+      color: var(--ink-60);
+    }
+    .dealer-contact-row:last-child { border-bottom: 0; }
+    .dealer-contact-row a { color: var(--gold-ink); font-weight: 500; }
+    .dealer-map {
+      width: 100%;
+      height: 240px;
+      border: 0;
+      border-radius: var(--r-md);
+      margin-top: 16px;
+    }
+    .dealer-services {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .dealer-service {
+      background: var(--ivory-tint);
+      border: 1px solid var(--line-light-soft);
+      border-radius: var(--r-md);
+      padding: 20px;
+    }
+    .statebox {
+      max-width: 620px;
+      margin: 160px auto 100px;
+      text-align: center;
+      padding: 0 20px;
+    }
+    .prop-card__media a { display: block; height: 100%; }
+  </style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html">Properties</a>
+      <a href="land.html">Land</a>
+      <a href="services.html">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="contact.html">Contact Us</a>
+      <a href="dealers.html" class="is-active">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="properties.html">Properties</a>
+    <a href="land.html">Land</a>
+    <a href="services.html">Services</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="dealers.html">Dealers & Pros</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="dealer-dashboard.html#add" class="btn btn--gold">List Property</a>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- Loading / not-found state -->
+  <section id="dealerState">
+    <div class="statebox">
+      <p class="eyebrow">Dealer Directory</p>
+      <h1 class="display" id="dealerStateTitle" style="margin-top:12px;">Loading profile…</h1>
+      <p class="lede" id="dealerStateMsg" style="margin-top:14px;">Fetching this dealer's credentials and listings.</p>
+      <a href="dealers.html" class="btn btn--gold" style="margin-top:26px;" id="dealerStateCta" hidden>Back to all dealers</a>
+    </div>
+  </section>
+
+  <!-- Populated profile -->
+  <div id="dealerContent" hidden>
+    <section class="dealer-hero">
+      <div class="container dealer-hero__inner">
+        <div class="dealer-hero__avatar" id="dealerAvatar">EG</div>
+        <div style="flex:1;min-width:260px;">
+          <p class="eyebrow" style="color:var(--gold);">Verified Dealer Profile</p>
+          <h1 class="dealer-hero__name" id="dealerName">—</h1>
+          <div class="dealer-hero__meta">
+            <span id="dealerBadge"><span class="trust-badge trust-badge--under-review">Verification In Progress</span></span>
+            <span id="dealerCategory"></span>
+            <span id="dealerCac"></span>
+            <span id="dealerRating"></span>
+            <span id="dealerLocation"></span>
+          </div>
+          <div class="dealer-hero__actions">
+            <a href="#dealerListings" class="btn btn--gold btn--sm">View Listings</a>
+            <a href="#" id="dealerWhatsApp" target="_blank" rel="noopener" class="btn btn--ghost btn--sm" style="border:1px solid rgba(255,255,255,0.2);color:var(--ivory);">Chat on WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:56px;">
+      <div class="container dealer-grid">
+        <div>
+          <div class="dealer-card-panel" style="margin-bottom:28px;">
+            <p class="eyebrow">About</p>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:500;margin:8px 0 14px;">Who they are</h2>
+            <p id="dealerBio" style="font-size:0.92rem;line-height:1.75;color:var(--ink-60);">—</p>
+
+            <div style="margin-top:22px;">
+              <p class="eyebrow" style="margin-bottom:12px;">Trust Badges</p>
+              <div id="dealerBadges" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
+          </div>
+
+          <div id="dealerServicesWrap" hidden>
+            <div class="dealer-card-panel">
+              <p class="eyebrow">Services</p>
+              <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:500;margin:8px 0 18px;">Professionals on offer</h2>
+              <div class="dealer-services" id="dealerServices"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="dealer-card-panel">
+            <p class="eyebrow">Contact</p>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:500;margin:8px 0 6px;">Reach the office</h2>
+            <div id="dealerContacts"></div>
+            <iframe
+              id="dealerMap"
+              class="dealer-map"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Dealer office location"
+              hidden></iframe>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="dealerListings" style="padding-top:0;">
+      <div class="container">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+          <div>
+            <p class="eyebrow">Live Inventory</p>
+            <h2 class="display" style="font-size:clamp(1.5rem,3vw,2rem);margin-top:8px;" id="dealerListingsTitle">Listings</h2>
+          </div>
+          <span class="catalog-count" id="dealerListingsCount"></span>
+        </div>
+        <div class="prop-grid" id="dealerListingsGrid"></div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Find Your Place. Make It Home.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="properties.html">Properties</a></li>
+          <li><a href="land.html">Land</a></li>
+          <li><a href="dealers.html">Agents & Dealers</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="marketplace.html">Marketplace</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="login.html">Sign In</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="https://wa.me/2348108990239" target="_blank">WhatsApp Hotline</a></li>
+          <li><a href="dealers.html#verification">Verification Guide</a></li>
+          <li><a href="contact.html">Report a Listing</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+      <div class="footer__legal">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var esc = window.escapeHtml || function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  function formatPrice(value, currency) {
+    var n = Number(value);
+    if (!isFinite(n) || n <= 0) return 'Request for Quote';
+    var sym = { NGN: '\u20A6', USD: '$', GBP: '\u00A3', EUR: '\u20AC' }[currency] || '';
+    return sym + n.toLocaleString('en-NG');
+  }
+
+  function badgeSpan(on, label) {
+    var cls = on ? 'trust-badge trust-badge--verified' : 'trust-badge trust-badge--under-review';
+    return '<span class="' + cls + '" style="font-size:0.62rem;">' + esc(label) + ' ' + (on ? '\u2713' : '\u23F3') + '</span>';
+  }
+
+  function showState(title, msg, showCta) {
+    document.getElementById('dealerStateTitle').textContent = title;
+    document.getElementById('dealerStateMsg').textContent = msg;
+    if (showCta) document.getElementById('dealerStateCta').hidden = false;
+    document.getElementById('dealerState').hidden = false;
+    document.getElementById('dealerContent').hidden = true;
+    document.title = title + ' — EastGate';
+  }
+
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+
+  if (!id) {
+    showState('Dealer not specified', 'No dealer id was provided in the link. Browse the directory to pick a verified firm.', true);
+    return;
+  }
+
+  async function load() {
+    var raw = window.EastGateAPI ? await window.EastGateAPI.getDealer(id) : null;
+
+    if (!raw) {
+      showState('Dealer not found', 'We could not find that dealer. They may have been removed, or the link may be incomplete.', true);
+      return;
+    }
+
+    var name = raw.businessName || raw.name || 'East Gate Dealer';
+    var isVerified = (raw.status || raw.verificationStatus) === 'VERIFIED';
+    var badges = raw.badges || {
+      identity: raw.badgeIdentity,
+      cac: raw.badgeCac,
+      phone: raw.badgePhone,
+      titleDocs: raw.badgeTitleDocs
+    };
+    var rating = raw.ratingAverage != null ? Number(raw.ratingAverage) : (raw.rating != null ? Number(raw.rating) : null);
+    var reviewCount = raw.reviewCount != null ? raw.reviewCount : raw.reviewsCount;
+    var user = raw.user || {};
+    var listings = raw.listings || [];
+
+    document.getElementById('dealerAvatar').textContent = name.substring(0, 2).toUpperCase();
+    document.getElementById('dealerName').textContent = name;
+    document.getElementById('dealerBadge').innerHTML = isVerified
+      ? '<span class="trust-badge trust-badge--verified">\u2713 East Gate Verified</span>'
+      : '<span class="trust-badge trust-badge--under-review">\u23F3 Verification In Progress</span>';
+    document.getElementById('dealerCategory').textContent = raw.category || '';
+    document.getElementById('dealerCac').textContent = raw.cacNumber ? ('CAC ' + raw.cacNumber) : 'CAC Registered';
+    document.getElementById('dealerRating').textContent = rating != null
+      ? ('\u2605 ' + rating.toFixed(1) + (reviewCount != null ? ' (' + reviewCount + ' reviews)' : ''))
+      : 'New dealer';
+    var place = [raw.city, raw.state].filter(Boolean).join(', ');
+    document.getElementById('dealerLocation').textContent = place;
+
+    document.getElementById('dealerBio').textContent =
+      raw.bio || 'Licensed real estate and infrastructure development firm operating across Nigeria.';
+
+    document.getElementById('dealerBadges').innerHTML = [
+      badgeSpan(badges.identity, 'Identity'),
+      badgeSpan(badges.cac, 'CAC Certificate'),
+      badgeSpan(badges.phone, 'Verified Tel'),
+      badgeSpan(badges.titleDocs, 'Title Documents')
+    ].join('');
+
+    // Contact card. Prefer a direct email/phone, otherwise fall back to the
+    // platform hotline so the visitor always has a channel.
+    var email = user.email || raw.email || '';
+    var phone = user.phone || raw.phone || '';
+    var contacts = [];
+    if (raw.officeAddress) {
+      contacts.push('<div class="dealer-contact-row"><span style="flex:1;">' + esc(raw.officeAddress) + '</span></div>');
+    }
+    if (place) {
+      contacts.push('<div class="dealer-contact-row"><span style="flex:1;">' + esc(place) + '</span></div>');
+    }
+    if (email) {
+      contacts.push('<div class="dealer-contact-row"><span style="flex:1;">Email</span><a href="mailto:' + encodeURIComponent(email) + '">' + esc(email) + '</a></div>');
+    }
+    if (phone) {
+      contacts.push('<div class="dealer-contact-row"><span style="flex:1;">Phone</span><a href="tel:' + esc(phone) + '">' + esc(phone) + '</a></div>');
+    }
+    contacts.push('<div class="dealer-contact-row"><span style="flex:1;">East Gate Hotline</span><a href="https://wa.me/2348108990239" target="_blank" rel="noopener">WhatsApp us</a></div>');
+    document.getElementById('dealerContacts').innerHTML = contacts.join('');
+
+    var waText = encodeURIComponent('Hello ' + name + ', I found you on East Gate and would like to enquire.');
+    document.getElementById('dealerWhatsApp').href = 'https://wa.me/2348108990239?text=' + waText;
+
+    var mapQuery = raw.officeAddress || place;
+    if (mapQuery) {
+      var map = document.getElementById('dealerMap');
+      map.src = 'https://www.google.com/maps?q=' + encodeURIComponent(mapQuery + ', Nigeria') + '&output=embed';
+      map.hidden = false;
+    }
+
+    // Services (may be absent on older/mock data).
+    var services = raw.services || [];
+    if (services.length) {
+      document.getElementById('dealerServices').innerHTML = services.map(function (s) {
+        var label = esc(s.title || s.name || 'Service');
+        var cat = esc(s.category || '');
+        var desc = esc(s.description || '');
+        var area = esc(s.coverageState || '');
+        return [
+          '<div class="dealer-service">',
+          '  <h3 style="font-size:1rem;font-weight:600;margin:0 0 4px;">' + label + '</h3>',
+          '  <p style="font-size:0.72rem;color:var(--gold-ink);font-weight:500;margin:0 0 10px;">' + cat + (area ? ' • ' + area : '') + '</p>',
+          '  <p style="font-size:0.82rem;color:var(--ink-60);line-height:1.6;margin:0;">' + desc + '</p>',
+          '</div>'
+        ].join('');
+      }).join('');
+      document.getElementById('dealerServicesWrap').hidden = false;
+    }
+
+    // Listings grid, reusing the catalogue's prop-card look.
+    var grid = document.getElementById('dealerListingsGrid');
+    document.getElementById('dealerListingsTitle').textContent = 'Listings by ' + name;
+    document.getElementById('dealerListingsCount').textContent = listings.length + ' live listing' + (listings.length === 1 ? '' : 's');
+
+    if (!listings.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--ink-60);">This dealer has no approved listings yet.</div>';
+    } else {
+      grid.innerHTML = listings.map(function (p) {
+        var image = p.mainImage || p.image || '';
+        var priceLabel = formatPrice(p.price, p.currency);
+        var loc = [p.location, p.state].filter(Boolean).join(', ');
+        var beds = p.bedrooms != null ? p.bedrooms : (p.beds || 0);
+        var baths = p.bathrooms != null ? p.bathrooms : (p.baths || 0);
+        var cars = p.parkingSpaces != null ? p.parkingSpaces : (p.cars || 0);
+        return [
+          '<article class="prop-card">',
+          '  <div class="prop-card__media">',
+          '    <a href="property-detail.html?id=' + encodeURIComponent(p.id) + '"><img src="' + esc(image) + '" alt="' + esc(p.title) + '" loading="lazy"></a>',
+          '    <span class="prop-card__badge">' + esc(p.category || '') + '</span>',
+          '  </div>',
+          '  <div class="prop-card__body">',
+          '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
+          '      <span class="trust-badge trust-badge--verified" style="font-size:0.6rem;">' + esc(p.titleDocument || p.titleDoc || 'Verified') + ' \u2713</span>',
+          '    </div>',
+          '    <h3 class="prop-card__title"><a href="property-detail.html?id=' + encodeURIComponent(p.id) + '" style="color:inherit;">' + esc(p.title) + '</a></h3>',
+          '    <p class="prop-card__loc">' + esc(loc) + '</p>',
+          '    <p class="prop-card__price">' + esc(priceLabel) + '</p>',
+          '    <ul class="prop-card__specs">',
+          '      <li>' + beds + ' Beds</li>',
+          '      <li>' + baths + ' Baths</li>',
+          '      <li>' + cars + ' Cars</li>',
+          '    </ul>',
+          '    <div style="margin-top:20px;">',
+          '      <a href="property-detail.html?id=' + encodeURIComponent(p.id) + '" class="btn btn--gold btn--sm" style="width:100%;text-align:center;font-size:0.7rem;">View Details</a>',
+          '    </div>',
+          '  </div>',
+          '</article>'
+        ].join('');
+      }).join('');
+    }
+
+    // Dynamic SEO: title, canonical, description and RealEstateAgent JSON-LD.
+    document.title = name + ' — Verified EastGate Dealer';
+    var canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.href = 'https://www.eastgate.ng/dealer.html?id=' + encodeURIComponent(id);
+    var desc = document.querySelector('meta[name="description"]');
+    if (desc) desc.content = name + ' — ' + (raw.category || 'verified dealer') + ' on EastGate. ' + listings.length + ' live listings, trust badges and office contact details.';
+
+    var ld = {
+      '@context': 'https://schema.org',
+      '@type': 'RealEstateAgent',
+      name: name,
+      areaServed: place || 'Nigeria',
+      url: 'https://www.eastgate.ng/dealer.html?id=' + encodeURIComponent(id)
+    };
+    if (raw.bio) ld.description = raw.bio;
+    if (email) ld.email = email;
+    if (phone) ld.telephone = phone;
+    if (raw.officeAddress) {
+      ld.address = { '@type': 'PostalAddress', streetAddress: raw.officeAddress, addressLocality: raw.city || '', addressRegion: raw.state || '', addressCountry: 'NG' };
+    }
+    if (rating != null && reviewCount) {
+      ld.aggregateRating = { '@type': 'AggregateRating', ratingValue: rating, reviewCount: reviewCount };
+    }
+    var ldScript = document.createElement('script');
+    ldScript.type = 'application/ld+json';
+    ldScript.textContent = JSON.stringify(ld);
+    document.head.appendChild(ldScript);
+
+    document.getElementById('dealerState').hidden = true;
+    document.getElementById('dealerContent').hidden = false;
+  }
+
+  load();
+});
+</script>
+
+</body>
+</html>

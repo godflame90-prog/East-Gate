@@ -36,6 +36,95 @@
   padding: 28px;
   margin-bottom: 36px;
 }
+
+/* Approved & Live — scope toggle */
+.approved-filter {
+  display: flex;
+  gap: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+.approved-filter__btn {
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ivory-62);
+  cursor: pointer;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease);
+}
+.approved-filter__btn:hover { color: var(--ivory); }
+.approved-filter__btn.is-active {
+  background: var(--gold);
+  color: var(--obsidian);
+}
+.approved-filter__btn:disabled { opacity: 0.5; cursor: progress; }
+
+/* Group header — one row per person who did the listing, with every one of
+   their live items underneath it. */
+.data-table tr.approved-group td {
+  background: rgba(198,161,91,0.07);
+  border-top: 1px solid rgba(198,161,91,0.28);
+  border-bottom: 1px solid rgba(198,161,91,0.18);
+  padding: 13px 20px;
+}
+.data-table tr.approved-group:hover td { background: rgba(198,161,91,0.07); }
+.approved-group__name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.approved-group__business {
+  font-size: 0.78rem;
+  color: var(--ivory);
+}
+.approved-group__count {
+  float: right;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ivory-62);
+}
+.approved-empty {
+  text-align: center;
+  color: var(--ivory-62);
+  padding: 40px 24px;
+}
+
+/* Type marker for the Approved table — kept page-local so the shared
+   trust-badge/status-pill colours stay reserved for trust and status. */
+.type-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.type-tag--property { background: rgba(198,161,91,.14); color: var(--gold); border-color: rgba(198,161,91,.4); }
+.type-tag--product  { background: rgba(52,152,219,.14); color: #5dade2; border-color: rgba(93,173,226,.4); }
+.type-tag--service  { background: rgba(155,89,182,.14); color: #bb8fce; border-color: rgba(187,143,206,.4); }
+
+.approved-price {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+.approved-by {
+  font-size: 0.78rem;
+  color: var(--ivory-62);
+}
 </style>
 </head>
 
@@ -84,6 +173,11 @@
         Services Queue
         <span class="portal-nav__count" id="countPendingSrvs" style="background:#e67e22;color:#fff;">1</span>
       </button>
+      <button data-tab="approved-items">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg>
+        Approved &amp; Live
+        <span class="portal-nav__count" id="countApprovedItems" style="background:#2ecc71;color:#fff;">0</span>
+      </button>
       <button data-tab="verifications">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Dealer Verifications
@@ -94,10 +188,20 @@
         Dispute &amp; Reports
         <span class="portal-nav__count" id="countReports">0</span>
       </button>
+      <button data-tab="inspections">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Inspection Appointments
+        <span class="portal-nav__count" id="countInspections">0</span>
+      </button>
       <button data-tab="contact-inbox">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg>
         Contact Inbox
         <span class="portal-nav__count" id="countUnreadMessages" style="background:#e67e22;color:#fff;">0</span>
+      </button>
+      <button data-tab="enquiries">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Listing Enquiries
+        <span class="portal-nav__count" id="countUnreadEnquiries" style="background:#e67e22;color:#fff;">0</span>
       </button>
       <button data-tab="audit-logs">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -295,7 +399,39 @@
       </div>
     </div>
 
-    <!-- TAB 5: DEALER VERIFICATIONS -->
+    <!-- TAB 5: APPROVED & LIVE -->
+    <div id="tab-approved-items" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Approved &amp; Live Listings</h1>
+          <p>Everything cleared for public display, grouped under the person who did the listing, with the administrator who signed it off.</p>
+        </div>
+        <div class="approved-filter" role="group" aria-label="Filter approved listings">
+          <button type="button" class="approved-filter__btn is-active" data-scope="all">All approved</button>
+          <button type="button" class="approved-filter__btn" data-scope="mine">Only mine</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Listing</th>
+              <th>Details</th>
+              <th>Approved By</th>
+              <th>Approved On</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="approvedRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 6: DEALER VERIFICATIONS -->
     <div id="tab-verifications" class="tab-pane" style="display:none;">
       <div class="portal-header">
         <div>
@@ -309,9 +445,9 @@
           <thead>
             <tr>
               <th>Dealer / Agency</th>
-              <th>Document Type</th>
-              <th>Document Name</th>
-              <th>Submission Date</th>
+              <th>Trade &amp; Location</th>
+              <th>Credentials on File</th>
+              <th>Applied</th>
               <th>Status</th>
               <th>Audit Action</th>
             </tr>
@@ -351,7 +487,37 @@
       </div>
     </div>
 
-    <!-- TAB 7: CONTACT INBOX -->
+    <!-- TAB 7: INSPECTION APPOINTMENTS -->
+    <div id="tab-inspections" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Inspection Appointments</h1>
+          <p>Every on-site walkthrough booked by a customer, with the assigned dealer and the client's contact details.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Customer</th>
+              <th>Property</th>
+              <th>Assigned Dealer</th>
+              <th>Scheduled</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inspectionRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 8: CONTACT INBOX -->
     <div id="tab-contact-inbox" class="tab-pane" style="display:none;">
       <div class="portal-header">
         <div>
@@ -373,6 +539,35 @@
             </tr>
           </thead>
           <tbody id="contactMessageRows">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: LISTING ENQUIRIES -->
+    <div id="tab-enquiries" class="tab-pane" style="display:none;">
+      <div class="portal-header">
+        <div>
+          <h1>Listing Enquiries</h1>
+          <p>Messages sent from a property detail page. Each enquiry is tied to the listing and its dealer so the desk can triage by property.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Received</th>
+              <th>From</th>
+              <th>Listing</th>
+              <th>Dealer</th>
+              <th>Message</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="enquiryRows">
             <!-- Dynamically populated -->
           </tbody>
         </table>
@@ -478,6 +673,27 @@ document.addEventListener('DOMContentLoaded', function () {
     return LISTING_TYPE_LABELS[key] || key || '—';
   }
 
+  // TitleDocumentType labels — the queue table would otherwise print the raw
+  // enum member ('C_OF_O') in the badge where an admin expects a document name.
+  var TITLE_DOC_LABELS = {
+    C_OF_O: 'C of O',
+    FEDERAL_C_OF_O: 'Federal C of O',
+    GOVERNORS_CONSENT: "Governor's Consent",
+    REGISTERED_SURVEY_DEED: 'Registered Survey Deed',
+    FCDA_ALLOCATION: 'FCDA Allocation',
+    GOVERNMENT_GAZETTE: 'Government Gazette',
+    OTHER: 'Other'
+  };
+
+  function titleDocLabel(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '—';
+    var key = raw.toUpperCase().replace(/[\s-]+/g, '_');
+    if (TITLE_DOC_LABELS[key]) return TITLE_DOC_LABELS[key];
+    // Already a human label from the legacy form ("Certificate of Occupancy (C of O)").
+    return raw;
+  }
+
   function normProperty(p) {
     return {
       id: p.id,
@@ -486,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function () {
       category: p.category,
       location: p.location,
       priceDisplay: p.priceDisplay || naira(p.price),
-      titleDoc: p.titleDoc || p.titleDocument || '—',
+      titleDoc: titleDocLabel(p.titleDoc || p.titleDocument),
       dealerName: p.dealerName || (p.dealer && p.dealer.businessName) || 'Unknown dealer'
     };
   }
@@ -512,15 +728,37 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
+  // One row per DEALER awaiting review — the shape the workbench actually
+  // decides on. Their credential files are folded into the row rather than
+  // spread across it, because an agency that has uploaded nothing still needs a
+  // decision and would otherwise never appear.
+  function normPendingDealer(d) {
+    return {
+      id: d.id,
+      dealerName: d.businessName || 'Unnamed agency',
+      subline: [d.category, d.city || d.state].filter(Boolean).join(' · '),
+      contact: [d.fullName, d.email, d.phone].filter(Boolean).join(' · '),
+      documents: (d.documents || []).map(function (doc) {
+        return { name: doc.documentName, url: safeUrl(doc.documentUrl), type: doc.documentType };
+      }),
+      submittedAt: shortDate(d.createdAt),
+      // The API uses UNDER_REVIEW / VERIFIED; the store used PENDING / APPROVED.
+      status: d.status === 'VERIFIED' ? 'APPROVED' : 'PENDING'
+    };
+  }
+
+  // A document whose dealer is already on the board above is not a second
+  // decision and never reaches this normaliser — see renderAdminData. What is
+  // left is a file lodged against a dealer who is not themselves pending, and
+  // it still carries dealerId so the action verifies the agency behind it.
   function normVerification(v) {
     return {
-      id: v.id,
+      id: v.dealerId || v.id,
       dealerName: v.dealerName || (v.dealer && v.dealer.businessName) || 'Unknown dealer',
-      dimension: v.dimension || v.documentType || 'DOCUMENT',
-      documentUrl: safeUrl(v.documentUrl),
-      documentName: v.documentName,
+      subline: v.dimension || v.documentType || 'DOCUMENT',
+      contact: '',
+      documents: [{ name: v.documentName, url: safeUrl(v.documentUrl), type: v.documentType }],
       submittedAt: shortDate(v.submittedAt),
-      // The API uses UNDER_REVIEW / VERIFIED; the store used PENDING / APPROVED.
       status: v.status === 'VERIFIED' ? 'APPROVED' : v.status === 'UNDER_REVIEW' ? 'PENDING' : v.status
     };
   }
@@ -548,6 +786,25 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
+  // Per-listing enquiries. The API joins property + dealer; the mock store keeps
+  // a flat row. Fold both onto the shape the table renders.
+  function normEnquiry(e) {
+    var property = e.property || {};
+    var dealer = e.dealer || {};
+    return {
+      id: e.id,
+      name: e.name || 'Unknown sender',
+      email: e.email || '',
+      phone: e.phone || '',
+      message: e.message || '',
+      propertyId: e.propertyId || property.id || '',
+      propertyTitle: property.title || e.propertyTitle || 'Listing',
+      dealerName: dealer.businessName || e.dealerName || 'Unassigned',
+      createdAt: e.createdAt ? new Date(e.createdAt).toLocaleString() : '—',
+      isRead: !!e.readAt
+    };
+  }
+
   function normReport(r) {
     var reporter = typeof r.reporter === 'string' ? r.reporter : (r.reporter && r.reporter.fullName);
     return {
@@ -556,6 +813,26 @@ document.addEventListener('DOMContentLoaded', function () {
       targetTitle: r.targetTitle || (r.targetType + ' ' + String(r.targetId || '').slice(0, 8)),
       reason: r.reason,
       status: r.status
+    };
+  }
+
+  // Inspection appointments. The API joins the property, dealer and customer;
+  // the mock store keeps a flat shape — fold both onto what the table renders.
+  function normInspection(i) {
+    return {
+      id: i.id,
+      customer: i.userName || (i.user && i.user.fullName) || 'Customer',
+      customerContact: i.userPhone || (i.user && i.user.phone) || (i.user && i.user.email) || '',
+      propertyTitle: (i.property && i.property.title) || i.propertyTitle || '—',
+      propertyLocation: (i.property && i.property.location) || i.propertyLocation || '',
+      dealerName: (i.dealer && i.dealer.businessName) || i.dealerName || 'Unassigned',
+      date: i.date ? String(i.date).slice(0, 10) : '',
+      time: i.timeSlot || i.time || '',
+      status: i.status || 'PENDING',
+      notes: i.clientNotes || i.notes || '',
+      adminNotes: i.adminNotes || '',
+      cancelledBy: (i.cancelledBy && i.cancelledBy.fullName) || '',
+      cancelledAt: i.cancelledAt ? String(i.cancelledAt).slice(0, 10) : ''
     };
   }
 
@@ -573,7 +850,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var vers = data.verifications;
     var logs = data.auditLogs;
     var reports = data.reports;
+    var inspections = data.inspections || [];
     var messages = data.contactMessages || [];
+    var enquiries = data.enquiries || [];
     var verifiedDealers = data.verifiedDealers;
 
     // KPI Counters
@@ -586,7 +865,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('kpiAuditCount').textContent = logs.length;
     document.getElementById('countReports').textContent = reports.length;
     document.getElementById('countUnreadMessages').textContent = messages.filter(function (m) { return !m.isRead; }).length;
+    document.getElementById('countUnreadEnquiries').textContent = enquiries.filter(function (e) { return !e.isRead; }).length;
     document.getElementById('kpiVerifiedDealers').textContent = verifiedDealers;
+    document.getElementById('countInspections').textContent = inspections.length;
 
     // Overview Table
     var combined = [];
@@ -655,22 +936,36 @@ document.addEventListener('DOMContentLoaded', function () {
       ].join('');
     }).join('');
 
-    // Verifications Table
+    // Verifications Table — one row per dealer awaiting a decision.
     var verTable = document.getElementById('verificationsRows');
     verTable.innerHTML = vers.length === 0
-      ? '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No credentials awaiting review.</td></tr>'
+      ? '<tr><td colspan="6" style="text-align:center;color:var(--ivory-62);padding:24px;">No dealers or credentials awaiting review.</td></tr>'
       : vers.map(function (v) {
         var isApproved = v.status === 'APPROVED';
+        var contact = v.contact
+          ? '<br><span style="font-size:0.72rem;color:var(--ivory-62);font-weight:400;">' + esc(v.contact) + '</span>'
+          : '';
+        // safeUrl collapses a non-http scheme to '#'; show those as plain text
+        // rather than handing the admin a dead link.
+        var files = v.documents.length
+          ? v.documents.map(function (doc) {
+              var name = esc(doc.name || doc.type || 'Credential');
+              return doc.url && doc.url !== '#'
+                ? '<a href="' + esc(doc.url) + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">' + name + '</a>'
+                : name;
+            }).join('<br>')
+          : '<span style="color:var(--ivory-62);">No documents submitted</span>';
+
         return [
           '<tr>',
-          '  <td><strong>' + esc(v.dealerName) + '</strong></td>',
-          '  <td><span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + esc(v.dimension) + '</span></td>',
-          '  <td><a href="' + esc(v.documentUrl) + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">' + esc(v.documentName) + '</a></td>',
-          '  <td>' + esc(v.submittedAt) + '</td>',
+          '  <td><strong>' + esc(v.dealerName) + '</strong>' + contact + '</td>',
+          '  <td style="font-size:0.78rem;color:var(--ivory-62);">' + esc(v.subline || '—') + '</td>',
+          '  <td style="font-size:0.78rem;">' + files + '</td>',
+          '  <td style="white-space:nowrap;">' + esc(v.submittedAt) + '</td>',
           '  <td><span class="status-pill status-pill--' + (isApproved ? 'approved' : 'pending') + '">' + esc(v.status) + '</span></td>',
           '  <td>' + (isApproved
             ? '<span style="color:#2ecc71;font-size:0.75rem;">Verified ✓</span>'
-            : '<button class="btn-action btn-action--approve" onclick="verifyDealerDoc(\'' + esc(v.id) + '\')">Verify &amp; Award Badge</button>') +
+            : '<button class="btn-action btn-action--approve" onclick="verifyDealer(\'' + esc(v.id) + '\')">Verify &amp; Award Badge</button>') +
           '</td>',
           '</tr>'
         ].join('');
@@ -689,6 +984,55 @@ document.addEventListener('DOMContentLoaded', function () {
           '  <td style="color:#e74c3c;">' + esc(r.reason) + '</td>',
           '  <td><span class="status-pill status-pill--pending">' + esc(r.status) + '</span></td>',
           '  <td><button class="btn-action btn-action--approve" onclick="window.showEastGateToast(\'Investigated report ' + esc(r.id) + '\')">Investigate</button></td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+
+    // Inspection Appointments Table
+    var inspTable = document.getElementById('inspectionRows');
+    inspTable.innerHTML = inspections.length === 0
+      ? '<tr><td colspan="8" style="text-align:center;color:var(--ivory-62);padding:24px;">No inspection appointments booked yet.</td></tr>'
+      : inspections.map(function (i) {
+        var pill = i.status === 'CONFIRMED' || i.status === 'COMPLETED'
+          ? 'approved'
+          : (i.status === 'CANCELLED' ? 'rejected' : 'pending');
+        var contact = i.customerContact
+          ? '<br><span style="font-size:0.72rem;color:var(--ivory-62);font-weight:400;">' + esc(i.customerContact) + '</span>'
+          : '';
+        // Lifecycle actions. A closed appointment (COMPLETED / CANCELLED) offers
+        // no buttons; anything live can be confirmed and, once confirmed, completed.
+        var actions = [];
+        if (i.status === 'COMPLETED' || i.status === 'CANCELLED') {
+          actions.push('<span style="font-size:0.72rem;color:var(--ivory-62);">Closed</span>');
+        } else {
+          if (i.status !== 'CONFIRMED') {
+            actions.push('<button class="btn-action btn-action--approve" onclick="window.updateInspectionStatus(\'' + esc(i.id) + '\', \'CONFIRMED\')">Confirm</button>');
+          }
+          if (i.status === 'CONFIRMED') {
+            actions.push('<button class="btn-action btn-action--approve" onclick="window.updateInspectionStatus(\'' + esc(i.id) + '\', \'COMPLETED\')">Complete</button>');
+          }
+          actions.push('<button class="btn-action" data-id="' + esc(i.id) + '" data-date="' + esc(i.date) + '" data-time="' + esc(i.time) + '" onclick="window.openRescheduleModal(this)">Reschedule</button>');
+          actions.push('<button class="btn-action btn-action--reject" onclick="window.cancelInspection(\'' + esc(i.id) + '\')">Cancel</button>');
+        }
+        // Notes cell: the customer's own notes, then the documented cancellation
+        // trail (who cancelled, when, and why) when one exists.
+        var notesCell = '<span style="font-size:0.75rem;color:var(--ivory-62);">' + esc(i.notes || 'Standard physical walkthrough') + '</span>';
+        if (i.adminNotes) {
+          notesCell += '<br><span style="font-size:0.72rem;color:#e74c3c;">Cancelled' +
+            (i.cancelledBy ? ' by ' + esc(i.cancelledBy) : '') +
+            (i.cancelledAt ? ' on ' + esc(i.cancelledAt) : '') +
+            ': ' + esc(i.adminNotes) + '</span>';
+        }
+        return [
+          '<tr>',
+          '  <td><code>' + esc(i.id) + '</code></td>',
+          '  <td><strong>' + esc(i.customer) + '</strong>' + contact + '</td>',
+          '  <td><strong>' + esc(i.propertyTitle) + '</strong><br><span style="font-size:0.72rem;color:var(--ivory-62);">' + esc(i.propertyLocation) + '</span></td>',
+          '  <td>' + esc(i.dealerName) + '</td>',
+          '  <td style="white-space:nowrap;">' + esc(i.date) + '<br><span style="font-size:0.72rem;color:var(--gold);">' + esc(i.time) + '</span></td>',
+          '  <td><span class="status-pill status-pill--' + pill + '">' + esc(i.status) + '</span></td>',
+          '  <td style="font-size:0.75rem;color:var(--ivory-62);">' + notesCell + '</td>',
+          '  <td style="white-space:nowrap;">' + actions.join(' ') + '</td>',
           '</tr>'
         ].join('');
       }).join('');
@@ -718,6 +1062,34 @@ document.addEventListener('DOMContentLoaded', function () {
         ].join('');
       }).join('');
 
+    // Listing Enquiries Table
+    var enquiryTable = document.getElementById('enquiryRows');
+    enquiryTable.innerHTML = enquiries.length === 0
+      ? '<tr><td colspan="7" style="text-align:center;color:var(--ivory-62);padding:24px;">No listing enquiries yet.</td></tr>'
+      : enquiries.map(function (e) {
+        var contactLine = e.phone
+          ? '<a href="tel:' + esc(e.phone) + '">' + esc(e.phone) + '</a>'
+          : '<span style="color:var(--ivory-62);">—</span>';
+        var listing = e.propertyId
+          ? '<a href="property-detail.html?id=' + encodeURIComponent(e.propertyId) + '" target="_blank" rel="noopener">' + esc(e.propertyTitle) + '</a>'
+          : esc(e.propertyTitle);
+        return [
+          '<tr data-enquiry-id="' + esc(e.id) + '" data-read="' + (e.isRead ? 'true' : 'false') + '"' + (e.isRead ? '' : ' style="background:rgba(230,126,34,.07);"') + '>',
+          '  <td style="white-space:nowrap;">' + esc(e.createdAt) + '</td>',
+          '  <td><strong>' + esc(e.name) + '</strong><br><a href="mailto:' + esc(e.email) + '">' + esc(e.email) + '</a><br>' + contactLine + '</td>',
+          '  <td>' + listing + '</td>',
+          '  <td>' + esc(e.dealerName) + '</td>',
+          '  <td style="max-width:340px;white-space:pre-wrap;">' + esc(e.message) + '</td>',
+          '  <td>' + (e.isRead
+            ? '<span style="color:#2ecc71;font-size:0.72rem;">Read</span>'
+            : '<span class="status-pill status-pill--pending">UNREAD</span>') + '</td>',
+          '  <td>' +
+          '    <button class="btn-action btn-action--approve" onclick="toggleEnquiryRead(\'' + esc(e.id) + '\')">' + (e.isRead ? 'Mark unread' : 'Mark read') + '</button>' +
+          '  </td>',
+          '</tr>'
+        ].join('');
+      }).join('');
+
     // Audit Timeline
     var auditDiv = document.getElementById('auditTimeline');
     auditDiv.innerHTML = logs.length === 0
@@ -739,22 +1111,163 @@ document.addEventListener('DOMContentLoaded', function () {
       }).join('');
   }
 
+  // ---- Approved & Live ---------------------------------------------------
+  // Every cleared item, grouped under the person who did the listing. The
+  // server returns them newest-publication-first, so the first time a
+  // submitter's key appears is already their most recent approval — group
+  // order falls out of that and needs no second sort.
+  var approvedScope = 'all';
+
+  function paintApproved(payload) {
+    payload = payload || {};
+    var items = payload.items || [];
+    var total = payload.total || 0;
+    var mineCount = payload.mineCount || 0;
+    var rows = document.getElementById('approvedRows');
+    if (!rows) return;
+
+    var badge = document.getElementById('countApprovedItems');
+    if (badge) badge.textContent = total;
+
+    // The two scopes advertise their own size, so an admin can see at a glance
+    // how much of the live catalogue is theirs before switching.
+    Array.prototype.forEach.call(document.querySelectorAll('.approved-filter__btn'), function (btn) {
+      var scope = btn.getAttribute('data-scope');
+      btn.textContent = (scope === 'mine' ? 'Only mine (' : 'All approved (') +
+        (scope === 'mine' ? mineCount : total) + ')';
+      btn.classList.toggle('is-active', scope === approvedScope);
+    });
+
+    if (!items.length) {
+      rows.innerHTML = '<tr><td colspan="6" class="approved-empty">' +
+        (approvedScope === 'mine'
+          ? 'You have not approved anything yet. Approve an item from any queue and it appears here.'
+          : 'Nothing has been approved yet.') +
+        '</td></tr>';
+      return;
+    }
+
+    // Bucket first, render second. The list is ordered by publication date, so
+    // one person's items are interleaved with everyone else's — emitting a
+    // header whenever the name changed would repeat the same person three or
+    // four times down the table. First appearance still sets group order, which
+    // is the most recently published submitter.
+    var groups = [];
+    var byKey = {};
+
+    items.forEach(function (item) {
+      var key = item.submitterKey || item.submittedBy || 'unknown';
+      var group = byKey[key];
+      if (!group) {
+        group = byKey[key] = {
+          name: item.submittedBy,
+          business: item.submittedByBusiness,
+          items: []
+        };
+        groups.push(group);
+      }
+      group.items.push(item);
+    });
+
+    var lines = [];
+
+    groups.forEach(function (group) {
+      var business = group.business && group.business !== group.name
+        ? '<span class="approved-group__business"> · ' + esc(group.business) + '</span>'
+        : '';
+      lines.push([
+        '<tr class="approved-group">',
+        '  <td colspan="6">',
+        '    <span class="approved-group__name">' + esc(group.name) + '</span>' + business,
+        '    <span class="approved-group__count">' + group.items.length +
+             (group.items.length === 1 ? ' live item' : ' live items') + '</span>',
+        '  </td>',
+        '</tr>'
+      ].join(''));
+
+      group.items.forEach(function (item) {
+        var lowerType = String(item.type || '').toLowerCase();
+        var detail = [item.category, item.detail, item.location]
+          .filter(function (part) { return part && String(part).trim(); })
+          .join(' · ');
+        var price = item.price && Number(item.price) > 0
+          ? '<span class="approved-price">' + esc(naira(item.price)) + '</span>'
+          : '';
+
+        lines.push([
+          '<tr>',
+          '  <td><span class="type-tag type-tag--' + esc(lowerType) + '">' + esc(item.type) + '</span></td>',
+          '  <td><strong>' + esc(item.name) + '</strong>' + price + '</td>',
+          '  <td style="font-size:0.78rem;color:var(--ivory-62);">' + (detail ? esc(detail) : '—') + '</td>',
+          '  <td>' + (item.approvedBy
+            ? esc(item.approvedBy)
+            : '<span class="approved-by">Not recorded</span>') + '</td>',
+          '  <td style="white-space:nowrap;">' + shortDate(item.approvedAt) + '</td>',
+          '  <td><span class="status-pill status-pill--approved">Live</span></td>',
+          '</tr>'
+        ].join(''));
+      });
+    });
+
+    rows.innerHTML = lines.join('');
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.approved-filter__btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      var scope = btn.getAttribute('data-scope');
+      if (scope === approvedScope) return;
+      approvedScope = scope;
+      Array.prototype.forEach.call(document.querySelectorAll('.approved-filter__btn'), function (b) {
+        b.classList.toggle('is-active', b === btn);
+      });
+      renderApproved();
+    });
+  });
+
+  async function renderApproved() {
+    if (!window.EastGateAPI || !window.EastGateAPI.getApprovedItems) return;
+    paintApproved(await window.EastGateAPI.getApprovedItems(approvedScope === 'mine'));
+  }
+
   async function renderAdminData() {
     if (!window.EastGateAPI) return;
 
     var queue = await window.EastGateAPI.getAdminQueue();
     var auditLogs = await window.EastGateAPI.getAuditLogs();
     var reports = await window.EastGateAPI.getAdminReports();
+    var inspections = window.EastGateAPI.getAdminInspections
+      ? await window.EastGateAPI.getAdminInspections()
+      : [];
     var contactMessages = await window.EastGateAPI.getAdminContactMessages();
+    var enquiries = window.EastGateAPI.getAdminEnquiries
+      ? await window.EastGateAPI.getAdminEnquiries()
+      : [];
+    // Fetched alongside the queues so the approved table refreshes the moment
+    // an item moves out of a queue and into the live catalogue.
+    var approved = await window.EastGateAPI.getApprovedItems(approvedScope === 'mine');
+
+    paintApproved(approved);
+
+    // Dealers first, then any credential file lodged against a dealer who is not
+    // themselves pending. Folding on dealerId keeps one agency from holding two
+    // rows and two separate "Verify" buttons for a single decision.
+    var pendingDealers = queue.pendingDealers || [];
+    var pendingDealerIds = {};
+    pendingDealers.forEach(function (d) { pendingDealerIds[d.id] = true; });
+    var looseDocs = (queue.verifications || []).filter(function (v) {
+      return !pendingDealerIds[v.dealerId];
+    });
 
     paint({
       properties: (queue.properties || []).map(normProperty),
       products: (queue.products || []).map(normProduct),
       services: (queue.services || []).map(normService),
-      verifications: (queue.verifications || []).map(normVerification),
+      verifications: pendingDealers.map(normPendingDealer).concat(looseDocs.map(normVerification)),
       auditLogs: (auditLogs || []).map(normAudit),
       reports: (reports || []).map(normReport),
+      inspections: (inspections || []).map(normInspection),
       contactMessages: (contactMessages || []).map(normContactMessage),
+      enquiries: (enquiries || []).map(normEnquiry),
       verifiedDealers: typeof queue.verifiedDealerCount === 'number'
         ? queue.verifiedDealerCount
         : ((window.EastGateDB && window.EastGateDB.get().verifications || [])
@@ -793,6 +1306,76 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
+  window.updateInspectionStatus = async function (id, status) {
+    var res = await window.EastGateAPI.updateInspectionStatus(id, status);
+    if (res && res.success) {
+      window.showEastGateToast('Inspection marked ' + status + '.');
+      renderAdminData();
+    } else {
+      window.showEastGateToast((res && res.error) || 'Could not update the inspection. Are you still signed in as an admin?');
+    }
+  };
+
+  // Cancel is documented: the reason is mandatory (mirrors the server rule) and
+  // is stored with the admin's identity and the timestamp.
+  window.cancelInspection = async function (id) {
+    var reason = window.prompt('Reason for cancelling this inspection (required for the record):');
+    if (reason === null) return; // dismissed
+    reason = reason.trim();
+    if (!reason) {
+      window.showEastGateToast('A cancellation reason is required.');
+      return;
+    }
+    var res = await window.EastGateAPI.updateInspectionStatus(id, 'CANCELLED', { notes: reason });
+    if (res && res.success) {
+      window.showEastGateToast('Inspection cancelled and reason recorded.');
+      renderAdminData();
+    } else {
+      window.showEastGateToast((res && res.error) || 'Could not cancel the inspection. Are you still signed in as an admin?');
+    }
+  };
+
+  // Reschedule flow: the row hands us the current slot so the dialog opens
+  // prefilled, then the new date/time ride along with a RESCHEDULED status.
+  window.openRescheduleModal = function (btn) {
+    var modal = document.getElementById('rescheduleModal');
+    if (!modal) return;
+    document.getElementById('rescheduleId').value = btn.getAttribute('data-id') || '';
+    document.getElementById('rescheduleRef').textContent = btn.getAttribute('data-id') || '';
+    var dateInput = document.getElementById('rescheduleDate');
+    dateInput.value = btn.getAttribute('data-date') || '';
+    dateInput.min = new Date().toISOString().split('T')[0];
+    var timeSelect = document.getElementById('rescheduleTime');
+    var current = btn.getAttribute('data-time') || '';
+    if (current) timeSelect.value = current;
+    modal.classList.add('is-open');
+  };
+
+  window.closeRescheduleModal = function () {
+    var modal = document.getElementById('rescheduleModal');
+    if (modal) modal.classList.remove('is-open');
+  };
+
+  window.submitReschedule = async function () {
+    var id = document.getElementById('rescheduleId').value;
+    var date = document.getElementById('rescheduleDate').value;
+    var timeSlot = document.getElementById('rescheduleTime').value;
+
+    if (!id || !date || !timeSlot) {
+      window.showEastGateToast('Pick a new date and time slot first.');
+      return;
+    }
+
+    var res = await window.EastGateAPI.updateInspectionStatus(id, 'RESCHEDULED', { date: date, timeSlot: timeSlot });
+    if (res && res.success) {
+      window.closeRescheduleModal();
+      window.showEastGateToast('Inspection rescheduled to ' + date + '.');
+      renderAdminData();
+    } else {
+      window.showEastGateToast((res && res.error) || 'Could not reschedule. Are you still signed in as an admin?');
+    }
+  };
+
   window.toggleMessageRead = async function (id) {
     var row = document.querySelector('tr[data-message-id="' + id + '"]');
     var wasRead = row && row.getAttribute('data-read') === 'true';
@@ -813,13 +1396,29 @@ document.addEventListener('DOMContentLoaded', function () {
     renderAdminData();
   };
 
-  window.verifyDealerDoc = async function (verId) {
-    var res = await window.EastGateAPI.adminVerifyDealer(verId);
+  // Listing enquiries have no delete: they are a record of interest in a live
+  // property, so only the read/unread flag is mutable from this desk.
+  window.toggleEnquiryRead = async function (id) {
+    var row = document.querySelector('tr[data-enquiry-id="' + id + '"]');
+    var wasRead = row && row.getAttribute('data-read') === 'true';
+
+    var ok = await window.EastGateAPI.markEnquiryRead(id, !wasRead);
+    if (!ok) {
+      window.showEastGateToast('Could not update the enquiry. Are you still signed in as an admin?');
+      return;
+    }
+    renderAdminData();
+  };
+
+  // The id on a row is always the dealer behind it, so this verifies the agency
+  // and clears every credential they have outstanding in one call.
+  window.verifyDealer = async function (dealerId) {
+    var res = await window.EastGateAPI.adminVerifyDealer(dealerId);
     if (res && res.success) {
-      window.showEastGateToast('Credentials verified! East Gate Verified badge awarded.');
+      window.showEastGateToast(res.message || 'Credentials verified! East Gate Verified badge awarded.');
       renderAdminData();
     } else {
-      window.showEastGateToast('Verification failed.');
+      window.showEastGateToast((res && res.error) || 'Verification failed.');
     }
   };
 
@@ -855,6 +1454,32 @@ document.addEventListener('DOMContentLoaded', function () {
   renderAdminData();
 });
 </script>
+
+<!-- Reschedule dialog: reuses the shared modal styles. The row supplies the
+     current id + slot so it opens prefilled; saving sends a RESCHEDULED update. -->
+<div class="modal-backdrop" id="rescheduleModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-box__head">
+      <h3 class="modal-box__title">Reschedule Inspection</h3>
+      <button type="button" class="modal-box__close" onclick="window.closeRescheduleModal()" aria-label="Close">&times;</button>
+    </div>
+    <input type="hidden" id="rescheduleId">
+    <p style="font-size:0.78rem;color:var(--ivory-62);margin-bottom:18px;">Reference <code id="rescheduleRef"></code></p>
+    <div class="form-group">
+      <label class="form-label" for="rescheduleDate">New Date</label>
+      <input type="date" class="form-input" id="rescheduleDate" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="rescheduleTime">New Time Slot</label>
+      <select class="form-select" id="rescheduleTime">
+        <option>10:00 AM – 11:30 AM</option>
+        <option>02:00 PM – 03:30 PM</option>
+        <option>04:30 PM – 06:00 PM</option>
+      </select>
+    </div>
+    <button type="button" class="btn btn--gold" style="width:100%;margin-top:8px;" onclick="window.submitReschedule()">Save New Schedule</button>
+  </div>
+</div>
 
 </body>
 </html>

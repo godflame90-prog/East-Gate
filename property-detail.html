@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Property Details — East Gate Real-Estate</title>
+  <link rel="icon" type="image/png" href="images/EastGate-core.png">
+<meta name="description" content="Full details, photos, verified title documents and inspection booking for this verified East Gate property listing.">
+
+<!-- Open Graph / social. Filled in from the listing once it loads; the static
+     values below are the safe fallback if the page is shared before hydration. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="East Gate Real-Estate">
+<meta property="og:title" id="ogTitle" content="Property Details — East Gate Real-Estate">
+<meta property="og:description" id="ogDescription" content="Verified property listing on East Gate.">
+<meta property="og:image" id="ogImage" content="images/EastGate-core.png">
+<meta property="og:url" id="ogUrl" content="">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" id="twTitle" content="Property Details — East Gate Real-Estate">
+<meta name="twitter:description" id="twDescription" content="Verified property listing on East Gate.">
+<meta name="twitter:image" id="twImage" content="images/EastGate-core.png">
+<link rel="canonical" id="canonicalLink" href="">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/portals.css">
+
+<style>
+.detail-head { padding: 120px 0 0; }
+.detail-breadcrumb {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  font-size: 0.78rem; color: var(--ink-60); margin-bottom: 26px;
+}
+.detail-breadcrumb a { color: var(--ink-60); border-bottom: 1px solid transparent; }
+.detail-breadcrumb a:hover { color: var(--gold-ink); border-color: var(--gold-ink); }
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
+  gap: clamp(28px, 4vw, 52px);
+  align-items: start;
+}
+.detail-gallery__main {
+  position: relative; width: 100%; aspect-ratio: 16/10; overflow: hidden;
+  border-radius: var(--r-md); background: var(--ivory-tint); cursor: zoom-in;
+}
+.detail-gallery__main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-gallery__count {
+  position: absolute; bottom: 14px; right: 14px;
+  background: rgba(11,11,11,.72); color: var(--ivory);
+  font-size: 0.72rem; padding: 6px 12px; border-radius: 30px; letter-spacing: .04em;
+}
+.detail-thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 12px; }
+.detail-thumbs button {
+  border: 1px solid transparent; padding: 0; background: none; cursor: pointer;
+  border-radius: var(--r-sm); overflow: hidden; aspect-ratio: 4/3;
+}
+.detail-thumbs button.is-active { border-color: var(--gold); }
+.detail-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-panel {
+  background: #141414; border: 1px solid var(--line-light-soft);
+  border-radius: var(--r-md); padding: 30px; color: var(--ivory);
+}
+.detail-price { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.4rem); color: var(--gold); }
+.detail-title { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 3vw, 2rem); color: var(--ivory); margin: 10px 0 8px; line-height: 1.2; }
+.detail-loc { display: flex; align-items: center; gap: 8px; color: var(--ivory-62); font-size: 0.9rem; }
+.detail-specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 24px 0; }
+.detail-spec { border-left: 2px solid var(--gold); padding-left: 14px; }
+.detail-spec dt { font-size: 0.66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ivory-40); }
+.detail-spec dd { margin: 4px 0 0; font-size: 1rem; color: var(--ivory); }
+.detail-block { margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--line-light-soft); }
+.detail-block h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--ivory); margin-bottom: 14px; }
+.detail-body { color: var(--ivory-62); font-size: 0.94rem; line-height: 1.75; }
+.detail-features { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 18px; }
+.detail-features li { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; color: var(--ivory); }
+.detail-features li::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; flex: none; }
+.detail-map { margin-top: 18px; border: 1px solid var(--line-light-soft); border-radius: var(--r-md); overflow: hidden; height: 340px; }
+.detail-map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(.2); }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.detail-share { display: flex; gap: 8px; align-items: center; margin-top: 16px; }
+.detail-share a, .detail-share button {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--line-light-soft); color: var(--ivory-62); background: none; cursor: pointer;
+  transition: all .3s var(--ease);
+}
+.detail-share a:hover, .detail-share button:hover { color: var(--gold); border-color: var(--gold); }
+.detail-enquiry { margin-top: 18px; }
+.detail-enquiry .contact-field input,
+.detail-enquiry .contact-field textarea { background: #0d0d0d; border: 1px solid var(--line-light-soft); color: var(--ivory); }
+.detail-enquiry .contact-field label { color: var(--ivory-62); }
+.similar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 36px; }
+.detail-skeleton { padding: 80px 0; text-align: center; color: var(--ink-60); }
+.detail-notice { background: var(--ivory-tint); border-left: 3px solid var(--gold); padding: 18px 22px; border-radius: var(--r-sm); color: var(--ink-60); font-size: .92rem; margin-bottom: 26px; }
+@media (max-width: 860px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+      <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+        <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+        <path d="M2.5 21h19"/>
+      </svg>
+      <span class="brand__name">EAST<span>·</span>GATE</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="properties.html" class="is-active">Properties</a>
+      <a href="land.html">Land</a>
+      <a href="services.html">Services</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="contact.html">Contact Us</a>
+      <a href="dealers.html">Dealers & Pros</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="login.html" class="nav__signin">Sign In</a>
+      <a href="dealer-dashboard.html#add" class="btn btn--gold btn--sm">List Property</a>
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="properties.html">Properties</a>
+    <a href="land.html">Land</a>
+    <a href="services.html">Services</a>
+    <a href="marketplace.html">Marketplace</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="dealers.html">Dealers &amp; Pros</a>
+  </nav>
+  <div class="menu__foot">
+    <a href="login.html" class="nav__signin">Sign In</a>
+    <a href="dealer-dashboard.html#add" class="btn btn--gold">List Property</a>
+  </div>
+</div>
+
+<main id="top">
+  <section class="section" style="padding-top:0;padding-bottom:0;">
+    <div class="container detail-head">
+      <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Home</a>
+        <span>/</span>
+        <a href="properties.html">Properties</a>
+        <span>/</span>
+        <span id="crumbTitle" style="color:var(--ink-45);">Listing</span>
+      </nav>
+
+      <div id="detailRoot">
+        <div class="detail-skeleton">Loading verified listing…</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="index.html" class="brand" aria-label="East Gate Real-Estate">
+          <svg class="brand__mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 21V10.5a8 8 0 0 1 16 0V21"/>
+            <path d="M9 21v-10a3 3 0 0 1 6 0v10"/>
+            <path d="M2.5 21h19"/>
+          </svg>
+          <span class="brand__name">EAST<span>·</span>GATE</span>
+        </a>
+        <p>Find Your Place. Make It Home.</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="properties.html">Properties</a></li>
+          <li><a href="land.html">Land</a></li>
+          <li><a href="dealers.html">Agents & Dealers</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="marketplace.html">Marketplace</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="dashboard.html">Customer Dashboard</a></li>
+          <li><a href="dealer-dashboard.html">Dealer Command Center</a></li>
+          <li><a href="admin.html">Admin Control Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="login.html">Sign In</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="https://wa.me/2348108990239" target="_blank">WhatsApp Hotline</a></li>
+          <li><a href="contact.html">Report a Listing</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 East Gate Real-Estate. All rights reserved.</p>
+      <div class="footer__legal">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+  var root = document.getElementById('detailRoot');
+  var crumb = document.getElementById('crumbTitle');
+  if (!root) return;
+
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id') || params.get('slug');
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function purposeKey(value) {
+    return String(value == null ? '' : value).trim().toUpperCase().replace(/[\s-]+/g, '_');
+  }
+
+  var TITLE_DOC_LABELS = {
+    C_OF_O: 'Certificate of Occupancy (C of O)',
+    FEDERAL_C_OF_O: 'Federal Certificate of Occupancy',
+    GOVERNORS_CONSENT: "Governor's Consent",
+    REGISTERED_SURVEY_DEED: 'Registered Survey Deed of Conveyance',
+    FCDA_ALLOCATION: 'FCDA Allocation',
+    GOVERNMENT_GAZETTE: 'Government Gazette',
+    OTHER: 'Other'
+  };
+
+  var CATEGORY_LABELS = {
+    RESIDENTIAL: 'Residential',
+    COMMERCIAL: 'Commercial',
+    OFF_PLAN: 'Off-Plan',
+    LAND: 'Land',
+    LUXURY: 'Luxury'
+  };
+
+  var LISTING_LABELS = {
+    BUY: 'Buy (Outright Purchase)',
+    SHORT_LET: 'Rent (Short Let)',
+    LONG_LET: 'Rent (Long Let)',
+    LONG_LEASE: 'Long Lease',
+    COMMERCIAL_LEASE: 'Commercial Lease',
+    INDUSTRIAL_LEASE: 'Industrial Lease',
+    LAND_BANKING: 'Land Banking & Investment',
+    DISTRESS_SALE: 'Sale (Distress / Auction)',
+    JOINT_VENTURE: 'Joint Venture / Development',
+    STAFF_QUARTERS: 'Student / Staff Quarters'
+  };
+
+  function norm(raw) {
+    var categoryKey = purposeKey(raw.category);
+    var docKey = purposeKey(raw.titleDocument || raw.titleDoc);
+    var listingKey = purposeKey(raw.listingType);
+    var cover = raw.mainImage || raw.image || '';
+    var gallery = window.propertyGallery ? window.propertyGallery(raw, cover) : (cover ? [cover] : []);
+    var dealer = raw.dealer || {};
+
+    return {
+      id: raw.id,
+      title: raw.title || 'Property listing',
+      slug: raw.slug || '',
+      categoryKey: categoryKey,
+      category: CATEGORY_LABELS[categoryKey] || raw.category || 'Property',
+      listingType: listingKey,
+      listingLabel: LISTING_LABELS[listingKey] || raw.listingType || '',
+      price: raw.price,
+      currency: raw.currency || 'NGN',
+      priceLabel: 'Request for Quote',
+      rawPriceDisplay: raw.priceDisplay || '',
+      state: raw.state || '',
+      location: raw.location || '',
+      beds: raw.bedrooms != null ? raw.bedrooms : (raw.beds || 0),
+      baths: raw.bathrooms != null ? raw.bathrooms : (raw.baths || 0),
+      cars: raw.parkingSpaces != null ? raw.parkingSpaces : (raw.cars || 0),
+      landSize: raw.landSize || '',
+      titleDoc: TITLE_DOC_LABELS[docKey] || raw.titleDocument || raw.titleDoc || 'Documentation on file',
+      isTitleVerified: raw.isTitleVerified != null ? raw.isTitleVerified : (raw.verifiedTitle === true),
+      cover: cover,
+      gallery: gallery,
+      description: raw.description || '',
+      features: Array.isArray(raw.features) ? raw.features : [],
+      status: raw.status || '',
+      dealerId: raw.dealerId || dealer.id || '',
+      dealerName: dealer.businessName || raw.dealerName || '',
+      dealer: {
+        id: dealer.id || raw.dealerId || '',
+        businessName: dealer.businessName || raw.dealerName || '',
+        category: dealer.category || raw.category || '',
+        bio: dealer.bio || '',
+        state: dealer.state || raw.state || '',
+        city: dealer.city || '',
+        officeAddress: dealer.officeAddress || '',
+        status: dealer.status || (raw.dealerVerified ? 'VERIFIED' : ''),
+        rating: dealer.ratingAverage != null ? dealer.ratingAverage : (raw.rating || null),
+        reviewCount: dealer.reviewCount != null ? dealer.reviewCount : (raw.reviewsCount || 0),
+        listingsCount: dealer._count && dealer._count.listings != null ? dealer._count.listings : null,
+        phone: dealer.user && dealer.user.phone ? dealer.user.phone : '',
+        email: dealer.user && dealer.user.email ? dealer.user.email : '',
+        badges: {
+          identity: !!(dealer.badgeIdentity != null ? dealer.badgeIdentity : (raw.dealerVerified)),
+          cac: !!(dealer.badgeCac != null ? dealer.badgeCac : (raw.dealerVerified)),
+          phone: !!(dealer.badgePhone != null ? dealer.badgePhone : (raw.dealerVerified)),
+          titleDocs: !!(dealer.badgeTitleDocs != null ? dealer.badgeTitleDocs : raw.verifiedTitle)
+        }
+      }
+    };
+  }
+
+  function badgeSpan(on, label) {
+    return '<span class="trust-badge ' + (on ? 'trust-badge--verified' : 'trust-badge--under-review') +
+      '" style="font-size:0.58rem;">' + label + ' ' + (on ? '✓' : '⏳') + '</span>';
+  }
+
+  function applySeo(p) {
+    var pageTitle = p.title + ' — ' + p.location + ' | East Gate';
+    document.title = pageTitle;
+    var url = window.location.href;
+    var desc = (p.description || '').replace(/\s+/g, ' ').slice(0, 180) ||
+      'Verified property listing on East Gate Real-Estate.';
+    var image = p.cover || 'images/EastGate-core.png';
+
+    function set(idValue, attr, value) {
+      var el = document.getElementById(idValue);
+      if (el) el.setAttribute(attr, value);
+    }
+    set('ogTitle', 'content', pageTitle);
+    set('ogDescription', 'content', desc);
+    set('ogImage', 'content', image);
+    set('ogUrl', 'content', url);
+    set('twTitle', 'content', pageTitle);
+    set('twDescription', 'content', desc);
+    set('twImage', 'content', image);
+    set('canonicalLink', 'href', url);
+
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', desc);
+  }
+
+  function injectStructuredData(p) {
+    var data = {
+      '@context': 'https://schema.org',
+      '@type': 'RealEstateListing',
+      name: p.title,
+      description: p.description,
+      url: window.location.href,
+      image: p.gallery.length ? p.gallery : [p.cover],
+      address: {
+        '@type': 'PostalAddress',
+        addressRegion: p.state,
+        addressLocality: p.location,
+        addressCountry: 'NG'
+      }
+    };
+    if (Number(p.price) > 0) {
+      data.offers = {
+        '@type': 'Offer',
+        price: Number(p.price),
+        priceCurrency: p.currency || 'NGN'
+      };
+    }
+    var script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+  }
+
+  function renderNotFound(message) {
+    root.innerHTML = [
+      '<div class="detail-skeleton">',
+      '  <h1 class="display" style="font-size:1.6rem;">Listing not available</h1>',
+      '  <p style="margin-top:12px;">' + escapeHtml(message || 'This property could not be found or is no longer listed.') + '</p>',
+      '  <p style="margin-top:22px;"><a class="btn btn--gold" href="properties.html">Browse all properties</a></p>',
+      '</div>'
+    ].join('');
+  }
+
+  if (!id) {
+    renderNotFound('No listing was specified.');
+    return;
+  }
+
+  var raw;
+  try {
+    raw = window.EastGateAPI
+      ? await window.EastGateAPI.getProperty(id)
+      : (window.EastGateDB
+          ? window.EastGateDB.get().properties.find(function (x) { return x.id === id; })
+          : null);
+  } catch (err) {
+    raw = null;
+  }
+
+  if (!raw) {
+    renderNotFound();
+    return;
+  }
+
+  // The public catalogue hides anything the admin has not approved.
+  if (raw.status && raw.status !== 'APPROVED') {
+    renderNotFound('This listing is awaiting review and is not public yet.');
+    return;
+  }
+
+  var p = norm(raw);
+  if (crumb) crumb.textContent = p.title;
+  applySeo(p);
+  injectStructuredData(p);
+
+  var waMessage = 'Hello East Gate, I am interested in "' + p.title + '" (' + p.location + ').';
+  var waLink = 'https://wa.me/2348108990239?text=' + encodeURIComponent(waMessage);
+
+  var isSaved = window.EastGateDB ? window.EastGateDB.isPropertySaved(p.id) : false;
+
+  var mapQuery = encodeURIComponent([p.location, p.state, 'Nigeria'].filter(Boolean).join(', '));
+
+  var thumbs = p.gallery.slice(0, 5).map(function (src, i) {
+    return '<button type="button" class="' + (i === 0 ? 'is-active' : '') + '" data-index="' + i + '" aria-label="View photo ' + (i + 1) + '"><img src="' + escapeHtml(src) + '" alt="Photo ' + (i + 1) + ' of ' + p.title.replace(/"/g, '') + '"></button>';
+  }).join('');
+
+  var features = p.features.map(function (f) {
+    return '<li>' + escapeHtml(f) + '</li>';
+  }).join('');
+
+  root.innerHTML = [
+    '<div class="detail-grid">',
+
+    // ---- Left column: gallery + content -------------------------------------
+    '  <div>',
+    '    <div class="detail-gallery__main" id="detailMainMedia" role="button" tabindex="0" aria-label="Open photo gallery">',
+    '      <img id="detailMainImage" src="' + escapeHtml(p.cover || (p.gallery[0] || '')) + '" alt="' + escapeHtml(p.title) + '">',
+    '      <span class="detail-gallery__count">' + p.gallery.length + ' photo' + (p.gallery.length === 1 ? '' : 's') + '</span>',
+    '    </div>',
+    '    <div class="detail-thumbs" id="detailThumbs">' + thumbs + '</div>',
+
+    '    <div class="detail-panel" style="margin-top:30px;">',
+    '      <h2 style="font-family:\'Playfair Display\',serif;font-size:1.3rem;color:var(--ivory);margin-bottom:12px;">About this property</h2>',
+    '      <p class="detail-body">' + (escapeHtml(p.description) || 'No description was provided for this listing.') + '</p>',
+    (p.features.length
+      ? '      <div class="detail-block"><h2>Key features</h2><ul class="detail-features">' + features + '</ul></div>'
+      : ''),
+    '      <div class="detail-block">',
+    '        <h2>Location</h2>',
+    '        <p class="detail-body" style="display:flex;align-items:center;gap:8px;">',
+    '          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+    '          ' + escapeHtml([p.location, p.state].filter(Boolean).join(', ')) + '</p>',
+    '        <div class="detail-map">',
+    '          <iframe src="https://www.google.com/maps?q=' + mapQuery + '&output=embed" loading="lazy" title="Map showing ' + escapeHtml(p.title) + '" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>',
+    '        </div>',
+    '      </div>',
+    '      <div class="detail-block">',
+    '        <h2>Report this listing</h2>',
+    '        <p class="detail-body">Spotted something inaccurate, misleading or suspicious? <a href="contact.html?subject=Report%20a%20Listing" style="color:var(--gold);border-bottom:1px solid var(--gold);">Tell the East Gate compliance desk</a>.</p>',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+
+    // ---- Right column: price + dealer + enquiry -----------------------------
+    '  <aside>',
+    '    <div class="detail-panel">',
+    '      <span class="trust-badge trust-badge--official" style="font-size:0.6rem;">' + escapeHtml(p.category) + '</span>',
+    '      <div class="detail-price" style="margin-top:14px;">' + escapeHtml(p.priceLabel) + '</div>',
+    '      <h1 class="detail-title">' + escapeHtml(p.title) + '</h1>',
+    '      <p class="detail-loc">',
+    '        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+    '        ' + escapeHtml([p.location, p.state].filter(Boolean).join(', ')) + '</p>',
+
+    '      <dl class="detail-specs">',
+    '        <div class="detail-spec"><dt>Bedrooms</dt><dd>' + (p.beds || '—') + '</dd></div>',
+    '        <div class="detail-spec"><dt>Bathrooms</dt><dd>' + (p.baths || '—') + '</dd></div>',
+    '        <div class="detail-spec"><dt>Parking</dt><dd>' + (p.cars || '—') + '</dd></div>',
+    '        <div class="detail-spec"><dt>Land size</dt><dd>' + escapeHtml(p.landSize || '—') + '</dd></div>',
+    (p.listingLabel ? '        <div class="detail-spec" style="grid-column:span 2;"><dt>Purpose</dt><dd>' + escapeHtml(p.listingLabel) + '</dd></div>' : ''),
+    '      </dl>',
+
+    '      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">',
+    '        <span class="trust-badge ' + (p.isTitleVerified ? 'trust-badge--verified' : 'trust-badge--under-review') + '">' + (p.isTitleVerified ? '✓' : '⏳') + ' ' + escapeHtml(p.titleDoc) + '</span>',
+    '      </div>',
+
+    '      <div class="detail-actions">',
+    '        <button type="button" class="btn btn--gold" id="detailInspectBtn" style="flex:1;">Schedule Inspection</button>',
+    '        <a href="' + waLink + '" target="_blank" rel="noopener" class="btn btn--ghost" style="border:1px solid var(--line-light-soft);padding:12px 18px;" aria-label="WhatsApp inquiry">WhatsApp</a>',
+    '      </div>',
+    '      <div class="detail-actions" style="margin-top:10px;">',
+    '        <button type="button" class="btn btn--ghost" id="detailSaveBtn" style="border:1px solid var(--line-light-soft);flex:1;" aria-pressed="' + (isSaved ? 'true' : 'false') + '">' + (isSaved ? '♥ Saved' : '♡ Save Property') + '</button>',
+    '      </div>',
+
+    '      <div class="detail-share" aria-label="Share this listing">',
+    '        <span style="font-size:0.72rem;color:var(--ivory-40);margin-right:4px;">Share</span>',
+    '        <a href="https://wa.me/?text=' + encodeURIComponent(p.title + ' — ' + window.location.href) + '" target="_blank" rel="noopener" aria-label="Share on WhatsApp">',
+    '          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>',
+    '        </a>',
+    '        <button type="button" id="detailCopyBtn" aria-label="Copy link">',
+    '          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+    '        </button>',
+    '        <button type="button" id="detailNativeShare" aria-label="Share" hidden>',
+    '          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
+    '        </button>',
+    '      </div>',
+    '    </div>',
+
+    // Dealer card
+    '    <div class="detail-panel" style="margin-top:24px;">',
+    '      <h2 style="font-family:\'Playfair Display\',serif;font-size:1.15rem;color:var(--ivory);margin-bottom:14px;">Listed by</h2>',
+    '      <div style="display:flex;gap:14px;align-items:center;">',
+    '        <div class="dealer-avatar" style="width:52px;height:52px;">' + escapeHtml((p.dealer.businessName || 'EG').substring(0, 2).toUpperCase()) + '</div>',
+    '        <div>',
+    '          <div style="color:var(--ivory);font-weight:600;">' + escapeHtml(p.dealer.businessName || 'East Gate') + '</div>',
+    '          <div style="font-size:0.74rem;color:var(--gold);">' + escapeHtml(p.dealer.category || 'Verified Dealer') + '</div>',
+    '        </div>',
+    '      </div>',
+    '      <div class="badges-list" style="margin:16px 0;">',
+    badgeSpan(p.dealer.badges.identity, 'Identity'),
+    badgeSpan(p.dealer.badges.cac, 'CAC'),
+    badgeSpan(p.dealer.badges.phone, 'Verified Tel'),
+    badgeSpan(p.dealer.badges.titleDocs, 'Title Docs'),
+    '      </div>',
+    (p.dealer.bio ? '      <p style="font-size:0.84rem;color:var(--ivory-62);line-height:1.6;">' + escapeHtml(p.dealer.bio) + '</p>' : ''),
+    '      <div style="display:flex;gap:8px;margin-top:18px;">',
+    (p.dealer.id
+      ? '        <a href="dealer.html?id=' + encodeURIComponent(p.dealer.id) + '" class="btn btn--ghost btn--sm" style="flex:1;border:1px solid var(--line-light-soft);">View dealer profile</a>'
+      : ''),
+    '      </div>',
+    '    </div>',
+
+    // Enquiry form
+    '    <div class="detail-panel" style="margin-top:24px;">',
+    '      <h2 style="font-family:\'Playfair Display\',serif;font-size:1.15rem;color:var(--ivory);margin-bottom:6px;">Enquire about this property</h2>',
+    '      <p style="font-size:0.8rem;color:var(--ivory-62);margin-bottom:16px;">Your message goes straight to the East Gate desk and is recorded against this listing.</p>',
+    '      <form id="enquiryForm" class="detail-enquiry">',
+    '        <div class="contact-field"><label for="enqName">Full name</label><input type="text" id="enqName" required placeholder="Your name"></div>',
+    '        <div class="contact-field"><label for="enqEmail">Email</label><input type="email" id="enqEmail" required placeholder="you@example.com"></div>',
+    '        <div class="contact-field"><label for="enqPhone">Phone (optional)</label><input type="tel" id="enqPhone" placeholder="+234 800 000 0000"></div>',
+    '        <div class="contact-field"><label for="enqMessage">Message</label><textarea id="enqMessage" rows="4" required placeholder="I would like to arrange a viewing or ask about this property…"></textarea></div>',
+    '        <div class="contact-field" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">',
+    '          <label for="enqWebsite">Website</label><input type="text" id="enqWebsite" tabindex="-1" autocomplete="off">',
+    '        </div>',
+    '        <button type="submit" class="btn btn--gold btn--block" id="enquirySubmit">Send enquiry</button>',
+    '        <p id="enquirySuccess" class="contact-form__success" hidden role="status">Thank you! Your enquiry has been recorded. Our team will be in touch.</p>',
+    '        <p id="enquiryError" class="contact-form__error" hidden role="alert"></p>',
+    '      </form>',
+    '    </div>',
+    '  </aside>',
+    '</div>',
+
+    // Similar listings
+    '<section style="margin-top:70px;padding-top:50px;border-top:1px solid var(--line-dark-soft);">',
+    '  <div class="sec-head" style="margin-bottom:7px;"><div class="sec-head__text"><p class="eyebrow">More like this</p><h2 style="font-size:1.5rem;">Similar properties in ' + escapeHtml(p.state || 'Nigeria') + '</h2></div></div>',
+    '  <div class="similar-grid" id="similarGrid"></div>',
+    '</section>'
+  ].join('');
+
+  // ----- Gallery interactions ------------------------------------------------
+  function openGallery(index) {
+    if (window.openPropertyGallery) window.openPropertyGallery(p.gallery, index || 0);
+  }
+  var mainMedia = document.getElementById('detailMainMedia');
+  var mainImage = document.getElementById('detailMainImage');
+  if (mainMedia) {
+    mainMedia.addEventListener('click', function () { openGallery(0); });
+    mainMedia.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openGallery(0); }
+    });
+  }
+  var thumbWrap = document.getElementById('detailThumbs');
+  if (thumbWrap) {
+    thumbWrap.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('button[data-index]') : null;
+      if (!btn) return;
+      var idx = Number(btn.getAttribute('data-index'));
+      if (mainImage && p.gallery[idx]) mainImage.src = p.gallery[idx];
+      Array.prototype.forEach.call(thumbWrap.querySelectorAll('button'), function (b) {
+        b.classList.toggle('is-active', b === btn);
+      });
+      openGallery(idx);
+    });
+  }
+
+  // ----- Inspection ----------------------------------------------------------
+  var inspectBtn = document.getElementById('detailInspectBtn');
+  if (inspectBtn) {
+    inspectBtn.addEventListener('click', function () {
+      if (window.openInspectionModal) window.openInspectionModal(p.id, p.title, p.dealer.id);
+    });
+  }
+
+  // ----- Save -----------------------------------------------------------------
+  var saveBtn = document.getElementById('detailSaveBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      if (!window.EastGateDB) {
+        window.showEastGateToast('Saving is unavailable right now.');
+        return;
+      }
+      var saved = window.EastGateDB.toggleSaveProperty(p.id);
+      saveBtn.textContent = saved ? '♥ Saved' : '♡ Save Property';
+      saveBtn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+      window.showEastGateToast(saved ? 'Property saved to your dashboard' : 'Property removed from saved listings');
+    });
+  }
+
+  // ----- Share ----------------------------------------------------------------
+  var copyBtn = document.getElementById('detailCopyBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function () {
+      var link = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(function () {
+          window.showEastGateToast('Link copied to clipboard');
+        }).catch(function () {
+          window.showEastGateToast(link);
+        });
+      } else {
+        window.showEastGateToast(link);
+      }
+    });
+  }
+  var nativeShare = document.getElementById('detailNativeShare');
+  if (nativeShare && navigator.share) {
+    nativeShare.hidden = false;
+    nativeShare.addEventListener('click', function () {
+      navigator.share({ title: p.title, text: p.title + ' — East Gate Real-Estate', url: window.location.href }).catch(function () {});
+    });
+  }
+
+  // ----- Enquiry form ---------------------------------------------------------
+  var form = document.getElementById('enquiryForm');
+  if (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var success = document.getElementById('enquirySuccess');
+      var failure = document.getElementById('enquiryError');
+      var submit = document.getElementById('enquirySubmit');
+      success.hidden = true;
+      failure.hidden = true;
+
+      var payload = {
+        propertyId: p.id,
+        dealerId: p.dealer.id || null,
+        name: document.getElementById('enqName').value.trim(),
+        email: document.getElementById('enqEmail').value.trim(),
+        phone: document.getElementById('enqPhone').value.trim(),
+        message: document.getElementById('enqMessage').value.trim(),
+        website: document.getElementById('enqWebsite').value
+      };
+
+      submit.disabled = true;
+      submit.textContent = 'Sending…';
+      try {
+        var result = window.EastGateAPI && window.EastGateAPI.sendListingEnquiry
+          ? await window.EastGateAPI.sendListingEnquiry(payload)
+          : null;
+        if (result && result.success) {
+          form.reset();
+          success.hidden = false;
+        } else {
+          failure.textContent = (result && result.error) || 'Your enquiry could not be sent. Please try again or reach us on WhatsApp.';
+          failure.hidden = false;
+        }
+      } catch (err) {
+        failure.textContent = 'Your enquiry could not be sent. Please try again or reach us on WhatsApp.';
+        failure.hidden = false;
+      } finally {
+        submit.disabled = false;
+        submit.textContent = 'Send enquiry';
+      }
+    });
+  }
+
+  // ----- Similar listings -----------------------------------------------------
+  (async function loadSimilar() {
+    var grid = document.getElementById('similarGrid');
+    if (!grid || !window.EastGateAPI) return;
+    try {
+      var list = await window.EastGateAPI.getProperties({ state: p.state || null });
+      var others = (list || []).filter(function (x) {
+        return x.id !== p.id && x.status === 'APPROVED';
+      }).slice(0, 3);
+
+      if (!others.length) {
+        grid.innerHTML = '<p style="color:var(--ink-60);font-size:0.9rem;">No other listings in this area right now.</p>';
+        return;
+      }
+
+      grid.innerHTML = others.map(function (x) {
+        var cover = x.mainImage || x.image || '';
+        var priceLabel = 'Request for Quote';
+        var loc = [x.location, x.state].filter(Boolean).join(', ');
+        return [
+          '<article class="prop-card">',
+          '  <a href="property-detail.html?id=' + encodeURIComponent(x.id) + '" style="display:block;">',
+          '    <div class="prop-card__media"><img src="' + escapeHtml(cover) + '" alt="' + escapeHtml(x.title) + '" loading="lazy"></div>',
+          '    <div class="prop-card__body">',
+          '      <h3 class="prop-card__title">' + escapeHtml(x.title) + '</h3>',
+          '      <p class="prop-card__loc">' + escapeHtml(loc) + '</p>',
+          '      <span class="prop-card__price" style="text-decoration:none;">' + escapeHtml(priceLabel) + '</span>',
+          '    </div>',
+          '  </a>',
+          '</article>'
+        ].join('');
+      }).join('');
+    } catch (err) {
+      grid.innerHTML = '<p style="color:var(--ink-60);font-size:0.9rem;">Could not load similar listings.</p>';
+    }
+  })();
+});
+</script>
+
+</body>
+</html>

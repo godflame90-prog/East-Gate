@@ -338,6 +338,9 @@
       });
     });
   }
+  // Exposed so dynamically re-rendered listings (properties.html) can rebind
+  // their heart buttons after each render — initAll only binds once at load.
+  window.initSaveButtons = initSaveButtons;
 
   // Dynamic Search Tabs
   //
@@ -431,6 +434,7 @@
       '  <p style="font-size:0.84rem;color:var(--ivory-62);margin-bottom:20px;">Book a verified on-site inspection with the certified dealer. An East Gate agent will accompany your walkthrough.</p>',
       '  <form id="inspectionForm">',
       '    <input type="hidden" id="inspPropId" value="">',
+      '    <input type="hidden" id="inspDealerId" value="">',
       '    <input type="hidden" id="inspPropTitle" value="Modern 4 Bedroom Villa">',
       '    <div class="form-group">',
       '      <label class="form-label">Property</label>',
@@ -472,34 +476,49 @@
 
     var form = document.getElementById('inspectionForm');
     if (form) {
-      form.addEventListener('submit', function (e) {
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
         var date = document.getElementById('inspDate').value;
         var time = document.getElementById('inspTime').value;
         var notes = document.getElementById('inspNotes').value;
         var propId = document.getElementById('inspPropId').value;
+        var dealerId = document.getElementById('inspDealerId').value;
         var propTitle = document.getElementById('inspPropTitle').value;
 
-        if (window.EastGateDB) {
-          window.EastGateDB.bookInspection({
-            propertyId: propId,
-            propertyTitle: propTitle,
-            propertyLocation: 'Aba, Abia State',
-            date: date,
-            time: time,
-            notes: notes
-          });
+        // The server keys the appointment to a real property + dealer, so an
+        // anonymous card (no id captured) cannot be booked.
+        if (!propId || !dealerId) {
+          window.showEastGateToast('Open a property listing to schedule an inspection with its dealer.');
+          return;
+        }
+
+        try {
+          if (window.EastGateDB) {
+            await window.EastGateDB.bookInspection({
+              propertyId: propId,
+              dealerId: dealerId,
+              propertyTitle: propTitle,
+              date: date,
+              time: time,
+              notes: notes
+            });
+          }
           modal.classList.remove('is-open');
-          window.showEastGateToast('Inspection confirmed! Added to your User Dashboard.');
+          window.showEastGateToast('Inspection confirmed! Added to your dashboard.');
+          // Refresh the customer dashboard table in place, if this page has one.
+          if (typeof window.renderCustomerData === 'function') window.renderCustomerData();
+        } catch (err) {
+          window.showEastGateToast((err && err.message) || 'Could not book the inspection. Please try again.');
         }
       });
     }
   }
 
-  window.openInspectionModal = function (propId, propTitle) {
+  window.openInspectionModal = function (propId, propTitle, dealerId) {
     var modal = document.getElementById('inspectionModal');
     if (!modal) return;
     document.getElementById('inspPropId').value = propId || '';
+    document.getElementById('inspDealerId').value = dealerId || '';
     document.getElementById('inspPropTitle').value = propTitle || 'Property';
     document.getElementById('inspDisplayTitle').value = propTitle || 'Property';
     // set min date to tomorrow

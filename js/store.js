@@ -5,11 +5,12 @@
 (function (window) {
   'use strict';
 
-  // v2 — listing types moved from Title-Case ('Buy') to ListingType enum members
-  // ('BUY') and the catalogue gained rental/lease/auction properties. Bump this
-  // key whenever defaultData changes shape, or returning visitors keep serving
-  // their stale copy out of localStorage and never see the new rows.
-  var STORAGE_KEY = 'east_gate_db_v2';
+  // v3 — saved bookmarks moved off users[].saved onto a top-level `saved` map
+  // keyed by user id, so they work for authenticated accounts whose id has no
+  // matching row in the mock users array. Bump this key whenever defaultData
+  // changes shape, or returning visitors keep serving their stale copy out of
+  // localStorage and never see the new rows.
+  var STORAGE_KEY = 'east_gate_db_v3';
 
   var defaultData = {
     currentUser: {
@@ -20,14 +21,18 @@
       role: 'CUSTOMER', // 'CUSTOMER', 'DEALER', 'ADMIN'
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
     },
+    // Saved property ids per user id. The offline demo persona keeps the two
+    // listings the dashboard used to hardcode.
+    saved: {
+      usr_jay: ['89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'e86dffae-0a6e-4a93-b458-336366ec9536']
+    },
     users: [
       {
         id: 'usr_jay',
         name: 'Jay Nwosu',
         email: 'jay@example.com',
         phone: '+234 803 123 4567',
-        role: 'CUSTOMER',
-        saved: ['89bc3c5d-11d8-48b5-bf87-9b95018ae8fd', 'e86dffae-0a6e-4a93-b458-336366ec9536']
+        role: 'CUSTOMER'
       },
       {
         id: 'ee050f69-b910-435c-898f-00f298708968',
@@ -730,26 +735,50 @@
       saveDatabase(db);
       return db.currentUser;
     },
+    // SAVED LISTINGS (LOCAL MIRROR)
+    //
+    // The bookmark UI is synchronous — the heart has to flip the instant it is
+    // clicked — so the id list lives here and the REST call is a fire-and-forget
+    // sync behind it. db.saved is keyed by the signed-in user id, which is a
+    // server uuid once logged in (and only usr_jay for the offline demo).
+    hydrateSaved: function (propertyIds) {
+      var uid = db.currentUser && db.currentUser.id;
+      if (!uid) return;
+      db.saved = db.saved || {};
+      db.saved[uid] = Array.isArray(propertyIds) ? propertyIds.slice() : [];
+      saveDatabase(db);
+    },
+
     toggleSaveProperty: function (propId) {
-      var user = db.users.find(function (u) { return u.id === db.currentUser.id; });
-      if (!user) return false;
-      user.saved = user.saved || [];
-      var idx = user.saved.indexOf(propId);
-      var isSaved = false;
+      var uid = db.currentUser && db.currentUser.id;
+      if (!uid || !propId) return false;
+
+      db.saved = db.saved || {};
+      var list = db.saved[uid] = db.saved[uid] || [];
+      var idx = list.indexOf(propId);
+      var isSaved;
       if (idx > -1) {
-        user.saved.splice(idx, 1);
+        list.splice(idx, 1);
         isSaved = false;
       } else {
-        user.saved.push(propId);
+        list.push(propId);
         isSaved = true;
       }
       saveDatabase(db);
+
+      // Persist for the signed-in customer. A guest keeps the change locally
+      // only; the API answers 401 and apiFetch reports the failure silently.
+      if (window.EastGateAPI) {
+        if (isSaved) window.EastGateAPI.saveProperty(propId);
+        else window.EastGateAPI.unsaveProperty(propId);
+      }
       return isSaved;
     },
 
     isPropertySaved: function (propId) {
-      var user = db.users.find(function (u) { return u.id === db.currentUser.id; });
-      return user && user.saved ? user.saved.indexOf(propId) > -1 : false;
+      var uid = db.currentUser && db.currentUser.id;
+      var list = (uid && db.saved && db.saved[uid]) || [];
+      return list.indexOf(propId) > -1;
     },
 
     // Schedule Inspection
@@ -762,26 +791,19 @@
         clientNotes: booking.notes || booking.clientNotes || 'Inspection requested via website'
       };
 
-      if (!window.EastGateAPI || !window.EastGateAPI.bookInspection) {
-        console.error('EastGateAPI.bookInspection is not available');
-        throw new Error('API unavailable');
-      }
-
-      return window.EastGateAPI.bookInspection(payload).then(function (res) {
-        if (!res || !res.success) {
-          throw new Error(res && res.error ? res.error : 'Failed to book inspection');
-        }
-        var data = res.data || {};
+      // Writes the row the UI reads back. Called with the server record when one
+      // came back, or with null when we are offline and have to mint an id.
+      function insertLocal(data) {
         var newInspection = {
-          id: data.id || 'insp_' + Date.now(),
+          id: (data && data.id) || 'insp_' + Date.now(),
           userId: db.currentUser.id,
           userName: booking.name || db.currentUser.name,
           userPhone: booking.phone || db.currentUser.phone,
-          propertyId: data.propertyId || payload.propertyId,
-          propertyTitle: booking.propertyTitle || data.property?.title,
-          propertyLocation: booking.propertyLocation || data.property?.location,
-          dealerId: data.dealerId || payload.dealerId,
-          dealerName: booking.dealerName || data.dealer?.businessName,
+          propertyId: (data && data.propertyId) || payload.propertyId,
+          propertyTitle: booking.propertyTitle || (data && data.property && data.property.title) || '',
+          propertyLocation: booking.propertyLocation || (data && data.property && data.property.location) || '',
+          dealerId: (data && data.dealerId) || payload.dealerId,
+          dealerName: booking.dealerName || (data && data.dealer && data.dealer.businessName) || '',
           date: booking.date,
           time: booking.time || payload.timeSlot,
           status: 'PENDING',
@@ -790,7 +812,48 @@
         db.inspections.unshift(newInspection);
         saveDatabase(db);
         return newInspection;
+      }
+
+      // The API client owns the network call and hands back an envelope; it never
+      // calls back into here, which is what stops the two from recursing forever.
+      if (!window.EastGateAPI || !window.EastGateAPI.bookInspection) {
+        return Promise.resolve(insertLocal(null));
+      }
+
+      return window.EastGateAPI.bookInspection(payload).then(function (res) {
+        if (res && res.success && res.data) return insertLocal(res.data);
+        if (res && res.offline) return insertLocal(null);
+        throw new Error((res && res.error) || 'Failed to book inspection');
       });
+    },
+
+    // Offline mirror of the admin status update: flips the row the tables read.
+    updateInspectionStatus: function (inspectionId, status) {
+      var list = db.inspections || [];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === inspectionId) {
+          list[i].status = status;
+          saveDatabase(db);
+          return list[i];
+        }
+      }
+      return null;
+    },
+
+    // Offline mirror of a customer reschedule: new slot, back to RESCHEDULED.
+    rescheduleInspection: function (inspectionId, slot) {
+      var list = db.inspections || [];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === inspectionId) {
+          list[i].date = slot.date;
+          list[i].time = slot.timeSlot;
+          if (slot.notes) list[i].notes = slot.notes;
+          list[i].status = 'RESCHEDULED';
+          saveDatabase(db);
+          return list[i];
+        }
+      }
+      return null;
     },
 
     // DEALER ACTIONS (Submitted items default to PENDING_REVIEW)
@@ -975,10 +1038,14 @@
       return true;
     },
 
-    // ADMIN VERIFY DEALER DOCUMENT
-    adminVerifyDealerDoc: function (verId) {
-      var record = db.verifications.find(function (v) { return v.id === verId; });
-      if (record) {
+    // ADMIN VERIFY DEALER CREDENTIALS
+    // Accepts a verification id or a dealer id: the console always acts on the
+    // agency, so one click clears every document that agency has outstanding.
+    adminVerifyDealerDoc: function (key) {
+      var records = db.verifications.filter(function (v) { return v.id === key || v.dealerId === key; });
+      if (!records.length) return false;
+
+      records.forEach(function (record) {
         record.status = 'APPROVED';
         var dealer = db.users.find(function (u) { return u.id === record.dealerId; });
         if (dealer) {
@@ -986,20 +1053,19 @@
           if (record.dimension === 'CAC_BUSINESS') dealer.badges.cac = true;
           if (record.dimension === 'TITLE_DOCUMENTS') dealer.badges.titleDocs = true;
         }
+      });
 
-        db.auditLogs.unshift({
-          id: 'aud_' + Date.now(),
-          adminName: db.currentUser.name + ' (Admin)',
-          action: 'VERIFY_DOCUMENT',
-          target: record.dealerName + ' (' + record.dimension + ')',
-          details: 'Verified credentials and updated dealer trust badge.',
-          timestamp: new Date().toLocaleString()
-        });
+      db.auditLogs.unshift({
+        id: 'aud_' + Date.now(),
+        adminName: db.currentUser.name + ' (Admin)',
+        action: 'VERIFY_DEALER',
+        target: records[0].dealerName,
+        details: 'Verified credentials and updated dealer trust badge.',
+        timestamp: new Date().toLocaleString()
+      });
 
-        saveDatabase(db);
-        return true;
-      }
-      return false;
+      saveDatabase(db);
+      return true;
     },
 
     // Submit Report

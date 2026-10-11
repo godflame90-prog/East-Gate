@@ -637,6 +637,28 @@ async function main() {
     }
   });
 
+  // A second, still-pending appointment so the customer and admin dashboards
+  // exercise both moderation states out of the box.
+  await prisma.inspection.create({
+    data: {
+      userId: customer.id,
+      propertyId: prop3.id,
+      dealerId: dealerProfile1.id,
+      date: new Date('2026-10-21'),
+      timeSlot: '10:00 AM – 11:30 AM',
+      status: InspectionStatus.PENDING,
+      clientNotes: 'Requesting registered beacon verification before making an offer.'
+    }
+  });
+
+  // 9b. Saved listings (customer wishlist)
+  await prisma.savedListing.createMany({
+    data: [
+      { userId: customer.id, propertyId: prop1.id },
+      { userId: customer.id, propertyId: prop3.id }
+    ]
+  });
+
   // 10. Create Audit Logs
   await prisma.auditLog.createMany({
     data: [
