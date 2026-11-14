@@ -11,7 +11,10 @@ services:
     runtime: node
     plan: free
     branch: master
-    buildCommand: npm ci && npm run build
+    # --include=dev is required because NODE_ENV=production makes npm skip the
+    # TypeScript/Prisma build toolchain. It also keeps `npm run db:seed`
+    # (tsx) available in the Render shell.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /robots.txt
     autoDeploy: true
