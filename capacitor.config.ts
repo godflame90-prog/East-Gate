@@ -10,30 +10,21 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * the dealer-uploaded galleries are fetched, from the origin configured in
  * `js/config.js`.
  *
- * `androidScheme: 'http'` keeps the app's own origin on the same scheme as a
- * development API reached over the LAN (`http://192.168.x.x:3000`). An
- * `https://localhost` origin would make every one of those calls mixed content,
- * which the WebView blocks unless `allowMixedContent` is switched on — a
- * development-only escape hatch that is better left off. It also stays correct
- * after the API moves to HTTPS: an HTTP origin calling an HTTPS API is allowed.
- * `localhost` is still treated as a secure context by the WebView, so APIs that
- * require one (geolocation, camera) keep working.
+ * `androidScheme: 'https'` gives the WebView an `https://localhost` origin, which
+ * is a secure context and matches the TLS API in `PACKAGED_API`. The API must
+ * list that origin in `ALLOWED_ORIGINS` (the Render environment does).
  *
- * `cleartext: true` is what lets the WebView make plain-HTTP requests at all;
- * Android forbids cleartext traffic by default.
- *
- * Both of these exist because the backend is currently the dev machine on the
- * LAN. Once the API is deployed behind TLS, they can go back to the defaults
- * (`androidScheme: 'https'`, `cleartext` unset) and `PACKAGED_API` in
- * `js/config.js` should point at the public origin.
+ * To point the app at a development server on the LAN instead, set
+ * `androidScheme: 'http'`, add `cleartext: true`, and change `PACKAGED_API` in
+ * `js/config.js` to the machine's LAN address. Plain HTTP is development-only;
+ * keep this file on the HTTPS defaults for release builds.
  */
 const config: CapacitorConfig = {
   appId: 'ng.eastgate.app',
   appName: 'East Gate',
   webDir: 'www',
   server: {
-    androidScheme: 'http',
-    cleartext: true
+    androidScheme: 'https'
   }
 };
 

@@ -22,8 +22,7 @@
  *   - Inside the packaged app it switches to `PACKAGED_API` and rewrites
  *     `/uploads/...` strings as the payloads pass through the API client.
  *
- * `PACKAGED_API` is the address of the machine running `npm run dev` on the
- * same network. It changes with the machine's IP, so it can be overridden at
+ * `PACKAGED_API` is the deployed API origin. It can still be overridden at
  * runtime without rebuilding the app: open the app once with
  * `?apiBase=http://192.168.0.50:3000` in the page URL, or write the key
  * `eastgate_api_base` into localStorage. An override of `""` forces the
@@ -33,7 +32,7 @@
   'use strict';
 
   /** Where the API lives when the pages are running inside the packaged app. */
-  var PACKAGED_API = 'http://192.168.18.7:3000';
+  var PACKAGED_API = 'https://east-gate.onrender.com';
 
   var OVERRIDE_KEY = 'eastgate_api_base';
 

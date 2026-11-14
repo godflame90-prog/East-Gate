@@ -29,6 +29,10 @@ services:
         fromDatabase:
           name: east-gate-db
           property: connectionString
+      # Cross-origin callers: the Capacitor WebView (https://localhost) and the
+      # GitHub Pages mirror. Same-origin browser requests need no entry.
+      - key: ALLOWED_ORIGINS
+        value: "https://localhost,http://localhost,capacitor://localhost,https://godflame90-prog.github.io"
       - key: SESSION_SECRET
         generateValue: true
       - key: ADMIN_SEED_PASSWORD

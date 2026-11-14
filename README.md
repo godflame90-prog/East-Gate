@@ -104,28 +104,23 @@ it to the phone and open it (allow "install unknown apps" for the file manager).
 
 `js/config.js` holds `PACKAGED_API` — the API origin used only when the pages are
 running inside the app. In a browser the pages stay same-origin and nothing
-changes. It currently points at a dev machine on the LAN:
+changes. It points at the deployed API:
 
 ```
-PACKAGED_API = 'http://192.168.18.8:3000'
+PACKAGED_API = 'https://east-gate.onrender.com'
 ```
 
-Two consequences worth knowing:
+The app's origin is `https://localhost` (the WebView's own local server), which
+is a different origin from the API, so the server must list it in
+`ALLOWED_ORIGINS` or every login and API call comes back `403`. That entry lives
+in `render.yaml` for the hosted service and in `.env` for local runs.
 
-- The phone must be on the same network as that machine, and `npm run dev` must
-  be running on it. A LAN address is also reassigned by DHCP, so when the app
-  cannot reach the API, check the machine's IP first (`ip -4 addr`) and then
-  update `PACKAGED_API` or override it at runtime — see the comment at the top of
-  `js/config.js` for the `?apiBase=` / localStorage override.
-- Cleartext HTTP needs `cleartext: true` and `androidScheme: 'http'` in
-  `capacitor.config.ts`, both of which are development settings. Once the API is
-  deployed over TLS, point `PACKAGED_API` at the public origin, then set
-  `androidScheme` back to `'https'` and drop `cleartext`.
-
-The server must also accept the app's origin cross-origin — that is what the
-`ALLOWED_ORIGINS` entry in `.env` is for. The app's origin is `http://localhost`
-(the WebView's own local server), which is a different origin from the API, so
-without that entry every login and API call comes back `403`.
+To develop the app against a server on the LAN instead, set `androidScheme:
+'http'` and `cleartext: true` in `capacitor.config.ts`, and point
+`PACKAGED_API` at the machine's address. Those are development-only settings;
+keep the HTTPS defaults for release builds. Either way the origin can be
+overridden at runtime without rebuilding — see the `?apiBase=` / localStorage
+comment at the top of `js/config.js`.
 
 Dealer-uploaded gallery photos are stored as `/uploads/...` and served by the
 API, so the API client rewrites them to absolute URLs on the way in and back to
