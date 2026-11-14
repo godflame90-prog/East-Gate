@@ -13,4 +13,4 @@ Disallow: /verify-email.html
 Disallow: /api/
 Disallow: /uploads/
 
-Sitemap: https://www.eastgate.ng/sitemap.xml
+Sitemap: https://east-gate.onrender.com/sitemap.xml
