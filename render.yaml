@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: east-gate
+    runtime: node
+    plan: free
+    branch: master
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /robots.txt
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      # Neon Postgres connection string, e.g.
+      # postgresql://user:pass@ep-xxx.aws.neon.tech/neondb?sslmode=require
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_SEED_PASSWORD
+        sync: false
+      # Set to the public Render URL once the first deploy is live, so emailed
+      # reset/verify links (and canonical/OG/sitemap URLs) resolve.
+      - key: APP_BASE_URL
+        sync: false
