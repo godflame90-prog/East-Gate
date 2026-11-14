@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">East Gate</string>
+    <string name="title_activity_main">East Gate</string>
+    <string name="package_name">ng.eastgate.app</string>
+    <string name="custom_url_scheme">ng.eastgate.app</string>
+</resources>

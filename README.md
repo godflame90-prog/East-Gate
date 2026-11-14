@@ -84,6 +84,59 @@ Everyday commands:
 `npm run db:push` still exists for throwaway databases, but it bypasses the
 history, so prefer `db:migrate`/`db:deploy` for anything you keep.
 
+## Mobile app (Android)
+
+The site ships as a Capacitor app: a native Android shell around the same HTML,
+CSS and JS the browser gets. `npm run app:web` copies the pages into `www/`,
+Capacitor embeds them in the APK, and the app then talks to the API over the
+network exactly as the site does.
+
+```bash
+npm run app:sync          # rebuild www/ and copy it into the android project
+npm run app:apk           # app:sync + ./android/gradlew assembleDebug
+```
+
+The APK lands in `android/app/build/outputs/apk/debug/app-debug.apk`. Install it
+with `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`, or copy
+it to the phone and open it (allow "install unknown apps" for the file manager).
+
+### Pointing the app at a server
+
+`js/config.js` holds `PACKAGED_API` — the API origin used only when the pages are
+running inside the app. In a browser the pages stay same-origin and nothing
+changes. It currently points at a dev machine on the LAN:
+
+```
+PACKAGED_API = 'http://192.168.18.8:3000'
+```
+
+Two consequences worth knowing:
+
+- The phone must be on the same network as that machine, and `npm run dev` must
+  be running on it. A LAN address is also reassigned by DHCP, so when the app
+  cannot reach the API, check the machine's IP first (`ip -4 addr`) and then
+  update `PACKAGED_API` or override it at runtime — see the comment at the top of
+  `js/config.js` for the `?apiBase=` / localStorage override.
+- Cleartext HTTP needs `cleartext: true` and `androidScheme: 'http'` in
+  `capacitor.config.ts`, both of which are development settings. Once the API is
+  deployed over TLS, point `PACKAGED_API` at the public origin, then set
+  `androidScheme` back to `'https'` and drop `cleartext`.
+
+The server must also accept the app's origin cross-origin — that is what the
+`ALLOWED_ORIGINS` entry in `.env` is for. The app's origin is `http://localhost`
+(the WebView's own local server), which is a different origin from the API, so
+without that entry every login and API call comes back `403`.
+
+Dealer-uploaded gallery photos are stored as `/uploads/...` and served by the
+API, so the API client rewrites them to absolute URLs on the way in and back to
+`/uploads/...` on the way out (`js/config.js`). That keeps the database free of
+whatever LAN address a phone happened to reach the server on.
+
+Building the APK needs a JDK 17–21 and the Android SDK (`platforms;android-36`,
+`build-tools;36.0.0`, `platform-tools`); point `android/local.properties` at the
+SDK and `JAVA_HOME` at the JDK. `npm run app:open` opens the project in Android
+Studio instead, which brings its own toolchain.
+
 ## Production
 
 Build and start:

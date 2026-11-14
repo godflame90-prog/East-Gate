@@ -10,6 +10,10 @@
     "typecheck": "tsc --project tsconfig.check.json && node scripts/check-js.mjs",
     "check:js": "node scripts/check-js.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "app:web": "node scripts/build-web.mjs",
+    "app:sync": "npm run app:web && cap sync",
+    "app:apk": "npm run app:sync && ./android/gradlew -p android assembleDebug",
+    "app:open": "npm run app:sync && cap open android",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -22,6 +26,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
     "@prisma/client": "^6.19.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
@@ -31,6 +37,7 @@
     "prisma": "^6.19.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.3.0",

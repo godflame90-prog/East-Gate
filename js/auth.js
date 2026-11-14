@@ -46,6 +46,13 @@
     window.localStorage.removeItem(SESSION_KEY);
   }
 
+  function endpointUrl(path) {
+    if (window.EastGateConfig && typeof window.EastGateConfig.apiUrl === 'function') {
+      return window.EastGateConfig.apiUrl(path);
+    }
+    return path;
+  }
+
   function request(endpoint, options) {
     options = options || {};
     options.headers = options.headers || {};
@@ -54,13 +61,16 @@
     var token = window.EastGateAuth.getToken();
     if (token) options.headers['Authorization'] = 'Bearer ' + token;
 
-    return fetch(endpoint, options).then(function (res) {
+    return fetch(endpointUrl(endpoint), options).then(function (res) {
       return res
         .json()
         .catch(function () {
           return { success: false, error: 'Unexpected server response.' };
         })
         .then(function (body) {
+          if (window.EastGateConfig && typeof window.EastGateConfig.absUrls === 'function') {
+            body = window.EastGateConfig.absUrls(body || {});
+          }
           return { status: res.status, ok: res.ok, body: body || {} };
         });
     });

@@ -1,0 +1,59 @@
+/* ============================================================
+   EAST GATE APP — native shell adjustments
+   ============================================================
+   Loaded only by js/config.js when the pages are running inside the packaged
+   Capacitor app, on top of style.css/portals.css. The browser gets none of
+   this: there is no status bar to avoid there, and the extra padding would
+   just push the site's fixed header down off its designed position.
+
+   Android 15+ draws apps edge to edge (targetSdk 35+ cannot opt out), so the
+   WebView extends behind the status bar and the gesture bar. The two fixed
+   elements anchored to the top of the viewport — the scroll progress bar and
+   the nav — would otherwise sit underneath the clock, and the portals, which
+   are ordinary flow layouts, would start their first row behind it too.
+
+   env(safe-area-inset-*) resolves to the real system bar heights here, which
+   is why every page carries `viewport-fit=cover` in its viewport meta.
+   ============================================================ */
+
+/* Scroll progress: its 2px line belongs under the status bar, not in it. */
+.eg-native .progress {
+  top: env(safe-area-inset-top);
+}
+
+/* Navbar: grow it by the inset so the logo and links clear the clock. */
+.eg-native .nav {
+  padding-top: calc(6px + env(safe-area-inset-top));
+}
+
+/* Full-screen mobile menu: keeps its first link clear of the status bar. */
+.eg-native .menu {
+  padding-top: calc(120px + env(safe-area-inset-top));
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+
+/* Portals scroll as a whole, so inset the scroll container rather than the
+   sticky pieces inside it. */
+.eg-native .portal-wrap {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Bottom-anchored furniture must clear the gesture bar. */
+.eg-native .floating-whatsapp {
+  bottom: calc(28px + env(safe-area-inset-bottom));
+}
+
+.eg-native .east-toast {
+  bottom: calc(30px + env(safe-area-inset-bottom));
+}
+
+.eg-native .admin-badge {
+  bottom: calc(26px + env(safe-area-inset-bottom));
+}
+
+/* The lightbox covers the screen; keep its close button reachable. */
+.eg-native .gallery-lightbox {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}

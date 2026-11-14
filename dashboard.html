@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Customer Dashboard — East Gate Real-Estate</title>
   <link rel="icon" type="image/png" href="images/EastGate-core.png">
 
@@ -215,6 +215,7 @@
 
 </div>
 
+<script src="js/config.js"></script>
 <script src="js/store.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/api.js"></script>
@@ -429,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function maybeShowVerifyBanner() {
     if (!banner || !window.EastGateAuth || !window.EastGateAuth.isAuthenticated()) return;
 
-    fetch('/api/auth/me', {
+    fetch(window.EastGateConfig.apiUrl('/api/auth/me'), {
       headers: { 'Authorization': 'Bearer ' + window.EastGateAuth.getToken() }
     })
       .then(function (res) { return res.json().catch(function () { return {}; }); })

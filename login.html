@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sign In — East Gate Platform</title>
   <link rel="icon" type="image/png" href="images/EastGate-core.png">
 
@@ -120,6 +120,7 @@
     </div>
   </main>
 
+  <script src="js/config.js"></script>
   <script src="js/store.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
@@ -237,7 +238,7 @@
         demoPanel.hidden = false;
       }
 
-      fetch('/api/auth/demo-accounts')
+      fetch(window.EastGateConfig.apiUrl('/api/auth/demo-accounts'))
         .then(function (res) { return res.json(); })
         .then(function (body) {
           renderDemoAccounts(body && body.data && body.data.enabled ? body.data.accounts : []);

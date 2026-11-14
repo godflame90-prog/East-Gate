@@ -29,7 +29,9 @@ import { promisify } from 'util';
 const run = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const jsDir = path.join(projectRoot, 'js');
-const SKIP_DIRS = new Set(['node_modules', '.git', 'dist']);
+// www/ and android/ hold generated copies of the pages (the packaged app's web
+// assets), so checking them would only re-parse the same markup twice.
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'www', 'android']);
 
 async function collectFiles(dir, extension) {
   const entries = await readdir(dir, { withFileTypes: true });

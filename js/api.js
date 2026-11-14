@@ -6,7 +6,19 @@
 (function (window) {
   'use strict';
 
-  var API_BASE = ''; // Same origin or http://localhost:3000
+  function endpointUrl(path) {
+    if (window.EastGateConfig && typeof window.EastGateConfig.apiUrl === 'function') {
+      return window.EastGateConfig.apiUrl(path);
+    }
+    return path;
+  }
+
+  function abs(payload) {
+    if (window.EastGateConfig && typeof window.EastGateConfig.absUrls === 'function') {
+      return window.EastGateConfig.absUrls(payload);
+    }
+    return payload;
+  }
 
   async function apiFetch(endpoint, options) {
     options = options || {};
@@ -19,11 +31,12 @@
     }
 
     try {
-      var res = await fetch(API_BASE + endpoint, options);
+      var res = await fetch(endpointUrl(endpoint), options);
       if (!res.ok) {
         throw new Error('HTTP ' + res.status + ' on ' + endpoint);
       }
-      return await res.json();
+      var data = await res.json();
+      return abs(data);
     } catch (err) {
       console.warn('API fetch failed, falling back to local store engine:', err.message);
       return null;
@@ -66,10 +79,17 @@
 
     var res;
     try {
-      res = await fetch(API_BASE + endpoint, {
+      res = await fetch(endpointUrl(endpoint), {
         method: method || 'POST',
         headers: headers,
-        body: JSON.stringify(payload)
+        // Gallery URLs arrive absolute so the app can render them, and go back
+        // to /uploads/... on the wire so the database never records the
+        // address the phone reached the server on.
+        body: JSON.stringify(
+          window.EastGateConfig && window.EastGateConfig.relUrls
+            ? window.EastGateConfig.relUrls(payload)
+            : payload
+        )
       });
     } catch (err) {
       return { offline: true };
@@ -77,7 +97,7 @@
 
     var body = {};
     try {
-      body = await res.json();
+      body = abs(await res.json());
     } catch (err) {
       body = {};
     }
@@ -459,7 +479,7 @@
 
       var res;
       try {
-        res = await fetch(API_BASE + '/api/uploads/property-images', {
+        res = await fetch(endpointUrl('/api/uploads/property-images'), {
           method: 'POST',
           headers: headers,
           body: form
@@ -470,7 +490,7 @@
 
       var body = {};
       try {
-        body = await res.json();
+        body = abs(await res.json());
       } catch (err) {
         body = {};
       }
